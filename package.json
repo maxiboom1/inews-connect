@@ -1,0 +1,32 @@
+{
+  "name": "inews-connect",
+  "version": "1.0.2",
+  "description": "Connects to an Avid iNews server over FTP",
+  "license": "MIT",
+  "author": {
+    "name": "Alex Samih-Zade",
+    "email": "galutziogen@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.org/johnvmt/node-inews.git"
+  },
+  "type": "module",
+  "main": "app.js",
+  "module": "src/InewsClient.js",
+  "dependencies": {
+    "bluebird": "^3.7.2",
+    "camelcase": "^6.2.0",
+    "express": "^4.18.2",
+    "ftp": "^0.3.10",
+    "he": "^1.2.0",
+    "htmlparser2": "^6.1.0",
+    "unescape": "^1.0.1"
+  },
+  "scripts": {
+    "start": "nodemon app.js"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

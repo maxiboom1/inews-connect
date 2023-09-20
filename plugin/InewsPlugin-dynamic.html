@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+ <meta charset="utf-8" />
+ <title>iNEWS HTML5 Browser Plugin Sample</title>
+ <script type="text/javascript">
+
+var itemID;
+
+function doRoute(){
+document.getElementById("menu1").innerHTML = "";
+var x = document.getElementById("group").value;
+var labelText;
+if (x == "1"){
+	var values = ["סארייפ", "סופר שם", "טיקר"];
+	labelText = "Options for scene-1: ";
+}
+if (x == "2"){
+	var values = ["tiker", "super", "stripe", "rabbit"];
+	labelText = "Options for scene-2: ";
+
+}
+
+ var select = document.createElement("select");
+ select.name = "subMenu";
+ select.id = "subMenu"
+
+ for (const val of values)
+ {
+	 var option = document.createElement("option");
+	 option.value = val;
+	 option.text = val.charAt(0).toUpperCase() + val.slice(1);
+	 select.appendChild(option);
+ }
+
+ var label = document.createElement("label");
+ label.innerHTML = labelText;
+ label.htmlFor = "pets";
+
+ document.getElementById("menu1").appendChild(label).appendChild(select);
+}
+
+ function getNewsroomOrigin() {
+ var qs = document.location.search.split("+").join(" ");
+ var params = {};
+ var regex = /[?&]?([^=]+)=([^&]*)/g;
+ while (tokens = regex.exec(qs)) {
+ params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
+ }
+ return params['origin'];
+ }
+ 
+ function mosMsgFromPlugIn(message) {
+ window.parent.postMessage(message, getNewsroomOrigin());
+ }
+ 
+function mosMsgFromHost(event) {
+ 
+var message = event.data;
+console.log(message);
+
+var payload1 = message.slice(message.indexOf("itemSlug>")+9,message.indexOf("</itemSlug>"));
+var name1 = message.slice(message.indexOf("mosAbstract>")+12,message.indexOf("</mosAbstract>"));
+var subMenu1 = message.slice(message.indexOf("subMenu>")+8,message.indexOf("</subMenu>"));
+var group1 = message.slice(message.indexOf("group>")+6,message.indexOf("</group>"));
+var itemId = message.slice(message.indexOf("itemId>")+7,message.indexOf("</itemId>"));
+
+document.getElementById("group").value = group1;
+if (message.indexOf('<ncsItemRequest>') === -1){doRoute();}
+document.getElementById("subMenu").value = subMenu1;
+document.getElementById("payload").value = payload1;
+document.getElementById("name").value = name1;
+
+ var parser, xmlDoc;
+ parser = new DOMParser();
+ xmlDoc = parser.parseFromString(message,"text/xml");
+ 
+ if (event.origin != getNewsroomOrigin()) {
+ return;
+ }
+ 
+ if (message.indexOf('<ncsAck>') === -1){
+ var reply = "<mos><ncsAck><status>ACK</status></ncsAck></mos>";
+ console.log('plugin got: ' + message );
+ event.source.postMessage(reply, event.origin);
+ }
+ if (message.indexOf('<ncsItemRequest>') === -1){
+	//var testReply = document.getElementById("mosItem").textContent;
+	event.source.postMessage(finalMsg(itemId), event.origin);
+
+ }
+ }
+
+ // Register the Event Handler - Cross Browser 
+ if (window.addEventListener) {
+ window.addEventListener('message', mosMsgFromHost, false);
+ } else if (window.attachEvent) {
+ window.attachEvent('onmessage', mosMsgFromHost, false);
+ }
+ // create a sample for MOS item
+ 
+ function finalMsg(itemId){
+
+	var group = document.getElementById("group").value;
+	var subMenu = document.getElementById("subMenu").value;
+	var name = document.getElementById("name").value;
+	var payload = document.getElementById("payload").value;
+	var finalMsg = "<mos><ncsItem><item><itemID>" + itemId + "</itemID><itemSlug>" + payload + "</itemSlug><objID>12345</objID><mosID>iNEWSMOS1</mosID><mosItemBrowserProgID>alex</mosItemBrowserProgID>" +
+				   "<mosItemEditorProgID>alexE</mosItemEditorProgID><mosAbstract>" + name + "</mosAbstract><group>" + group + "</group><subMenu>" + subMenu + "</subMenu></item></ncsItem></mos>";	 
+		return finalMsg
+ }
+ function drag(ev) {
+	ev.dataTransfer.setData("text", finalMsg("0"));
+}
+</script>
+<style>
+ body {background-color:rgb(0, 0, 255)}
+ div {color:Black}
+ input.mosInput {
+ width:200px; height:25px;
+}
+</style>
+</head>
+<body height="100%" >
+<table valign="top">
+<tr>
+
+<th align="left" width="500" valign="top">
+	<label for="group">Choose a graphic group:</label>
+	<select onchange="doRoute()" name="group" id="group">
+		<option value="1">סצנה-1</option>
+		<option value="2">סצנה-2</option>
+		
+	  </select>
+	  <br><br>	
+<div style="width:500px;height:50px;overflow:auto;backgroundcolor:gray" id="menu1" ></div>
+
+<div style="width:500px;height:50px;overflow:auto;backgroundcolor:gray" >
+	<label for="name">Sets name that user see in INEWS:</label><br>
+	<input type="text" id="name" ><br>
+</div>
+
+<div style="width:500px;height:50px;overflow:auto;backgroundcolor:gray" >
+	<label for="name">Sets payload data:</label><br>
+	<input type="text" id="payload" ><br>
+</div>
+
+<!-- <div style="width:500px;height:200px;overflow:auto;backgroundcolor:gray" contenteditable="true" id="mosItem" ></div>
+<p><div contenteditable="false" style="color:#FFFFFF" id="MOSMessage" >MOS item: <i>(Select all of the text to Drag&Drop to iNEWS)</i></div>
+<div style="width:500px;height:200px;overflow:auto;backgroundcolor:gray" contenteditable="true" id="mosItem" draggable="true" ondragstart="drag(event)"></div> -->
+<br><br><br>
+<img id="drag1" src="drag.jpg" draggable="true" ondragstart="drag(event)" alt="Drag Me!" width="30" height="30">
+
+</th>
+</tr>
+</table>
+</body>
+</html>
+
+
+
