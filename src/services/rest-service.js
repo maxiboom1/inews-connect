@@ -1,11 +1,13 @@
-import { conn, activeLineup, lineupStore } from "./inews-service.js";
+import conn from "../dal/inews-ftp.js";
+import lineupStore from "../dal/local-store.js";
 import lineupExists from "../utilities/lineup-validator.js";
 import logger from "../utilities/logger.js";
 
 // GET: localhost:3000/api/watcher
-async function getInewsLineupFromStore(){ 
-    logger(`External api command: set active watch to ${activeLineup} - succeed`);
-    return lineupStore; 
+async function getInewsLineupFromStore(lineup){ 
+    if(lineup === "active") return lineupStore.getLineup(); 
+    logger(`External api command: Get ${lineupStore.getActiveLineup()} - succeed`);
+    return lineupStore.getLineup(lineup); 
 }
 
 // GET: localhost:3000/api/services/get-dir/:dirName
@@ -22,17 +24,17 @@ async function getAvailableLineups(path){
 
 // POST: localhost:3000/api/services/set-watcher/show.alex.test1
 async function setActiveLineup(lineupName){
+    
     const valid = await lineupExists(lineupName);
     
     if(valid){
         logger(`External api command: set active watch to ${lineupName} - succeed`);
-        lineupStore = {};
-        lineupStore[lineupName] = [];
-        activeLineup = lineupName;
-        return `Done! Active watch status: ${activeLineup}`;
+        lineupStore.setActiveLineup(lineupName);
+
+        return `Done! Active watch status: ${lineupStore.getActiveLineup()}`;
     } else {
         logger(`External api command: set active watch to ${lineupName} - failed: lineup n/a`);
-        return `Error! Wrong lineup name "${lineupName}". Active watch status: ${activeLineup}`;
+        return `Error! Wrong lineup name "${lineupName}". Active watch status: ${lineupStore.getActiveLineup()}`;
     }
 
 }

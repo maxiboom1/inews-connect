@@ -1,77 +1,54 @@
-import Inews from '../inews-plugin/InewsClient.js';
+import conn from "../dal/inews-ftp.js"
+import appConfig from "../utilities/app-config.js";
+import lineupStore from "../dal/local-store.js"
 import hebDecoder from "../utilities/hebrew-decoder.js";
 import lineupExists from "../utilities/lineup-validator.js";
 import logger from "../utilities/logger.js";
 
-// Globals
-export let conn = {};
-export let lineupStore = {};
-export let activeLineup = "";
-let configData = {};
 
-async function startMainProcess(config) {
-    logger("Inews connect 1.0.2");
-    // Copy config data to the global variable
-    configData = { ...config };
+async function startMainProcess() {
     
-    // Create Inews object
-    conn = new Inews({ ...config.conn });
-    logger("Loaded config.json successfully");
-
-    const valid = await lineupExists(configData.defaultLineup);
+    const valid = await lineupExists();
     if(valid) {
-        activeLineup = configData.defaultLineup;
-        lineupStore[activeLineup] = [];
+        const activeLineup = lineupStore.getActiveLineup();
+        lineupStore.initLineup(activeLineup);
         logger(`Default lineup ${activeLineup} is valid`);
 
     } else {
         logger(`Default lineup ${activeLineup} is invalid`);
-        activeLineup = null;
     }
     logger(`Starting main process`);
-    // Start main application process
     lineupsIterator();
 }
 
-async function lineupsIterator(loopCounter = 1) {
-    
-    console.time(`INFO: ${loopCounter} cycle! Lineup ${activeLineup} Processing`);
-
-    await processLineup(activeLineup);
-
-    console.timeEnd(`INFO: ${loopCounter} cycle! Lineup ${activeLineup} Processing`);
-
-    logger("-------------------");
-    
-    setTimeout(()=>{lineupsIterator(++loopCounter);}, configData.pullInterval);
-    
+async function lineupsIterator() {
+    await processLineup(lineupStore.getActiveLineup()); 
+    setTimeout(lineupsIterator, appConfig.pullInterval);
 }
 
 async function processLineup(lineupName) {
     if(lineupName === null){ 
-        logger(`Error! Wrong lineup name "${configData.defaultLineup}"\nCheck defaultLineup setting in config.json`, true);
-        return;
-        }
+        logger(`Error! "${appConfig.defaultLineup}" N/A`, true); 
+        return; 
+    }
+
     const lineupList = await conn.list(lineupName);
-    
+    const currentLineup = lineupStore.getLineup(lineupName);
     for(let i = 0; i < lineupList.length; i++) {
+        
         const decodedStoryName = hebDecoder(lineupList[i].storyName);
-        const shouldUpdate = createCheckCondition(lineupName, lineupList, i, decodedStoryName);
+        const shouldUpdate = createCheckCondition(currentLineup, lineupList, i, decodedStoryName);
         if (shouldUpdate) { 
             logger(`Updating story: ${decodedStoryName}`);  
             const story = await conn.story(lineupName, lineupList[i].fileName);
             const lineupInfo = createLineupInfo(decodedStoryName, i, lineupList, story);
-            
-            // Update the lineupStore with the new lineupInfo
-            lineupStore[lineupName][i] = { ...lineupInfo };
+            lineupStore.saveStory(lineupName, i, lineupInfo);
         }
-
-        // Check if items have been deleted
-        if (lineupList.length < lineupStore[lineupName].length) {
-            const deletedItems = lineupStore[lineupName].length - lineupList.length;
-            lineupStore[lineupName].length = lineupList.length;
+        
+        if (lineupList.length < currentLineup.length) {  // Check if items have been deleted
+            const deletedItems = currentLineup.length - lineupList.length;
+            currentLineup.length = lineupList.length;
             logger(`INFO: ${deletedItems} Items has been deleted`);
-
         }
     } 
 }
@@ -90,13 +67,13 @@ function createLineupInfo(decodedStoryName, i, lineupList, story){
     };
 }
 
-function createCheckCondition(lineupName, lineupList, i, decodedStoryName) {
+function createCheckCondition(currentLineup, lineupList, i, decodedStoryName) {
     const result =
       lineupList[i].fileType === "STORY" && (
-        !lineupStore[lineupName][i] || // If this arr cell is undefined (usually in first gap)
-        new Date(lineupStore[lineupName][i].modified).getTime() !== new Date(lineupList[i].modified).getTime() || // If modified time are different
-        lineupStore[lineupName][i].storyName !== decodedStoryName || // if storyName are different
-        lineupStore[lineupName][i].index !== i // If index (position in lineup) are different
+        !currentLineup[i] || // If this arr cell is undefined (usually in first gap)
+        new Date(currentLineup[i].modified).getTime() !== new Date(lineupList[i].modified).getTime() || // If modified time are different
+        currentLineup[i].storyName !== decodedStoryName || // if storyName are different
+        currentLineup[i].index !== i // If index (position in lineup) are different
       );
     return result;
 }

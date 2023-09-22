@@ -2,8 +2,9 @@ import express from "express";
 import restService from "../services/rest-service.js";
 const router = express.Router();
 
-router.get('/watcher', async (req, res) => {
-  const responseData = await restService.getInewsLineupFromStore();
+router.get('/watcher/:lineup', async (req, res) => {
+  const lineup = req.params.lineup;
+  const responseData = await restService.getInewsLineupFromStore(lineup);
   res.json(responseData);
 });
 
