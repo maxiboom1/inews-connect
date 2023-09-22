@@ -10,6 +10,7 @@ Releases:
     * Separated App config that loads config.json
     * No globals anymore
     * Cleanups
+    
 1.0.2
 - Added utilities/lineup-validator.js script that fix the bug related to inews ftp plugin, 
 that if user try to access path that doesn"t exists, its crush the procces.
