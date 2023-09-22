@@ -8,8 +8,6 @@ app.use("/api", routes);
 // Start the Express server
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
-
     console.log(`REST API Service running on port ${port}`);
     dataService.startMainProcess();
-
 });

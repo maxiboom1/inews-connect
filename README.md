@@ -4,6 +4,12 @@ TODO: Create recursion path validator (Yes, it will be great!)
 TODO: Try to understand plugin
 Releases:
 
+1.1
+- Layered architecture:
+    * Dal layer - inews-ftp and local-store class with datastore methods (including activeLineup).
+    * Separated App config that loads config.json
+    * No globals anymore
+    * Cleanups
 1.0.2
 - Added utilities/lineup-validator.js script that fix the bug related to inews ftp plugin, 
 that if user try to access path that doesn"t exists, its crush the procces.

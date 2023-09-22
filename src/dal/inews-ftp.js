@@ -2,8 +2,7 @@ import Inews from '../inews-plugin/InewsClient.js';
 import appConfig from '../utilities/app-config.js';
 
 async function Conn(){
-    const x = new Inews({ ...appConfig.conn });
-    return x;
+    return new Inews({ ...appConfig.conn });;
 }
 
 const conn = await Conn();
