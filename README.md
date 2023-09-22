@@ -4,6 +4,10 @@ TODO: Create recursion path validator (Yes, it will be great!)
 TODO: Try to understand plugin
 Releases:
 
+1.1.1
+- Fixed lineup validation
+
+
 1.1
 - Layered architecture:
     * Dal layer - inews-ftp and local-store class with datastore methods (including activeLineup).

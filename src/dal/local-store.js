@@ -6,7 +6,7 @@ class LineupStore {
         this.activeLineup = appConfig.defaultLineup;
     }
     
-    initLineup(lineup){
+    initLineup(lineup = this.activeLineup){
         this.lineupStore[lineup] = [];
     }
 

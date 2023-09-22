@@ -24,19 +24,9 @@ async function getAvailableLineups(path){
 
 // POST: localhost:3000/api/services/set-watcher/show.alex.test1
 async function setActiveLineup(lineupName){
-    
-    const valid = await lineupExists(lineupName);
-    
-    if(valid){
         logger(`External api command: set active watch to ${lineupName} - succeed`);
         lineupStore.setActiveLineup(lineupName);
-
         return `Done! Active watch status: ${lineupStore.getActiveLineup()}`;
-    } else {
-        logger(`External api command: set active watch to ${lineupName} - failed: lineup n/a`);
-        return `Error! Wrong lineup name "${lineupName}". Active watch status: ${lineupStore.getActiveLineup()}`;
-    }
-
 }
 
 export default {

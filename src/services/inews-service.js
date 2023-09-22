@@ -7,30 +7,22 @@ import logger from "../utilities/logger.js";
 
 
 async function startMainProcess() {
-    
-    const valid = await lineupExists();
-    if(valid) {
-        const activeLineup = lineupStore.getActiveLineup();
-        lineupStore.initLineup(activeLineup);
-        logger(`Default lineup ${activeLineup} is valid`);
-
-    } else {
-        logger(`Default lineup ${activeLineup} is invalid`);
-    }
-    logger(`Starting main process`);
+    lineupStore.initLineup();
     lineupsIterator();
 }
 
 async function lineupsIterator() {
-    await processLineup(lineupStore.getActiveLineup()); 
+    const valid = await lineupExists();
+    if(valid){
+        await processLineup(lineupStore.getActiveLineup()); 
+    } else {
+        logger(`Error! lineup "${lineupStore.getActiveLineup()}" N/A`, true); 
+    }
+    
     setTimeout(lineupsIterator, appConfig.pullInterval);
 }
 
 async function processLineup(lineupName) {
-    if(lineupName === null){ 
-        logger(`Error! "${appConfig.defaultLineup}" N/A`, true); 
-        return; 
-    }
 
     const lineupList = await conn.list(lineupName);
     const currentLineup = lineupStore.getLineup(lineupName);
@@ -41,6 +33,8 @@ async function processLineup(lineupName) {
         if (shouldUpdate) { 
             logger(`Updating story: ${decodedStoryName}`);  
             const story = await conn.story(lineupName, lineupList[i].fileName);
+            //console.log(story);
+
             const lineupInfo = createLineupInfo(decodedStoryName, i, lineupList, story);
             lineupStore.saveStory(lineupName, i, lineupInfo);
         }
@@ -68,13 +62,17 @@ function createLineupInfo(decodedStoryName, i, lineupList, story){
 }
 
 function createCheckCondition(currentLineup, lineupList, i, decodedStoryName) {
+    
     const result =
-      lineupList[i].fileType === "STORY" && (
+        lineupList[i].fileType === "STORY" && (
         !currentLineup[i] || // If this arr cell is undefined (usually in first gap)
         new Date(currentLineup[i].modified).getTime() !== new Date(lineupList[i].modified).getTime() || // If modified time are different
         currentLineup[i].storyName !== decodedStoryName || // if storyName are different
         currentLineup[i].index !== i // If index (position in lineup) are different
       );
+    if(currentLineup[i]){
+        console.log(new Date(currentLineup[i].modified).getTime(), new Date(lineupList[i].modified).getTime());
+    }
     return result;
 }
 
