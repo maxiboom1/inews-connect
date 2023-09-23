@@ -66,16 +66,16 @@ class InewsClient extends EventEmitter {
 
 	list(directory) {
 		const requestPath = ['list', directory];
-
-		if(this._pendingRequestConnectionClients.has(requestPath))
+		console.log("debug", directory)  // ALEX
+		if(this._pendingRequestConnectionClients.has(requestPath)){
 			return this._pendingRequestConnectionClients.get(requestPath).list(directory);
+		}
 		else {
+			console.log("debug2")  // ALEX
 			const connectionClient = this._optimalConnectionClient(directory);
 			this._pendingRequestConnectionClients.set(requestPath, connectionClient);
 
-			const ftpDirectory = directory === ""
-				? "/"
-				: directory;
+			const ftpDirectory = directory === "" ? "/" : directory;
 
 			return connectionClient.list(ftpDirectory).finally(() => {
 				this._pendingRequestConnectionClients.delete(requestPath);

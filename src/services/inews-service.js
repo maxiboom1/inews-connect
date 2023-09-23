@@ -25,6 +25,7 @@ async function lineupsIterator() {
 async function processLineup(lineupName) {
 
     const lineupList = await conn.list(lineupName);
+    //console.log(lineupList);
     const currentLineup = lineupStore.getLineup(lineupName);
     for(let i = 0; i < lineupList.length; i++) {
         
@@ -70,9 +71,10 @@ function createCheckCondition(currentLineup, lineupList, i, decodedStoryName) {
         currentLineup[i].storyName !== decodedStoryName || // if storyName are different
         currentLineup[i].index !== i // If index (position in lineup) are different
       );
-    if(currentLineup[i]){
-        console.log(new Date(currentLineup[i].modified).getTime(), new Date(lineupList[i].modified).getTime());
-    }
+    // if(currentLineup[i]){
+    //     console.log(`LINEUP TIME: ${new Date(currentLineup[i].modified).getTime()}(${currentLineup[i].modified}),\nSTORED TIME: ${new Date(lineupList[i].modified).getTime()}(${lineupList[i].modified})`
+    //     );
+    // }
     return result;
 }
 
