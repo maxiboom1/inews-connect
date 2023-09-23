@@ -264,7 +264,6 @@ class InewsConnectionClient extends EventEmitter {
 
 	list(directory) {
 		const promisePath = ['list', directory];
-		console.log("debug333")  // ALEX
 
 		const delay = (ms) => {
 			return new Promise((resolve) => {

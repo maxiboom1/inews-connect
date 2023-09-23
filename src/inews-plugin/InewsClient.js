@@ -66,12 +66,10 @@ class InewsClient extends EventEmitter {
 
 	list(directory) {
 		const requestPath = ['list', directory];
-		console.log("debug", directory)  // ALEX
 		if(this._pendingRequestConnectionClients.has(requestPath)){
 			return this._pendingRequestConnectionClients.get(requestPath).list(directory);
 		}
 		else {
-			console.log("debug2")  // ALEX
 			const connectionClient = this._optimalConnectionClient(directory);
 			this._pendingRequestConnectionClients.set(requestPath, connectionClient);
 
@@ -85,7 +83,6 @@ class InewsClient extends EventEmitter {
 
 	story(directory, file) {
 		const requestPath = ['story', directory, file];
-
 		if(this._pendingRequestConnectionClients.has(requestPath))
 			return this._pendingRequestConnectionClients.get(requestPath).story(directory, file);
 		else {
@@ -228,6 +225,7 @@ class InewsClient extends EventEmitter {
 	static get FILETYPES() {
 		return InewsConnectionClient.FILETYPES;
 	}
+
 }
 
 export default InewsClient

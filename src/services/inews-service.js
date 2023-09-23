@@ -17,25 +17,23 @@ async function lineupsIterator() {
         await processLineup(lineupStore.getActiveLineup()); 
     } else {
         logger(`Error! lineup "${lineupStore.getActiveLineup()}" N/A`, true); 
-    }
-    
+    } 
     setTimeout(lineupsIterator, appConfig.pullInterval);
 }
 
 async function processLineup(lineupName) {
-
+    
     const lineupList = await conn.list(lineupName);
-    //console.log(lineupList);
     const currentLineup = lineupStore.getLineup(lineupName);
     for(let i = 0; i < lineupList.length; i++) {
         
+        // THE KEY FOR TROUBLE - WATCH LOCATOR !!!
+        console.log(lineupList[i].locator);
         const decodedStoryName = hebDecoder(lineupList[i].storyName);
         const shouldUpdate = createCheckCondition(currentLineup, lineupList, i, decodedStoryName);
         if (shouldUpdate) { 
             logger(`Updating story: ${decodedStoryName}`);  
             const story = await conn.story(lineupName, lineupList[i].fileName);
-            //console.log(story);
-
             const lineupInfo = createLineupInfo(decodedStoryName, i, lineupList, story);
             lineupStore.saveStory(lineupName, i, lineupInfo);
         }
@@ -63,7 +61,6 @@ function createLineupInfo(decodedStoryName, i, lineupList, story){
 }
 
 function createCheckCondition(currentLineup, lineupList, i, decodedStoryName) {
-    
     const result =
         lineupList[i].fileType === "STORY" && (
         !currentLineup[i] || // If this arr cell is undefined (usually in first gap)
@@ -71,10 +68,7 @@ function createCheckCondition(currentLineup, lineupList, i, decodedStoryName) {
         currentLineup[i].storyName !== decodedStoryName || // if storyName are different
         currentLineup[i].index !== i // If index (position in lineup) are different
       );
-    // if(currentLineup[i]){
-    //     console.log(`LINEUP TIME: ${new Date(currentLineup[i].modified).getTime()}(${currentLineup[i].modified}),\nSTORED TIME: ${new Date(lineupList[i].modified).getTime()}(${lineupList[i].modified})`
-    //     );
-    // }
+
     return result;
 }
 
@@ -82,3 +76,34 @@ export default {
     startMainProcess
 };
 
+
+
+
+
+
+async function test(inewsQueue){
+   
+    conn.list(inewsQueue)
+        .then(listItems => {
+            listItems.forEach((listItem) => {
+                if(listItem.fileType === 'STORY') {
+                    conn.story(inewsQueue, listItem.fileName)
+                        .then(story => {
+                            //console.log(conn._test(listItem.fileName));
+                            
+                            if(conn.load === 0){
+                                //console.log("Finished");
+                                
+                                setTimeout(lineupsIterator, 5000)
+                            
+                            }
+                            
+                        })
+                        .catch(error => {
+                            console.error("ERROR", error);
+                        });
+                }
+            });
+        });    
+
+}
