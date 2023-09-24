@@ -5,7 +5,6 @@ import hebDecoder from "../utilities/hebrew-decoder.js";
 import lineupExists from "../utilities/lineup-validator.js";
 import logger from "../utilities/logger.js";
 
-
 async function startMainProcess() {
     lineupStore.initLineup();
     lineupsIterator();
@@ -24,13 +23,11 @@ async function lineupsIterator() {
 async function processLineup(lineupName) {
     
     const lineupList = await conn.list(lineupName);
-    const currentLineup = lineupStore.getLineup(lineupName);
+    const cachedLineup = lineupStore.getLineup(lineupName);
     for(let i = 0; i < lineupList.length; i++) {
         
-        // THE KEY FOR TROUBLE - WATCH LOCATOR !!!
-        console.log(lineupList[i].locator);
         const decodedStoryName = hebDecoder(lineupList[i].storyName);
-        const shouldUpdate = createCheckCondition(currentLineup, lineupList, i, decodedStoryName);
+        const shouldUpdate = createCheckCondition(cachedLineup[i], lineupList[i], i);
         if (shouldUpdate) { 
             logger(`Updating story: ${decodedStoryName}`);  
             const story = await conn.story(lineupName, lineupList[i].fileName);
@@ -38,9 +35,9 @@ async function processLineup(lineupName) {
             lineupStore.saveStory(lineupName, i, lineupInfo);
         }
         
-        if (lineupList.length < currentLineup.length) {  // Check if items have been deleted
-            const deletedItems = currentLineup.length - lineupList.length;
-            currentLineup.length = lineupList.length;
+        if (lineupList.length < cachedLineup.length) {  // Check if items have been deleted
+            const deletedItems = cachedLineup.length - lineupList.length;
+            cachedLineup.length = lineupList.length;
             logger(`INFO: ${deletedItems} Items has been deleted`);
         }
     } 
@@ -50,6 +47,8 @@ function createLineupInfo(decodedStoryName, i, lineupList, story){
     return {
         storyName: decodedStoryName,
         index: i,
+        fileName:lineupList[i].fileName,
+        locator: lineupList[i].locator,
         modified: lineupList[i].modified,
         floated: lineupList[i].flags.floated,
         cues: story.cues,
@@ -60,50 +59,18 @@ function createLineupInfo(decodedStoryName, i, lineupList, story){
     };
 }
 
-function createCheckCondition(currentLineup, lineupList, i, decodedStoryName) {
-    const result =
-        lineupList[i].fileType === "STORY" && (
-        !currentLineup[i] || // If this arr cell is undefined (usually in first gap)
-        new Date(currentLineup[i].modified).getTime() !== new Date(lineupList[i].modified).getTime() || // If modified time are different
-        currentLineup[i].storyName !== decodedStoryName || // if storyName are different
-        currentLineup[i].index !== i // If index (position in lineup) are different
-      );
+function createCheckCondition(cachedStory, lineupStory) {
+    
+    const result = 
+        lineupStory.fileType === "STORY" && (
+        !cachedStory || 
+        cachedStory.locator != lineupStory.locator
+        );
+   
+        return result;
 
-    return result;
 }
 
 export default {
     startMainProcess
 };
-
-
-
-
-
-
-async function test(inewsQueue){
-   
-    conn.list(inewsQueue)
-        .then(listItems => {
-            listItems.forEach((listItem) => {
-                if(listItem.fileType === 'STORY') {
-                    conn.story(inewsQueue, listItem.fileName)
-                        .then(story => {
-                            //console.log(conn._test(listItem.fileName));
-                            
-                            if(conn.load === 0){
-                                //console.log("Finished");
-                                
-                                setTimeout(lineupsIterator, 5000)
-                            
-                            }
-                            
-                        })
-                        .catch(error => {
-                            console.error("ERROR", error);
-                        });
-                }
-            });
-        });    
-
-}
