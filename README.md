@@ -1,11 +1,12 @@
-Inews-connect v1.0.1
+Inews-connect 1.1.1
 
-TODO: Create recursion path validator (Yes, it will be great!)
+TODO: fetch flag from story - is it dir or queue
 TODO: Try to understand plugin
 Releases:
 
 1.1.1
 - Fixed lineup validation
+- Story changes now based on story locator (and not on modified date)
 
 
 1.1
