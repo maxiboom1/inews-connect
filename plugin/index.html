@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+ <meta charset="utf-8" />
+ <title>iNEWS HTML5 Browser Plugin Sample</title>
+ <script type="text/javascript">	
+
+	function finalMsg(){
+
+		var group = document.getElementById("group").value;
+		var gfxItem = document.getElementById("gfxItem").value;
+		var payload = document.getElementById("payload").value;		
+		var finalMsg = 
+		`<mos>
+			<ncsItem>
+				<item>
+					<itemID>0</itemID>
+					<itemSlug>${payload}</itemSlug>
+					<objID>12345</objID>
+					<mosID>iNEWSMOS1</mosID>
+					<mosItemBrowserProgID>alex</mosItemBrowserProgID>
+					<mosItemEditorProgID>alexE</mosItemEditorProgID>
+					<mosAbstract>${payload}</mosAbstract>
+					<group>${group}</group>
+					<gfxItem>${gfxItem}</gfxItem>
+				</item>
+			</ncsItem>
+		</mos>`;
+		
+		return finalMsg;
+	}
+
+	function drag(ev) {
+		console.log("drag");
+		ev.dataTransfer.setData("text", finalMsg("0"));
+		}
+
+	function getNewsroomOrigin() {
+		console.log("getNewsroomOrigin");
+		var qs = document.location.search.split("+").join(" ");
+		var params = {};
+		var regex = /[?&]?([^=]+)=([^&]*)/g;
+		while (tokens = regex.exec(qs)) {
+			params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
+		}
+		console.log(params['origin']);
+		return params['origin'];
+	}
+	
+	function mosMsgFromPlugIn(message) {
+		console.log("mosMsgFromPlugIn");
+
+		window.parent.postMessage(message, getNewsroomOrigin());
+		}
+	
+	function mosMsgFromHost(event) {
+		console.log("mosMsgFromHost", event.data);
+
+		var message = event.data;
+		var parser, xmlDoc;
+		
+		//----------------Message parser (Alex)
+		if (message != "<mos><ncsItemRequest/></mos>"){
+			var payload1 = message.slice(message.indexOf("itemSlug>")+9, message.indexOf("</itemSlug>"));
+			var group1 = message.slice(message.indexOf("group>")+6, message.indexOf("</group>"));
+			var gfxItem1 = message.slice(message.indexOf("gfxItem>")+8, message.indexOf("</gfxItem>"));
+			document.getElementById("payload").value = payload1;
+			document.getElementById("group").value = group1;
+			document.getElementById("gfxItem").value = gfxItem1;
+		}
+
+		if (event.origin != getNewsroomOrigin()) {
+			return;
+			}
+		
+		if (message.indexOf('<ncsAck>') === -1){
+			event.source.postMessage("<mos><ncsAck><status>ACK</status></ncsAck></mos>", event.origin);
+
+			}
+		
+			// handle ncsItemRequest by sending a ncsItem
+		if (message.indexOf('<ncsItemRequest>') === -1){
+			event.source.postMessage(finalMsg(), event.origin);
+		}
+		
+		// HERE USER ARE CLICK "APPLY"/"OK"
+		if (message === "<mos><ncsItemRequest/></mos>"){
+			sendToGfxServer('<msg>We just saved gfxItem</msg>');
+		}
+	}
+
+	function sendToGfxServer(msg){
+		var url = 'http://localhost:3000/api/plugin'; // Replace with your API URL
+		console.log(msg);
+		fetch(url, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/xml', // Adjust content type as needed
+			},
+			body: msg,
+		})
+		.then(response => {
+			if (response.ok) {
+				console.log('Data posted successfully');
+			} else {
+				console.error('Failed to post data');
+			}
+		})
+		.catch(error => {
+			console.error('Error:', error);
+		});
+	}
+
+	if (window.addEventListener) {
+		window.addEventListener('message', mosMsgFromHost, false);
+	} else if (window.attachEvent) {
+		window.attachEvent('onmessage', mosMsgFromHost, false);
+	}
+
+</script>
+<style>
+	body {background-color:Blue}
+	div {color:Black}
+	input.mosInput {
+	width:200px; height:25px;
+	}
+</style>
+</head>
+<body height="50%" >
+	
+	<!-- GROUP MENU -->
+	<h1> DEMO HTML PLUGIN FOT INEWS - V.001</h1>
+	<div style="width:500px;height:30px;overflow:auto;backgroundcolor:gray" contenteditable="true">
+		<label for="menu1">Choose category:</label>
+		<select onchange="setGfxItems()" name="group" id="group">
+			<option value="1">סצנה-1</option>
+			<option value="2">סצנה-2</option>	
+		  </select>
+	</div> 
+	<!-- GFX ITEM MENU + PAYLOAD -->
+	<div style="width:500px;height:200px;overflow:auto;backgroundcolor:gray" contenteditable="true" id="gfxItemDiv">
+		<label for="menu2">Choose an item:</label>
+		<select  name="gfxItem" id="gfxItem">
+			<option value="1">סטרייפ</option>
+			<option value="2">סופר</option>	
+		  </select>
+		  <br><br><br>
+		<label for="name">Text data:</label>
+		<input type="text" id="payload" ><br><br><br>
+		<img id="drag1" src="drag.png" draggable="true" ondragstart="drag(event)" alt="☑" width="30" height="30">
+
+	</div> 
+
+</body>
+</html>

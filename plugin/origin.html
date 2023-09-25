@@ -46,7 +46,7 @@
 			// handle ncsItemRequest by sending a ncsItem
 			if (message.indexOf('<ncsItemRequest>') === -1) {
 				var testReply = document.getElementById("mosItem").textContent;
-				var reply = "<mos><ncsItem><item><itemID>0</itemID><objID>55555</objID><mosID>iNEWSMOS1</mosID><mosItemBrowserProgID>alex</mosItemBrowserProgID><mosItemEditorProgID>alexE</mosItemEditorProgID>" +
+				var reply = "<mos><ncsItem><item><itemID>0</itemID><objID>55555</objID><mosID>iNEWSMOS1</mosID><mosItemBrowserProgID>PLUG2</mosItemBrowserProgID><mosItemEditorProgID>PLUG2E</mosItemEditorProgID>" +
 					"<mosAbstract>REPLACED</mosAbstract><objSlug>REPLACEMENT</objSlug></item></ncsItem></mos>";
 				//event.source.postMessage(reply, event.origin);
 				event.source.postMessage(testReply, event.origin);
@@ -63,8 +63,8 @@
 		// create a sample for MOS item
 		function loadStart() {
 			var div = document.getElementById("mosItem");
-			div.textContent = "<mos><ncsItem><item><itemID>0</itemID><itemSlug>SAMPLESTORY</itemSlug><objID>12345</objID><mosID>iNEWSMOS1</mosID><mosItemBrowserProgID>alex</mosItemBrowserProgID>" +
-				"<mosItemEditorProgID>alexE</mosItemEditorProgID><mosAbstract>SOME MOSABSTRACT</mosAbstract></item></ncsItem></mos>";
+			div.textContent = "<mos><ncsItem><item><itemID>0</itemID><itemSlug>SAMPLESTORY</itemSlug><objID>12345</objID><mosID>iNEWSMOS1</mosID><mosItemBrowserProgID>PLUG2</mosItemBrowserProgID>" +
+				"<mosItemEditorProgID>PLUG2E</mosItemEditorProgID><mosAbstract>SOME MOSABSTRACT</mosAbstract></item></ncsItem></mos>";
 		}
 	</script>
 	<style>

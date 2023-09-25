@@ -21,4 +21,13 @@ router.post('/services/set-watcher/:lineupName', async (req, res) => {
   res.json(response);
 });
 
+router.post('/plugin', async (req, res) => {
+  console.log("post");
+  const msg = req.body;
+  //console.log("this is from plugin: ", msg?.mos?.ncsitem[0]?.item);
+  console.log("this is from plugin: ", msg);
+
+  res.json("got ya");
+});
+
 export default router;
