@@ -10,13 +10,14 @@
 
 		var group = document.getElementById("group").value;
 		var gfxItem = document.getElementById("gfxItem").value;
-		var payload = document.getElementById("payload").value;		
+		var payload = document.getElementById("payload").value;
+
 		var finalMsg = 
 		`<mos>
 			<ncsItem>
 				<item>
 					<itemID>0</itemID>
-					<itemSlug>${payload}</itemSlug>
+					<itemSlug>${decodeURIComponent(payload)}</itemSlug>
 					<objID>12345</objID>
 					<mosID>iNEWSMOS1</mosID>
 					<mosItemBrowserProgID>alex</mosItemBrowserProgID>
@@ -79,8 +80,10 @@
 
 			}
 		
-			// handle ncsItemRequest by sending a ncsItem
+		// HERE USER OPEN GFX ITEM IN INEWS
 		if (message.indexOf('<ncsItemRequest>') === -1){
+			console.log("epsrs: ", message)
+			sendToGfxServer(message);
 			event.source.postMessage(finalMsg(), event.origin);
 		}
 		
