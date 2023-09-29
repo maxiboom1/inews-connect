@@ -28,78 +28,69 @@
 				</item>
 			</ncsItem>
 		</mos>`;
-		
+		sendToGfxServer(`<msg>finalmsg: ${payload}</msg>`);
 		return finalMsg;
 	}
 
-	function drag(ev) {
-		console.log("drag");
-		ev.dataTransfer.setData("text", finalMsg("0"));
+	function startObjectDrag(event) {
+		event.dataTransfer.setData("text", finalMsg("0"));
+		event.dataTransfer.effectAllowed = "copyMove";
+		event.dataTransfer.dropEffect = "copy";
+		sendToGfxServer("<msg>start</msg>");
+		}
+	function endObjectDrag(event) {
+		console.log(event)
+		sendToGfxServer("<msg>end</msg>");
 		}
 
 	function getNewsroomOrigin() {
-		console.log("getNewsroomOrigin");
 		var qs = document.location.search.split("+").join(" ");
 		var params = {};
 		var regex = /[?&]?([^=]+)=([^&]*)/g;
 		while (tokens = regex.exec(qs)) {
 			params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
 		}
-		console.log(params['origin']);
 		return params['origin'];
 	}
 	
 	function mosMsgFromPlugIn(message) {
-		console.log("mosMsgFromPlugIn");
-
+		sendToGfxServer("<msg>mosMsgFromPlugIn</msg>");
 		window.parent.postMessage(message, getNewsroomOrigin());
-		}
+	}
 	
 	function mosMsgFromHost(event) {
-		console.log("mosMsgFromHost", event.data);
-
+		console.log(event.data);
 		var message = event.data;
-		var parser, xmlDoc;
-		
+		sendToGfxServer(message);
 		//----------------Message parser (Alex)
-		if (message != "<mos><ncsItemRequest/></mos>"){
+		if (message !== "<mos><ncsItemRequest/></mos>"){
 			var payload1 = message.slice(message.indexOf("itemSlug>")+9, message.indexOf("</itemSlug>"));
 			var group1 = message.slice(message.indexOf("group>")+6, message.indexOf("</group>"));
 			var gfxItem1 = message.slice(message.indexOf("gfxItem>")+8, message.indexOf("</gfxItem>"));
 			document.getElementById("payload").value = payload1;
 			document.getElementById("group").value = group1;
 			document.getElementById("gfxItem").value = gfxItem1;
+		} else {
+			//sendToGfxServer('<msg>APPLY/SAVE</msg>');// HERE USER ARE CLICK "APPLY"/"OK"
 		}
 
-		if (event.origin != getNewsroomOrigin()) {
-			return;
-			}
+		if (event.origin != getNewsroomOrigin()) {return;}
 		
 		if (message.indexOf('<ncsAck>') === -1){
-			event.source.postMessage("<mos><ncsAck><status>ACK</status></ncsAck></mos>", event.origin);
+			//event.source.postMessage("<mos><ncsAck><status>ACK</status></ncsAck></mos>", event.origin);
+		}
+		
+		if (message.indexOf('<ncsItemRequest>') === -1){event.source.postMessage(finalMsg(), event.origin);}
 
-			}
-		
-		// HERE USER OPEN GFX ITEM IN INEWS
-		if (message.indexOf('<ncsItemRequest>') === -1){
-			console.log("epsrs: ", message)
-			sendToGfxServer(message);
-			event.source.postMessage(finalMsg(), event.origin);
-		}
-		
-		// HERE USER ARE CLICK "APPLY"/"OK"
-		if (message === "<mos><ncsItemRequest/></mos>"){
-			sendToGfxServer('<msg>We just saved gfxItem</msg>');
-		}
 	}
 
 	function sendToGfxServer(msg){
+		console.log('data to post: ', msg);
 		var url = 'http://localhost:3000/api/plugin'; // Replace with your API URL
-		console.log(msg);
 		fetch(url, {
 			method: 'POST',
 			headers: {
-				'Content-Type': 'application/xml', // Adjust content type as needed
+				'Content-Type': 'text/plain', // Adjust content type as needed
 			},
 			body: msg,
 		})
@@ -116,11 +107,12 @@
 	}
 
 	if (window.addEventListener) {
+		sendToGfxServer("<msg>USER OPENED GFX IN NCS</msg>");
 		window.addEventListener('message', mosMsgFromHost, false);
 	} else if (window.attachEvent) {
+		sendToGfxServer("<msg>2</msg>");
 		window.attachEvent('onmessage', mosMsgFromHost, false);
 	}
-
 </script>
 <style>
 	body {background-color:Blue}
@@ -151,7 +143,7 @@
 		  <br><br><br>
 		<label for="name">Text data:</label>
 		<input type="text" id="payload" ><br><br><br>
-		<img id="drag1" src="drag.png" draggable="true" ondragstart="drag(event)" alt="☑" width="30" height="30">
+		<img id="drag1" src="drag.png" draggable="true" ondragstart="startObjectDrag(event)" ondragend="endObjectDrag(event)"  alt="☑" width="30" height="30">
 
 	</div> 
 

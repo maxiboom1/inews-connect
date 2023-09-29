@@ -8,7 +8,7 @@ const app = express();
 
 app.use(cors());
 
-app.use(xmlparser());
+//app.use(xmlparser());
 app.use("/api", routes);
 app.use(express.static('plugin'));
 

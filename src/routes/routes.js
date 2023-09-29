@@ -22,9 +22,26 @@ router.post('/services/set-watcher/:lineupName', async (req, res) => {
 });
 
 router.post('/plugin', async (req, res) => {
-  const message = req.body;
-  console.log(message.mos);
-  res.json("got ya");
+  let rawData = '';
+  req.on('data', (chunk) => {
+      rawData += chunk;
+  });
+
+  req.on('end', () => {
+      try {
+          // rawData now contains the entire XML data as a string
+          console.log('Data as string: ', rawData);
+
+          // You can now parse the XML data as needed
+          // Example: const parsedData = parseXml(rawData);
+
+          // Respond to the request
+          res.json("got ya");
+      } catch (error) {
+          console.error('Error processing XML data:', error);
+          res.status(400).json("Error processing XML data");
+      }
+  });
 });
 
 

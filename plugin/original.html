@@ -31,11 +31,13 @@
 			var parser, xmlDoc;
 			parser = new DOMParser();
 			xmlDoc = parser.parseFromString(message, "text/xml");
+			
 			// Check the Origin in event.origin to ensure it
 			// matches our expected NCS origin parameter.
 			if (event.origin != getNewsroomOrigin()) {
 				return;
 			}
+			
 			// Handle the Message
 			// To Reply, issue a postMessage on the event source.
 			if (message.indexOf('<ncsAck>') === -1) {
@@ -43,6 +45,7 @@
 				console.log('plugin got: ' + message);
 				event.source.postMessage(reply, event.origin);
 			}
+			
 			// handle ncsItemRequest by sending a ncsItem
 			if (message.indexOf('<ncsItemRequest>') === -1) {
 				var testReply = document.getElementById("mosItem").textContent;
