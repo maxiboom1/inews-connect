@@ -1,5 +1,7 @@
 import express from "express";
 import pluginService from "../services/plugin-service.js";
+import logger from "../utilities/logger.js";
+import xmlParser from "../utilities/xml-parser.js";
 
 const router = express.Router();
 
@@ -16,7 +18,8 @@ router.post('/plugin/gfx', async (req, res) => {
                 pluginService.saveGfxElement(id,reqAsStr);
                 res.json({id:id});
             }else{
-                res.sendStatus(204);
+                logger(`Plugin Notify: ${reqAsStr}`);
+                res.json({ok:"ok"});
             } 
             
         } catch (error) {
@@ -27,9 +30,10 @@ router.post('/plugin/gfx', async (req, res) => {
 });
 
 router.get('/plugin/gfx/:id', async (req, res) => {
-    const id = req.params.id;
+    const id = +req.params.id;
     const responseData = await pluginService.getGfxElement(id);
-    res.json(responseData);
+    const modifiedXml = xmlParser(responseData);
+    res.json(modifiedXml);
   });
   
 

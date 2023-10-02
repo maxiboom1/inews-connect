@@ -23,7 +23,8 @@
     "ftp": "^0.3.10",
     "he": "^1.2.0",
     "htmlparser2": "^6.1.0",
-    "unescape": "^1.0.1"
+    "unescape": "^1.0.1",
+    "xmldom": "^0.6.0"
   },
   "scripts": {
     "start": "nodemon app.js"

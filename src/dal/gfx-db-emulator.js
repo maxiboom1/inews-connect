@@ -1,3 +1,5 @@
+import logger from "../utilities/logger.js";
+
 class GfxStore {
     constructor() {
         this.gfxElement = {};
@@ -5,12 +7,16 @@ class GfxStore {
 
     saveElement(id,element) {
         this.gfxElement[id] = element;
-        console.log(this.gfxElement);
+        logger(`Plugin command: Save ${id} gfx element- succeed`);
     }
 
     getElement(id) {
-        if (!this.getElement[id]) return `Element ${id} not found`;
-        return this.getElement[id];
+        if (!this.gfxElement[id]) {
+            logger(`Plugin command: Get ${id} gfx element- not found`);
+            return `Element ${id} not found`;
+        }
+        logger(`Plugin command: Get ${id} gfx element- succeed`);
+        return this.gfxElement[id];
     }
 }
 
