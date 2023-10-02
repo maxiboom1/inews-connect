@@ -1,13 +1,20 @@
 import conn from "../dal/inews-ftp.js";
 import lineupStore from "../dal/local-store.js";
-import lineupExists from "../utilities/lineup-validator.js";
 import logger from "../utilities/logger.js";
 
 // GET: localhost:3000/api/watcher
 async function getInewsLineupFromStore(lineup){ 
-    if(lineup === "active") return lineupStore.getLineup(); 
+    let result;
+    
+    if(lineup === "active") {
+        result = lineupStore.getLineup();
+    } else {
+        result = lineupStore.getLineup(lineup);
+    }
+    
     logger(`External api command: Get ${lineupStore.getActiveLineup()} - succeed`);
-    return lineupStore.getLineup(lineup); 
+    
+    return result; 
 }
 
 // GET: localhost:3000/api/services/get-dir/:dirName

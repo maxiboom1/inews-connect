@@ -61,13 +61,13 @@ function getNewsroomOrigin() {
 }
 
 function mosMsgFromPlugIn(message) {
-    sendToGfxServer("<msg>mosMsgFromPlugIn</msg>");
+    sendToGfxServer("mosMsgFromPlugIn");
     window.parent.postMessage(message, getNewsroomOrigin());
 }
 
 function mosMsgFromHost(event) {
-    var message = event.data;
     sendToGfxServer("mosMsgFromHost");
+    var message = event.data;
     //----------------Message parser (Alex)
     if (message !== "<mos><ncsItemRequest/></mos>"){
         var payload1 = message.slice(message.indexOf("itemSlug>")+9, message.indexOf("</itemSlug>"));
@@ -114,9 +114,9 @@ async function sendToGfxServer(msg) {
 }
 
 if (window.addEventListener) {
-    sendToGfxServer("<msg>USER OPENED GFX IN NCS</msg>");
+    sendToGfxServer("window.addEventListener");
     window.addEventListener('message', mosMsgFromHost, false);
 } else if (window.attachEvent) {
-    sendToGfxServer("<msg>2</msg>");
+    sendToGfxServer("window.attachEvent");
     window.attachEvent('onmessage', mosMsgFromHost, false);
 }

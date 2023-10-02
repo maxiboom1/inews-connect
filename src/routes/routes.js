@@ -1,12 +1,14 @@
 import express from "express";
 import restService from "../services/rest-service.js";
+import lineupStore from "../dal/local-store.js";
 
 const router = express.Router();
 
 router.get('/watcher/:lineup', async (req, res) => {
   const lineup = req.params.lineup;
   const responseData = await restService.getInewsLineupFromStore(lineup);
-  res.json(responseData);
+  const activeLineup = lineupStore.getActiveLineup();
+  res.json({[activeLineup]:responseData});
 });
 
   
