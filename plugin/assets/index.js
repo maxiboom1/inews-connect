@@ -1,31 +1,37 @@
+document.querySelector("#payload").addEventListener('change', showSaveButton);
+document.querySelector("#save").addEventListener('click', clickOnSave);
 
-var elementId = "";
+let dataFromServer = {id:null};
 
-var dragValue = {value : ''}
+function showSaveButton(){document.getElementById("save").style.display = 'block'; hideDragButton();}
+function hideSaveButton(){document.getElementById("save").style.display = 'none';}
+function showDragButton(){document.getElementById("drag").style.display = 'block'; hideSaveButton();}
+function hideDragButton(){document.getElementById("drag").style.display = 'none';}
 
-
-async function drag() {  
-    console.log("dragStart")
-    const id = await sendToGfxServer(finalMsg());  
-    dragValue.value = finalMsg(id); 
-} 
-
-function dragLeave(event){
-    event.dataTransfer.setData("text/plain",dragValue.value );
-    console.log(event.dataTransfer.getData("text/plain"));
+async function clickOnSave(){
+    try{
+        dataFromServer = await sendToGfxServer(createMosMessage());
+        showDragButton();
+    }catch(err){
+        console.error("Failed to post data");
+    }
 }
 
-function drop(event) {
-    console.log(event.dataTransfer.getData("text/plain"));
-    dragValue.value = ""; // Clear the dragValue
+function drag(event) {  
+    event.dataTransfer.setData("text/plain",createMosMessage());
 }
 
-function finalMsg(gfxId =""){
-    var group = document.getElementById("group").value;
-    var gfxItem = document.getElementById("gfxItem").value;
-    var payload = document.getElementById("payload").value;
+function drop() {
+    dataFromServer.id = null;
+    hideDragButton();
+    hideSaveButton();
+}
 
-    var finalMsg = 
+function createMosMessage(){
+    const group = document.getElementById("group").value;
+    const payload = document.getElementById("payload").value;
+
+    const message = 
     `<mos>
         <ncsItem>
             <item>
@@ -37,11 +43,11 @@ function finalMsg(gfxId =""){
                 <mosItemEditorProgID>alexE</mosItemEditorProgID>
                 <mosAbstract>${payload}</mosAbstract>
                 <group>${group}</group>
-                <gfxItem>${gfxId.id}</gfxItem>
+                <gfxItem>${dataFromServer.id}</gfxItem>
             </item>
         </ncsItem>
     </mos>`;
-    return finalMsg;
+    return message;
 }
 
 function getNewsroomOrigin() {
@@ -80,11 +86,12 @@ function mosMsgFromHost(event) {
         event.source.postMessage("<mos><ncsAck><status>ACK</status></ncsAck></mos>", event.origin);
     }
     
-    if (message.indexOf('<ncsItemRequest>') === -1){event.source.postMessage(finalMsg(), event.origin);}
+    if (message.indexOf('<ncsItemRequest>') === -1){event.source.postMessage(createMosMessage(), event.origin);}
 
 }
 
 async function sendToGfxServer(msg) {
+
     var url = 'http://localhost:3000/plugin/gfx'; // Replace with your API URL
     try {
         const response = await fetch(url, {

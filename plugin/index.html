@@ -2,41 +2,33 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-<meta charset="utf-8" />
-<title>iNEWS HTML5 Browser Plugin Sample</title>
-<style>
-	body {background-color:Blue}
-	div {color:Black}
-	input.mosInput {
-	width:200px; height:25px;
-	}
-</style>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta charset="utf-8" />
+	<title>iNEWS HTML5 Browser Plugin Sample</title>
+	<link rel="stylesheet" href="assets/style.css">
 </head>
-<body height="50%" >
+<body>
 	
-	<!-- GROUP MENU -->
-	<h1> DEMO HTML PLUGIN FOR INEWS - V.001</h1>
-	<div style="width:500px;height:30px;overflow:auto;" >
-		<label for="menu1">Choose category:</label>
-		<select onchange="setGfxItems()" name="group" id="group">
-			<option value="1">סצנה-1</option>
-			<option value="2">סצנה-2</option>	
-		  </select>
-	</div> 
-	<!-- GFX ITEM MENU + PAYLOAD -->
-	<div style="width:500px;height:200px;overflow:auto;" id="gfxItemDiv">
-		<label for="menu2">Choose an item:</label>
-		<select  name="gfxItem" id="gfxItem">
+	<div class="pluginBody">
+		<h2>Inews connect plugin</h2>
+
+		<label for="menu2">Choose element</label>
+		<select class="box" name="group" id="group">
 			<option value="1">סטרייפ</option>
 			<option value="2">סופר</option>	
-		  </select>
-		  <br><br><br>
-		<label for="name">Text data:</label>
-		<input type="text" id="payload" ><br><br><br>
-		<p id="drag1" src="src/drag.png" draggable="true"  ondragstart="drag(event)" ondragend="drop(event)">Update</p>
-	</div> 
+		</select>
+
+		<label for="name">Set payload:</label>
+		<textarea class="box" id="payload" rows="4"></textarea>
+		
+		<div class="controlBox">
+			<button id="drag" draggable="true" ondragstart="drag(event)" ondragend="drop(event)">Drag me</button>
+			<button id="save">Save</button>
+		</div>
+
+	</div>
+	
 
 </body>
-<script src="src/index.js"></script>
+<script src="assets/index.js"></script>
 </html>

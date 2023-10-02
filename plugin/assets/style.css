@@ -1,0 +1,31 @@
+body {
+    background-color:rgb(75, 74, 128); 
+    margin:8px;
+}
+
+label,h2{
+    color: rgba(255, 255, 255, 0.749);
+}
+
+.box{
+    width: 180px;
+    display: block;
+    margin: 5px 0px;
+}
+
+.controlBox{
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    align-items: baseline;
+    height: 1px;
+}
+
+button{
+    margin-top: 20px;
+    margin-right: 10px;
+}
+
+#save, #drag{
+display: none;
+}
