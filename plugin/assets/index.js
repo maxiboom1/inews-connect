@@ -126,7 +126,6 @@ async function mosMsgFromHost(event) {
     }
     
     if (message.indexOf('<ncsItemRequest>') === -1){
-        console.log("call", elementFromServer);
         event.source.postMessage(createMosMessage(), event.origin);
     }
 }
