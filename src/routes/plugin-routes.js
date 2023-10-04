@@ -14,6 +14,7 @@ router.post('/plugin/gfx', async (req, res) => {
     req.on('end', () => {
         try {
             if(reqAsStr.indexOf("<mos>") != -1){
+                console.log("got id: ", xmlParser.getId(reqAsStr));
                 const id = Math.ceil(Math.random()*100000);          
                 pluginService.saveGfxElement(id,reqAsStr);
                 res.json({id:id});
@@ -32,7 +33,7 @@ router.post('/plugin/gfx', async (req, res) => {
 router.get('/plugin/gfx/:id', async (req, res) => {
     const id = +req.params.id;
     const responseData = await pluginService.getGfxElement(id);
-    const modifiedXml = xmlParser(responseData);
+    const modifiedXml = xmlParser.xmlParser(responseData);
     res.json(modifiedXml);
   });
   

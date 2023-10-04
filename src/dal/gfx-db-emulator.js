@@ -18,6 +18,10 @@ class GfxStore {
         logger(`Plugin command: Get ${id} gfx element- succeed`);
         return this.gfxElement[id];
     }
+
+    idExists(id) {
+        return this.gfxElement[id] !== undefined;
+    }
 }
 
 const gfxStore = new GfxStore();

@@ -19,4 +19,23 @@ function xmlParser(xmlString) {
     return modifiedXmlString;
 }
 
-export default xmlParser;
+function getId(xmlString) {
+    const parser = new DOMParser();
+
+    // Parse the XML string into a DOM document
+    const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
+
+    // Extract the data within the <gfxItem> tag
+    const gfxItem = xmlDoc.getElementsByTagName('gfxItem')[0];
+
+    if (gfxItem) {
+        return gfxItem.textContent;
+    } else {
+        return null; // Handle the case where <gfxItem> is not found
+    }
+}
+
+export default {
+    xmlParser,
+    getId,
+}
