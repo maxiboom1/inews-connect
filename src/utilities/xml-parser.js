@@ -3,8 +3,6 @@ import { DOMParser, XMLSerializer } from 'xmldom';
 function xmlParser(xmlString) {
     var parser = new DOMParser();
     var xmlDoc = parser.parseFromString(xmlString, 'text/xml');
-
-    // Find the <itemSlug> element and add the "debug:" prefix
     var itemSlugElements = xmlDoc.getElementsByTagName('itemSlug');
 
     for (var i = 0; i < itemSlugElements.length; i++) {
@@ -13,7 +11,6 @@ function xmlParser(xmlString) {
         itemSlugElement.textContent = 'THIS IS FROM SERVER!/n ' + existingText;
     }
 
-    // Serialize the modified XML back to a string
     var modifiedXmlString = new XMLSerializer().serializeToString(xmlDoc);
 
     return modifiedXmlString;
@@ -22,10 +19,8 @@ function xmlParser(xmlString) {
 function getId(xmlString) {
     const parser = new DOMParser();
 
-    // Parse the XML string into a DOM document
     const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
 
-    // Extract the data within the <gfxItem> tag
     const gfxItem = xmlDoc.getElementsByTagName('gfxItem')[0];
 
     if (gfxItem) {
@@ -35,7 +30,26 @@ function getId(xmlString) {
     }
 }
 
+function insertId(xmlString,id) {
+    const parser = new DOMParser();
+
+    const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
+
+    const gfxItem = xmlDoc.getElementsByTagName('gfxItem')[0];
+
+    if (gfxItem) {
+        xmlDoc.getElementsByTagName('gfxItem')[0].textContent = id;
+    } else {
+        return null; // Handle the case where <gfxItem> is not found
+    }
+
+    var modifiedXmlString = new XMLSerializer().serializeToString(xmlDoc);
+
+    return modifiedXmlString;
+}
+
 export default {
     xmlParser,
     getId,
+    insertId
 }

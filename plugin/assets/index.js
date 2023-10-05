@@ -9,6 +9,7 @@ function hideDragButton(){document.getElementById("drag").style.display = 'none'
 async function clickOnSave(){
     try{
         dataFromServer = await sendToGfxServer(createMosMessage());
+        console.log(dataFromServer);
         showDragButton();
     }catch(err){
         console.error("Failed to post data");
@@ -28,7 +29,7 @@ function drop() {
 function createMosMessage(){
     const group = document.getElementById("group").value;
     const payload = document.getElementById("payload").value;
-    console.log("constructor: ", payload);
+    
     const message = 
     `<mos>
         <ncsItem>
@@ -45,6 +46,7 @@ function createMosMessage(){
             </item>
         </ncsItem>
     </mos>`;
+    console.log("constructor: ", dataFromServer.id);
     return message;
 }
 
@@ -59,17 +61,16 @@ function getNewsroomOrigin() {
 }
 
 function mosMsgFromPlugIn(message) {
-    sendToGfxServer("mosMsgFromPlugIn");
+    sendNotify("mosMsgFromPlugIn");
     window.parent.postMessage(message, getNewsroomOrigin());
 }
 
 async function mosMsgFromHost(event) {
     var message = event.data;
-    
     // OPEN ITEM
     if (message !== "<mos><ncsItemRequest/></mos>"){
         
-        var gfxItem = message.slice(message.indexOf("gfxItem>")+8, message.indexOf("</gfxItem>"));
+        var gfxItem = message.slice(message.indexOf("gfxItem>")+8, message.indexOf("</gfxItem>"));        
         const elementFromServer = await getFromGfxServer(gfxItem);
         dataFromServer.id = gfxItem;
         var payload = elementFromServer.slice(elementFromServer.indexOf("itemSlug>") + 9, elementFromServer.indexOf("</itemSlug>"));
@@ -120,7 +121,6 @@ async function sendToGfxServer(msg) {
 }
 
 async function getFromGfxServer(id) {
-
     var url = 'http://localhost:3000/plugin/gfx/' + id; 
     try {
         const response = await fetch(url, {
@@ -141,10 +141,19 @@ async function getFromGfxServer(id) {
     }
 }
 
+async function sendNotify(msg) {
+    var url = 'http://localhost:3000/plugin/debug'; // Replace with your API URL
+    try {
+        await fetch(url, {method: 'POST',headers: {'Content-Type': 'text/plain', },body: msg,});
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
 if (window.addEventListener) {
-    sendToGfxServer("window.addEventListener");
+    sendNotify("window.addEventListener");
     window.addEventListener('message', mosMsgFromHost, false);
 } else if (window.attachEvent) {
-    sendToGfxServer("window.attachEvent");
+    sendNotify("window.attachEvent");
     window.attachEvent('onmessage', mosMsgFromHost, false);
 }

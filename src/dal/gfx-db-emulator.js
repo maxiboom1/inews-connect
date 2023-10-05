@@ -9,6 +9,11 @@ class GfxStore {
         this.gfxElement[id] = element;
         logger(`Plugin command: Save ${id} gfx element- succeed`);
     }
+    
+    getAllElements() {
+        logger(`Plugin command: Get all stored gfx elements- succeed`);
+        return this.gfxElement;
+    }
 
     getElement(id) {
         if (!this.gfxElement[id]) {
