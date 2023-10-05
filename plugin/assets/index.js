@@ -1,15 +1,16 @@
 document.querySelector("#payload").addEventListener('change', showSaveButton);
 document.querySelector("#save").addEventListener('click', clickOnSave);
-let dataFromServer = {id:null};
+
 function showSaveButton(){document.getElementById("save").style.display = 'block'; hideDragButton();}
 function hideSaveButton(){document.getElementById("save").style.display = 'none';}
 function showDragButton(){document.getElementById("drag").style.display = 'block'; hideSaveButton();}
 function hideDragButton(){document.getElementById("drag").style.display = 'none';}
 
+let currentId = {id:null};
+
 async function clickOnSave(){
     try{
-        dataFromServer = await sendToGfxServer(createMosMessage());
-        console.log(dataFromServer);
+        currentId = await sendToGfxServer(createMosMessage());
         showDragButton();
     }catch(err){
         console.error("Failed to post data");
@@ -21,7 +22,7 @@ function drag(event) {
 }
 
 function drop() {
-    dataFromServer.id = null;
+    currentId.id = null;
     hideDragButton();
     hideSaveButton();
 }
@@ -40,11 +41,10 @@ function createMosMessage(){
                 <mosItemEditorProgID>alexE</mosItemEditorProgID>
                 <mosAbstract>${payload}</mosAbstract>
                 <group>${group}</group>
-                <gfxItem>${dataFromServer.id}</gfxItem>
+                <gfxItem>${currentId.id}</gfxItem>
             </item>
         </ncsItem>
     </mos>`;
-    console.log("constructor: ", dataFromServer.id);
     return message;
 }
 
@@ -59,7 +59,7 @@ function getNewsroomOrigin() {
 }
 
 function mosMsgFromPlugIn(message) {
-    sendNotify("mosMsgFromPlugIn");
+    console.log("SHOOOO>>>>");
     window.parent.postMessage(message, getNewsroomOrigin());
 }
 
@@ -67,40 +67,78 @@ async function mosMsgFromHost(event) {
     var message = event.data;
     // OPEN ITEM
     if (message !== "<mos><ncsItemRequest/></mos>"){
-        
-        var gfxItem = message.slice(message.indexOf("gfxItem>")+8, message.indexOf("</gfxItem>"));        
-        const elementFromServer = await getFromGfxServer(gfxItem);
-        dataFromServer.id = gfxItem;
-        var payload = elementFromServer.slice(elementFromServer.indexOf("itemSlug>") + 9, elementFromServer.indexOf("</itemSlug>"));
-        var group = elementFromServer.slice(elementFromServer.indexOf("group>") + 6, elementFromServer.indexOf("</group>"));
-
-        document.getElementById("payload").value = payload;
-        document.getElementById("group").value = group;
+        await userOpenedItem(message);
+        return;
     }
-
-    if (event.origin != getNewsroomOrigin()) { return; }
     
     // HERE USER IS CLICKING "APPLY"/"OK"
     if(message === "<mos><ncsItemRequest/></mos>"){
         await sendToGfxServer(createMosMessage());
     }
 
-    // Candidate to fuck off
-    if (message.indexOf('<ncsAck>') === -1){
-        event.source.postMessage("<mos><ncsAck><status>ACK</status></ncsAck></mos>", event.origin);
+    if (event.origin != getNewsroomOrigin()) { 
+        return; 
     }
-    
+    // SEND 
     if (message.indexOf('<ncsItemRequest>') === -1){
-        event.source.postMessage(createMosMessage(true), event.origin);
+        event.source.postMessage(createMosMessage(), event.origin);
+    }
+}
+
+async function userOpenedItem(message){
+    
+    // Get gfxItem from inews
+    var gfxItem = extractTagContent(message, "gfxItem");
+    
+    // Store gfxItem
+    currentId.id = gfxItem;
+    
+    // Get element with gfxItem id from gfx server       
+    const elementFromServer = await getFromGfxServer(gfxItem);
+
+    // Get and render data
+    var payload = extractTagContent(elementFromServer, "itemSlug");  
+    var group = extractTagContent(elementFromServer, "group");  
+    document.getElementById("payload").value = payload;
+    document.getElementById("group").value = group;
+}
+
+function extractTagContent(xmlString, tagName) {
+    try {
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+      const tagElement = xmlDoc.querySelector(tagName);
+  
+      if (tagElement !== null) {
+        return tagElement.textContent;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      // Handle parsing errors here, e.g., return an error message or throw an exception
+      return null;
     }
 }
 
 async function sendToGfxServer(msg) {
+    const url = 'http://localhost:3000/plugin/gfx'; // Replace with your API URL
+    return await fetchData(url, 'POST', msg);
+}
 
-    var url = 'http://localhost:3000/plugin/gfx'; // Replace with your API URL
+async function getFromGfxServer(id) {
+    const url = `http://localhost:3000/plugin/gfx/${id}`;
+    return await fetchData(url, 'GET', null);
+}
+
+async function sendNotify(msg) {
+    const url = 'http://localhost:3000/plugin/debug'; // Replace with your API URL
+    await fetchData(url, 'POST', msg);
+}
+
+async function fetchData(url, method, msg) {
     try {
         const response = await fetch(url, {
-            method: 'POST',
+            method,
             headers: {
                 'Content-Type': 'text/plain', // Adjust content type as needed
             },
@@ -111,47 +149,18 @@ async function sendToGfxServer(msg) {
             const data = await response.json();
             return data;
         } else {
-            console.error('Failed to post data');
+            console.error(`Failed to ${method} data at URL: ${url}`);
         }
     } catch (error) {
-        console.error('Error:', error);
-    }
-}
-
-async function getFromGfxServer(id) {
-    var url = 'http://localhost:3000/plugin/gfx/' + id; 
-    try {
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'text/plain', // Adjust content type as needed
-            }
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            return data;
-        } else {
-            console.error('Failed to get data');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-    }
-}
-
-async function sendNotify(msg) {
-    var url = 'http://localhost:3000/plugin/debug'; // Replace with your API URL
-    try {
-        await fetch(url, {method: 'POST',headers: {'Content-Type': 'text/plain', },body: msg,});
-    } catch (error) {
-        console.error('Error:', error);
+        console.error(`Error while fetching data at URL: ${url}`, error);
     }
 }
 
 if (window.addEventListener) {
-    sendNotify("window.addEventListener");
+    console.log("window.addEventListener");
     window.addEventListener('message', mosMsgFromHost, false);
 } else if (window.attachEvent) {
-    sendNotify("window.attachEvent");
+    console.log("window.attachEvent");
     window.attachEvent('onmessage', mosMsgFromHost, false);
 }
+
