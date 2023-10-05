@@ -3,6 +3,7 @@ import routes from "./src/routes/routes.js";
 import pluginRoutes from "./src/routes/plugin-routes.js"
 import express from "express";
 import cors from "cors";
+import getServerIP from "./src/utilities/host-ip.js";
 
 const app = express(); 
 
@@ -18,6 +19,10 @@ app.use(express.static('plugin'));
 // Start the Express server
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
-    console.log(`REST API Service running on port ${port}`);
+    const host = getServerIP();
+    console.log(`Starting inews-connect 1.2`)
+    console.log(`Server service running on port ${port}`);
+    console.log(`Plugin url: http://${host}:${port}/index.html`)
+    
     dataService.startMainProcess();
 });

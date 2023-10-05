@@ -29,9 +29,7 @@ function drop() {
 function createMosMessage(){
     const group = document.getElementById("group").value;
     const payload = document.getElementById("payload").value;
-    
-    const message = 
-    `<mos>
+    message = `<mos>
         <ncsItem>
             <item>
                 <itemID>0</itemID>
@@ -93,7 +91,7 @@ async function mosMsgFromHost(event) {
     }
     
     if (message.indexOf('<ncsItemRequest>') === -1){
-        event.source.postMessage(createMosMessage(), event.origin);
+        event.source.postMessage(createMosMessage(true), event.origin);
     }
 }
 
