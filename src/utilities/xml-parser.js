@@ -8,7 +8,7 @@ function xmlParser(xmlString) {
     for (var i = 0; i < itemSlugElements.length; i++) {
         var itemSlugElement = itemSlugElements[i];
         var existingText = itemSlugElement.textContent;
-        itemSlugElement.textContent = 'THIS IS FROM SERVER!/n ' + existingText;
+        itemSlugElement.textContent = 'From server: ' + existingText;
     }
 
     var modifiedXmlString = new XMLSerializer().serializeToString(xmlDoc);
