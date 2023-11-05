@@ -4,9 +4,11 @@ import lineupStore from "../dal/local-store.js"
 import hebDecoder from "../utilities/hebrew-decoder.js";
 import lineupExists from "../utilities/lineup-validator.js";
 import logger from "../utilities/logger.js";
+import db from "../dal/sql.js";
 
 async function startMainProcess() {
     lineupStore.initLineup();
+    await resetDB();
     lineupsIterator();
 }
 
@@ -33,6 +35,7 @@ async function processLineup(lineupName) {
             const story = await conn.story(lineupName, lineupList[i].fileName);
             const lineupInfo = createLineupInfo(decodedStoryName, i, lineupList, story);
             lineupStore.saveStory(lineupName, i, lineupInfo);
+            await addItemToDatabase(lineupInfo);
         }
         
         if (lineupList.length < cachedLineup.length) {  // Check if items have been deleted
@@ -69,6 +72,64 @@ function createCheckCondition(cachedStory, lineupStory) {
    
         return result;
 
+}
+
+
+async function addItemToDatabase(storyData) {
+    try {
+        const sql = `
+            INSERT INTO current_lineup 
+            (storyName, storyIndex, fileName, locator, modified, floated, cues, attachments, body, meta, storyId) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+            storyName = VALUES(storyName),
+            storyIndex = VALUES(storyIndex),
+            fileName = VALUES(fileName),
+            locator = VALUES(locator),
+            modified = VALUES(modified),
+            floated = VALUES(floated),
+            cues = VALUES(cues),
+            attachments = VALUES(attachments),
+            body = VALUES(body),
+            meta = VALUES(meta),
+            storyId = VALUES(storyId)
+        `;
+
+        const values = [
+            storyData.storyName,
+            storyData.index,
+            storyData.fileName,
+            storyData.locator,
+            storyData.modified,
+            storyData.floated,
+            JSON.stringify(storyData.cues),
+            JSON.stringify(storyData.attachments),
+            storyData.body,
+            JSON.stringify(storyData.meta),
+            storyData.id
+        ];
+
+        const result = await db.execute(sql, values);
+
+        console.log('Item added/updated in the database!');
+        return result;
+    } catch (error) {
+        console.error('Error adding/updating item:', error);
+        throw error;
+    }
+}
+
+
+async function resetDB(){
+    try {
+        const sql = `DELETE FROM current_lineup`;
+        const result = await db.execute(sql);
+        console.log('DB cleaned!');
+        return result;
+    } catch (error) {
+        console.error('Error adding item:', error);
+        throw error;
+    }
 }
 
 export default {

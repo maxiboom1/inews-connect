@@ -2,7 +2,12 @@
 {
     "conn":{"host": "192.168.1.13","user": "avid","password": "inews"},
     "defaultLineup":"show.alex.rundown",
-    "pullInterval":5000
+    "pullInterval":5000,
+    "mySqlHost" :"localhost",
+    "mySqlUser":"root",
+    "mySqlPassword":"",
+    "mySqlDatabase":"inews_rundowns"
+
 }
 
 
