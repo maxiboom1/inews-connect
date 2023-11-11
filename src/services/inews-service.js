@@ -38,7 +38,9 @@ async function processLineup(lineupName) {
         
         if (lineupList.length < cachedLineup.length) {  // Check if items have been deleted
             const deletedItems = cachedLineup.length - lineupList.length;
-            cachedLineup.length = lineupList.length;
+            // Work here
+            await lineupStore.deleteBasedLength(lineupName,deletedItems);
+            //cachedLineup.length = lineupList.length;
             logger(`INFO: ${deletedItems} Items has been deleted`);
         }
     } 

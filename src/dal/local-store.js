@@ -27,6 +27,11 @@ class LineupStore {
         await this.addItemToDatabase(story);
     }
 
+    async deleteBasedLength(lineupName, newLength) {
+        this.lineupStore[lineupName].length = newLength;
+        await this.deleteDbStories(newLength);
+    }
+
     async getActiveLineup() {
         return this.activeLineup;
     }
@@ -37,6 +42,7 @@ class LineupStore {
     }
 
     // -----------     SQL Functions    --------------
+    
     // Clear db table
     async resetDB() {
         try {
@@ -93,7 +99,17 @@ class LineupStore {
             throw error;
         }
     }
-    
+    // Delete stories from db
+    async deleteDbStories(newLength) {
+        try {
+            const sql = `DELETE FROM current_lineup WHERE storyIndex >= ${newLength};`;
+            const result = await db.execute(sql);
+            return result;
+        } catch (error) {
+            console.error('Error deleting stories from database:', error);
+            throw error;
+        }
+    }
 }
 
 const lineupStore = new LineupStore();
