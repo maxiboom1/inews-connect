@@ -7,7 +7,7 @@ const router = express.Router();
 router.get('/watcher/:lineup', async (req, res) => {
   const lineup = req.params.lineup;
   const responseData = await restService.getInewsLineupFromStore(lineup);
-  const activeLineup = lineupStore.getActiveLineup();
+  const activeLineup = await lineupStore.getActiveLineup();
   res.json({[activeLineup]:responseData});
 });
 

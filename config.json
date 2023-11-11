@@ -1,7 +1,7 @@
 
 {
     "conn":{"host": "192.168.1.13","user": "avid","password": "inews"},
-    "defaultLineup":"show.alex.rundown",
+    "defaultLineup":"show.alex.test2",
     "pullInterval":5000,
     "mySqlHost" :"localhost",
     "mySqlUser":"root",

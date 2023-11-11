@@ -7,17 +7,16 @@ import logger from "../utilities/logger.js";
 import db from "../dal/sql.js";
 
 async function startMainProcess() {
-    lineupStore.initLineup();
-    await resetDB();
+    await lineupStore.initLineup();
     lineupsIterator();
 }
 
 async function lineupsIterator() {
     const valid = await lineupExists();
     if(valid){
-        await processLineup(lineupStore.getActiveLineup()); 
+        await processLineup(await lineupStore.getActiveLineup()); 
     } else {
-        logger(`Error! lineup "${lineupStore.getActiveLineup()}" N/A`, true); 
+        logger(`Error! lineup "${await lineupStore.getActiveLineup()}" N/A`, true); 
     } 
     setTimeout(lineupsIterator, appConfig.pullInterval);
 }
@@ -25,7 +24,7 @@ async function lineupsIterator() {
 async function processLineup(lineupName) {
     
     const lineupList = await conn.list(lineupName);
-    const cachedLineup = lineupStore.getLineup(lineupName);
+    const cachedLineup = await lineupStore.getLineup(lineupName);
     for(let i = 0; i < lineupList.length; i++) {
         
         const decodedStoryName = hebDecoder(lineupList[i].storyName);
@@ -34,7 +33,7 @@ async function processLineup(lineupName) {
             logger(`Updating story: ${decodedStoryName}`);  
             const story = await conn.story(lineupName, lineupList[i].fileName);
             const lineupInfo = createLineupInfo(decodedStoryName, i, lineupList, story);
-            lineupStore.saveStory(lineupName, i, lineupInfo);
+            await lineupStore.saveStory(lineupName, i, lineupInfo);
             await addItemToDatabase(lineupInfo);
         }
         
@@ -118,7 +117,6 @@ async function addItemToDatabase(storyData) {
         throw error;
     }
 }
-
 
 async function resetDB(){
     try {

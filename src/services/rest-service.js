@@ -7,12 +7,12 @@ async function getInewsLineupFromStore(lineup){
     let result;
     
     if(lineup === "active") {
-        result = lineupStore.getLineup();
+        result = await lineupStore.getLineup();
     } else {
-        result = lineupStore.getLineup(lineup);
+        result = await lineupStore.getLineup(lineup);
     }
     
-    logger(`External api command: Get ${lineupStore.getActiveLineup()} - succeed`);
+    logger(`External api command: Get ${await lineupStore.getActiveLineup()} - succeed`);
     
     return result; 
 }
@@ -32,8 +32,8 @@ async function getAvailableLineups(path){
 // POST: localhost:3000/api/services/set-watcher/show.alex.test1
 async function setActiveLineup(lineupName){
         logger(`External api command: set active watch to ${lineupName} - succeed`);
-        lineupStore.setActiveLineup(lineupName);
-        return `Done! Active watch status: ${lineupStore.getActiveLineup()}`;
+        await lineupStore.setActiveLineup(lineupName);
+        return `Done! Active watch status: ${await lineupStore.getActiveLineup()}`;
 }
 
 export default {
