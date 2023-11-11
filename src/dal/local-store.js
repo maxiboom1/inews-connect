@@ -18,6 +18,7 @@ class LineupStore {
         }
     }
 
+
     async getLineup(lineup = this.activeLineup) { // By default, return active lineup
         return this.lineupStore[lineup];
     }
@@ -91,8 +92,6 @@ class LineupStore {
             ];
     
             const result = await db.execute(sql, values);
-    
-            console.log('Item added/updated in the database!');
             return result;
         } catch (error) {
             console.error('Error adding/updating item:', error);
@@ -107,6 +106,33 @@ class LineupStore {
             return result;
         } catch (error) {
             console.error('Error deleting stories from database:', error);
+            throw error;
+        }
+    }
+
+    async createLineupTable(lineupName) {
+        try {
+            const sql = `
+                CREATE TABLE IF NOT EXISTS ${lineupName} (
+                    storyName varchar(500) NOT NULL,
+                    storyIndex int(11) NOT NULL,
+                    fileName varchar(30) NOT NULL,
+                    locator varchar(30) NOT NULL,
+                    modified varchar(30) NOT NULL,
+                    floated varchar(10) NOT NULL,
+                    cues varchar(500) NOT NULL,
+                    attachments varchar(2000) NOT NULL,
+                    body varchar(5000) NOT NULL,
+                    meta varchar(500) NOT NULL,
+                    storyId varchar(30) NOT NULL,
+                    PRIMARY KEY (storyIndex)
+                )
+            `;
+            const result = await db.execute(sql);
+            console.log(`Table ${lineupName} created in the database.`);
+            return result;
+        } catch (error) {
+            console.error(`Error creating table for ${lineupName} lineup:`, error);
             throw error;
         }
     }
