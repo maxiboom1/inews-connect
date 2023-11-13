@@ -1,8 +1,7 @@
 import conn from "../dal/inews-ftp.js"
 import lineupStore from "../dal/local-store.js";
 
-async function lineupExists(){
-    const path = await lineupStore.getActiveLineup();
+async function lineupExists(path){
     const dir = path.split(".").slice(0,-1).join(".");
     const lineupName = path.split(".").slice(-1).join(".").toUpperCase();
     const list = await conn.list(dir);

@@ -4,20 +4,25 @@ import lineupStore from "../dal/local-store.js"
 import hebDecoder from "../utilities/hebrew-decoder.js";
 import lineupExists from "../utilities/lineup-validator.js";
 import logger from "../utilities/logger.js";
-import db from "../dal/sql.js";
 
 async function startMainProcess() {
-    await lineupStore.initLineup();
+    
+    // Create and reset DB && LS with lineups arr from config.json
+    await lineupStore.onLoadInit();
     lineupsIterator();
 }
 
 async function lineupsIterator() {
-    const valid = await lineupExists();//Check if lineup exists
-    if(valid){
-        await processLineup(await lineupStore.getActiveLineup()); 
-    } else {
-        logger(`Error! lineup "${await lineupStore.getActiveLineup()}" N/A`, true); 
-    } 
+    
+    for(let lineup of await lineupStore.getWatchedLineups()){
+        const valid = await lineupExists(lineup);//Check if lineup exists
+        if(valid){
+            await processLineup(lineup); 
+        } else {
+            logger(`Error! lineup "${lineup}" N/A`, true); 
+        } 
+    }
+    
     setTimeout(lineupsIterator, appConfig.pullInterval);
 }
 

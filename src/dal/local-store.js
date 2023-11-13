@@ -4,50 +4,53 @@ import db from "../dal/sql.js"; // Make sure to import your database module
 class LineupStore {
     constructor() {
         this.lineupStore = {};
-        this.activeLineup = appConfig.defaultLineup;
+        this.lineups = appConfig.lineups;
     }
     
-    async initLineup(lineup = this.activeLineup) {
+    async onLoadInit(){
         try {
-            await this.resetDB();
-            this.lineupStore[lineup] = [];
-            console.log(`Lineup ${lineup} initialized in the database.`);
-        } catch (error) {
+            for(let lineup of this.lineups){
+                this.lineupStore[lineup] = [];
+                await this.resetDB(lineup);
+                console.log(`Lineup ${lineup} initialized in the database.`);
+            }
+            
+        } 
+        catch (error) {
             console.error('Error initializing lineup (check localStore):', error);
             throw error;
         }
     }
 
+    async saveStory(lineup, index, story) {
+        this.lineupStore[lineup][index] = { ...story };
+        await this.addItemToDatabase(lineup,story);
+    }
+
+    async deleteBasedLength(lineupName, newLength) {
+        this.lineupStore[lineupName].length = newLength;
+        await this.deleteDbStories(lineupName,newLength);
+    }
+
+    async getWatchedLineups(){
+        return this.lineups;
+    }
 
     async getLineup(lineup = this.activeLineup) { // By default, return active lineup
         return this.lineupStore[lineup];
     }
 
-    async saveStory(lineup, index, story) {
-        this.lineupStore[lineup][index] = { ...story };
-        await this.addItemToDatabase(story);
-    }
-
-    async deleteBasedLength(lineupName, newLength) {
-        this.lineupStore[lineupName].length = newLength;
-        await this.deleteDbStories(newLength);
-    }
-
-    async getActiveLineup() {
-        return this.activeLineup;
-    }
-
-    async setActiveLineup(lineup) {
-        this.activeLineup = lineup;
-        await this.initLineup(lineup);
-    }
-
     // -----------     SQL Functions    --------------
     
     // Clear db table
-    async resetDB() {
+    async resetDB(lineup) {
         try {
-            const sql = `DELETE FROM current_lineup`;
+            
+            // Create table with lineup name (if not exists)
+            await this.createLineupTable(lineup);
+
+            // Reset the table
+            const sql = `DELETE FROM ${lineup.replace(/\./g, '_')}`;
             const result = await db.execute(sql);
             console.log('DB cleaned!');
             return result;
@@ -57,10 +60,10 @@ class LineupStore {
         }
     }
     // Add/Update db story
-    async addItemToDatabase(storyData) {
+    async addItemToDatabase(lineup,storyData) {
         try {
             const sql = `
-                INSERT INTO current_lineup 
+                INSERT INTO ${lineup.replace(/\./g, '_')} 
                 (storyName, storyIndex, fileName, locator, modified, floated, cues, attachments, body, meta, storyId) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE
@@ -99,9 +102,9 @@ class LineupStore {
         }
     }
     // Delete stories from db
-    async deleteDbStories(newLength) {
+    async deleteDbStories(lineup,newLength) {
         try {
-            const sql = `DELETE FROM current_lineup WHERE storyIndex >= ${newLength};`;
+            const sql = `DELETE FROM ${lineup.replace(/\./g, '_')} WHERE storyIndex >= ${newLength};`;
             const result = await db.execute(sql);
             return result;
         } catch (error) {
@@ -110,10 +113,11 @@ class LineupStore {
         }
     }
 
-    async createLineupTable(lineupName) {
+    async createLineupTable(lineup) {
         try {
+            
             const sql = `
-                CREATE TABLE IF NOT EXISTS ${lineupName} (
+                CREATE TABLE IF NOT EXISTS ${lineup.replace(/\./g, '_')} (
                     storyName varchar(500) NOT NULL,
                     storyIndex int(11) NOT NULL,
                     fileName varchar(30) NOT NULL,
@@ -129,10 +133,10 @@ class LineupStore {
                 )
             `;
             const result = await db.execute(sql);
-            console.log(`Table ${lineupName} created in the database.`);
+            console.log(`Table ${lineup} created in the database.`);
             return result;
         } catch (error) {
-            console.error(`Error creating table for ${lineupName} lineup:`, error);
+            console.error(`Error creating table for ${lineup} lineup:`, error);
             throw error;
         }
     }
