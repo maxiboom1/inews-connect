@@ -50,7 +50,7 @@ class LineupStore {
             await this.createLineupTable(lineup);
 
             // Reset the table
-            const sql = `DELETE FROM ${lineup.replace(/\./g, '_')}`;
+            const sql = `DELETE FROM ${lineup.replace(/\./g, '_').replace(/:/g, '')}`;
             const result = await db.execute(sql);
             console.log('DB cleaned!');
             return result;
@@ -63,7 +63,7 @@ class LineupStore {
     async addItemToDatabase(lineup,storyData) {
         try {
             const sql = `
-                INSERT INTO ${lineup.replace(/\./g, '_')} 
+                INSERT INTO ${lineup.replace(/\./g, '_').replace(/:/g, '')} 
                 (storyName, storyIndex, fileName, locator, modified, floated, cues, attachments, body, meta, storyId) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE
@@ -104,7 +104,7 @@ class LineupStore {
     // Delete stories from db
     async deleteDbStories(lineup,newLength) {
         try {
-            const sql = `DELETE FROM ${lineup.replace(/\./g, '_')} WHERE storyIndex >= ${newLength};`;
+            const sql = `DELETE FROM ${lineup.replace(/\./g, '_').replace(/:/g, '')} WHERE storyIndex >= ${newLength};`;
             const result = await db.execute(sql);
             return result;
         } catch (error) {
@@ -117,7 +117,7 @@ class LineupStore {
         try {
             
             const sql = `
-                CREATE TABLE IF NOT EXISTS ${lineup.replace(/\./g, '_')} (
+                CREATE TABLE IF NOT EXISTS ${lineup.replace(/\./g, '_').replace(/:/g, '')} (
                     storyName varchar(500) NOT NULL,
                     storyIndex int(11) NOT NULL,
                     fileName varchar(30) NOT NULL,

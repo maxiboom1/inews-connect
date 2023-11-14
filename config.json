@@ -1,7 +1,12 @@
 
 {
     "conn":{"host": "192.168.1.13","user": "avid","password": "inews"},
-    "lineups":["show.alex.rundown","show.alex.test2"],
+    "lineups":[
+        "show.alex.rundown",
+        "show.alex.test2",
+        "show.alex.test.new",
+        "show.alex.20:00.rundown"
+    ],
     "pullInterval":5000,
     "mySqlHost" :"localhost",
     "mySqlUser":"root",
