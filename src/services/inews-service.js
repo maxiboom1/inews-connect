@@ -35,7 +35,7 @@ async function processLineup(lineupName) {
         const decodedStoryName = hebDecoder(lineupList[i].storyName); // Decode story name
         const shouldUpdate = createCheckCondition(cachedLineup[i], lineupList[i]); // Compare inews version with cached
         if (shouldUpdate) { 
-            logger(`Updating story: ${decodedStoryName}`);  
+            logger(`Update event:${lineupName}, story: ${decodedStoryName}`);  
             const story = await conn.story(lineupName, lineupList[i].fileName); // Get expanded story data from inews
             const storyInfo = createStoryInfo(decodedStoryName, i, lineupList, story); // Create story obj
             await lineupStore.saveStory(lineupName, i, storyInfo);
@@ -46,7 +46,7 @@ async function processLineup(lineupName) {
             // Work here
             await lineupStore.deleteBasedLength(lineupName,deletedItems);
             //cachedLineup.length = lineupList.length;
-            logger(`INFO: ${deletedItems} Items has been deleted`);
+            logger(`Delete event:${lineupName}: ${deletedItems} Items has been deleted`);
         }
     } 
 }
