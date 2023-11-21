@@ -7,6 +7,7 @@ USE NewsArts;
 -- Create the ngn_inews_rundowns table
 CREATE TABLE IF NOT EXISTS ngn_inews_rundowns (
     uid bigint NOT NULL AUTO_INCREMENT,
+    filename nvarchar(32) NULL,
     name nvarchar(32) NULL,
     lastupdate bigint NOT NULL,
     production bigint NOT NULL,

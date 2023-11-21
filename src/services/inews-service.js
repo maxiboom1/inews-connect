@@ -9,15 +9,15 @@ async function startMainProcess() {
     
     // Create and reset DB && LS with lineups arr from config.json
     await lineupStore.onLoadInit();
-    lineupsIterator();
+    lineupsIterator(true);
 }
 
-async function lineupsIterator() {
+async function lineupsIterator(firstLoad) {
     
     for(let lineup of await lineupStore.getWatchedLineups()){
         const valid = await lineupExists(lineup);//Check if lineup exists
         if(valid){
-            await processLineup(lineup); 
+            await processLineup(lineup,firstLoad); 
         } else {
             logger(`Error! lineup "${lineup}" N/A`, true); 
         } 
@@ -26,8 +26,7 @@ async function lineupsIterator() {
     setTimeout(lineupsIterator, appConfig.pullInterval);
 }
 
-async function processLineup(lineupName) {
-    
+async function processLineup(lineupName, firstLoad = undefined) {
     const lineupList = await conn.list(lineupName); // Get lineup list from inews
     const cachedLineup = await lineupStore.getLineup(lineupName); // Get lineup cache from localStore
     for(let i = 0; i < lineupList.length; i++) {
@@ -40,15 +39,20 @@ async function processLineup(lineupName) {
             const storyInfo = createStoryInfo(decodedStoryName, i, lineupList, story); // Create story obj
             await lineupStore.saveStory(lineupName, i, storyInfo);
         }
-        
-        if (lineupList.length < cachedLineup.length) {  // Check if items have been deleted
-            const deletedItems = cachedLineup.length - lineupList.length;
-            // Work here
-            await lineupStore.deleteBasedLength(lineupName,deletedItems);
-            //cachedLineup.length = lineupList.length;
-            logger(`Delete event:${lineupName}: ${deletedItems} Items has been deleted`);
-        }
+    }
+    
+    if (lineupList.length < cachedLineup.length) {  // Check if items have been deleted
+        const deletedItems = cachedLineup.length - lineupList.length;
+        // Work here
+        await lineupStore.deleteBasedLength(lineupName,deletedItems);
+        logger(`Delete event:${lineupName}: ${deletedItems} Items has been deleted`);
+    }
+    
+    if(firstLoad){
+        console.log("SQL DB synced ☑");
+        await lineupStore.deleteBasedLength(lineupName,lineupList.length);
     } 
+
 }
 
 function createStoryInfo(decodedStoryName, i, lineupList, story){
@@ -82,3 +86,5 @@ function createCheckCondition(cachedStory, lineupStory) {
 export default {
     startMainProcess
 };
+
+
