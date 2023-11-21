@@ -121,8 +121,6 @@ const lineupStore = new LineupStore();
 export default lineupStore;
 
 
-/*
-
 class LineupStore {
     constructor() {
         this.lineupStore = {};
