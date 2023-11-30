@@ -11,7 +11,7 @@ class LineupStore {
         try {
             for(let lineup of this.lineups){ 
                 this.lineupStore[lineup] = [];
-                await this.updateInewsRundowns(lineup);
+                //await this.updateInewsRundowns(lineup);
                 console.log(`Lineup ${lineup} initialized in the database..`);
             }
             
@@ -44,37 +44,25 @@ class LineupStore {
         
     // Update ngn_inews_rundowns with given lineup 
     async updateInewsRundowns(lineup) {
-        // Ensure lineup is a valid string
-        if (typeof lineup !== 'string') {
-        console.error('Invalid lineup value. It must be a string..');
-        return;
-        }
-    
-        const sqlQuery = `
-        DECLARE @unixTimestamp BIGINT = DATEDIFF(SECOND, '1970-01-01', GETUTCDATE());
-    
-        MERGE INTO ngn_inews_rundowns AS target
-        USING (VALUES (@lineup)) AS source(name)
-        ON target.name = source.name
-        WHEN MATCHED THEN
-        UPDATE SET lastupdate = @unixTimestamp
-        WHEN NOT MATCHED THEN
-        INSERT (name, lastupdate, production, enabled, exported, tag)
-        VALUES (source.name, @unixTimestamp, 12, 1, 0, 'text');
-    `;
-
-        const values = {
-        lineup: lineup,
-        }; 
-    
-        // Execute the query
         try {
-        const result = await db.execute(sqlQuery, values);
-        console.log('Query executed successfully:', result);
+            const sql = `
+                INSERT INTO ngn_inews_rundowns (name, lastupdate, production, enabled, exported, tag)
+                VALUES ('${lineup}', UNIX_TIMESTAMP(NOW()) * 10000000, 'a', 'a', '1', '0')
+                ON DUPLICATE KEY UPDATE
+                lastupdate = VALUES(lastupdate),
+                production = VALUES(production),
+                enabled = VALUES(enabled),
+                exported = VALUES(exported),
+                tag = VALUES(tag);
+            `; 
+            const result = await db.execute(sql);
+            return result;
         } catch (error) {
-        console.error('Error executing query:', error);
+            console.error('Error resetting database:', error);
+            throw error;
         }
     }
+    
     // Add/Update db story
     async addItemToDatabase(lineup, storyData, index) {
         try {
@@ -127,7 +115,6 @@ class LineupStore {
     }
 
 }
-
 
 const lineupStore = new LineupStore();
 

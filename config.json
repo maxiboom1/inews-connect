@@ -2,13 +2,13 @@
 {
     "conn":{"host": "192.168.1.13","user": "avid","password": "inews"},
     "lineups":[
-        "show.alex.rundown","show.alex.20:00.rundown","show.alex.test1","show.alex.test2"
+        "show.alex.test1"
     ],
     "pullInterval":5000,
-    "mySqlHost" :"localhost",
-    "mySqlUser":"root",
-    "mySqlPassword":"",
-    "mySqlDatabase":"newsarts"
+    "sqlServerHost" :"WINDOWS-11C0I62\\SQLEXPRESS",
+    "sqlServerUser":"test",
+    "sqlServerPassword":"test",
+    "sqlServerDatabase":"newsarts"
 }
 
 
