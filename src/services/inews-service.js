@@ -50,9 +50,10 @@ async function processLineup(lineupName, firstLoad = undefined) {
     
     if(firstLoad){
         console.log("SQL DB synced ☑");
+        console.log(await lineupStore.getStore());
         await lineupStore.deleteBasedLength(lineupName,lineupList.length);
     } 
-
+    //
 }
 
 function createStoryInfo(decodedStoryName, i, lineupList, story){
