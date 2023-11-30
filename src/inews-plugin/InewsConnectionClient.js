@@ -19,7 +19,7 @@ class InewsConnectionClient extends EventEmitter {
 		this.config = Object.assign({
 			timeout: 60000, // 1 minute
 			reconnectTimeout: 5000, // 5 seconds
-			maxRunning: 10,
+			maxRunning: 5000,
 			maxAttempts: 5,
 			maxReconnectAttempts: null,
 			debug: true,

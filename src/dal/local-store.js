@@ -40,7 +40,7 @@ class LineupStore {
         return this.lineupStore[lineup];
     }
 
-    async getStore() { // By default, return active lineup
+    async getStore() { // Returns store object as is (debugging)
         return this.lineupStore;
     }
 
@@ -51,7 +51,7 @@ class LineupStore {
         // Ensure lineup is a valid string
         if (typeof lineup !== 'string') {console.error('Invalid lineup value. It must be a string..');return;}
     
-     const sqlQuery = `
+        const sqlQuery = `
         DECLARE @unixTimestamp BIGINT = DATEDIFF(SECOND, '1970-01-01', GETUTCDATE());
         DECLARE @outputTable TABLE (uid BIGINT);
 
@@ -67,15 +67,15 @@ class LineupStore {
 
         SELECT uid FROM @outputTable;`;
 
-    const values = { lineup: lineup };
+        const values = { lineup: lineup };
 
-    try {
-        const result = await db.execute(sqlQuery, values);
-        const uid = result[0].uid;
-        this.lineupStore[lineup].uid = uid;
-    } catch (error) {
-        console.error('Error executing query:', error);
-    }
+        try {
+            const result = await db.execute(sqlQuery, values);
+            const uid = result[0].uid;
+            this.lineupStore[lineup].uid = uid;
+        } catch (error) {
+            console.error('Error executing query:', error);
+        }
     }
     
     // Add/Update db story

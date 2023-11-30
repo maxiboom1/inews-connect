@@ -18,9 +18,11 @@ async function lineupsIterator(firstLoad) {
         const valid = await lineupExists(lineup);//Check if lineup exists
         if(valid){
             await processLineup(lineup,firstLoad); 
+            //await test(lineup);
         } else {
             logger(`Error! lineup "${lineup}" N/A`, true); 
         } 
+        console.log("lineup done,  ", lineup);
     }
     
     setTimeout(lineupsIterator, appConfig.pullInterval);
@@ -50,7 +52,7 @@ async function processLineup(lineupName, firstLoad = undefined) {
     
     if(firstLoad){
         console.log("SQL DB synced ☑");
-        console.log(await lineupStore.getStore());
+        //console.log(await lineupStore.getStore());
         await lineupStore.deleteBasedLength(lineupName,lineupList.length);
     } 
     //
@@ -84,6 +86,51 @@ function createCheckCondition(cachedStory, lineupStory) {
 
 }
 
+async function test(rundownName) {
+    console.log('Testing lineup:', rundownName);
+    let storyPromises = [];
+
+    let inewsQueue = rundownName;
+
+    try {
+        const listItems = await conn.list(inewsQueue);
+
+        listItems.forEach((listItem) => {
+            if (listItem.fileType === 'STORY') {
+                let storyPromise = conn.story(inewsQueue, listItem.fileName);
+
+                storyPromises.push(storyPromise);
+
+                storyPromise
+                    .then(story => {
+                    })
+                    .catch(error => {
+                        console.error('ERROR', error);
+                    });
+            }
+        });
+
+        // Return a promise that resolves when all story promises are settled
+        return Promise.all(storyPromises).then(() => {
+            console.log('Promise done for lineup:', rundownName);
+        });
+
+    } catch (error) {
+        console.error('Error fetching list items:', error);
+    }
+}
+
+
+// conn.on('connections', connections => {
+//     console.log(connections + ' connections active');
+// });
+// conn.on('queued', queued => {
+//     console.log(queued + ' queued requests');
+// });
+    
+// conn.on('running', running => {
+//     console.log(running + ' running requests');
+// });
 export default {
     startMainProcess
 };
