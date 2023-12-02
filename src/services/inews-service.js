@@ -7,15 +7,15 @@ import logger from "../utilities/logger.js";
 
 async function startMainProcess() { 
     await lineupStore.onLoadInit();
-    lineupsIterator(true);
+    lineupsIterator();
 }
 
-async function lineupsIterator(firstLoad) {
+async function lineupsIterator() {
     
     for(let lineup of await lineupStore.getWatchedLineups()){
         const valid = await lineupExists(lineup);
         if(valid){
-            await processLineup(lineup,firstLoad); 
+            await processLineup(lineup); 
         } else {
             logger(`Error! lineup "${lineup}" N/A`, true); 
         } 
@@ -24,9 +24,10 @@ async function lineupsIterator(firstLoad) {
     setTimeout(lineupsIterator, appConfig.pullInterval);
 }
 
-async function processLineup(lineupName, firstLoad = undefined) {
+async function processLineup(lineupName) {
     const lineupList = await conn.list(lineupName); // Get lineup list from inews
     const cachedLineup = await lineupStore.getLineup(lineupName); // Get lineup cache from localStore
+    
     for(let i = 0; i < lineupList.length; i++) {
         
         const decodedStoryName = hebDecoder(lineupList[i].storyName); // Decode story name
@@ -41,16 +42,10 @@ async function processLineup(lineupName, firstLoad = undefined) {
     
     if (lineupList.length < cachedLineup.length) {  // Check if items have been deleted
         const deletedItems = cachedLineup.length - lineupList.length;
-        // Work here
         await lineupStore.deleteBasedLength(lineupName,deletedItems);
         logger(`Delete event:${lineupName}: ${deletedItems} Items has been deleted`);
     }
     
-    if(firstLoad){
-        console.log("SQL DB synced ☑");
-        await lineupStore.deleteBasedLength(lineupName,lineupList.length);
-    } 
-   
 }
 
 function createStoryInfo(decodedStoryName, i, lineupList, story){

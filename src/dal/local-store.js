@@ -11,8 +11,8 @@ class LineupStore {
         try {
             for(let lineup of this.lineups){ 
                 this.lineupStore[lineup] = [];
+                await this.resetDBStories();
                 await this.updateInewsRundowns(lineup);
-                await this.deleteDbStories(lineup,0)
                 console.log(`Lineup ${lineup} initialized in the database..`);
             }
             
@@ -32,7 +32,7 @@ class LineupStore {
 
     async deleteBasedLength(lineupName, newLength) {
         this.lineupStore[lineupName].length = newLength;
-        //await this.deleteDbStories(lineupName,newLength);
+        await this.deleteDbStories(lineupName,newLength);
     }
 
     async getWatchedLineups(){
@@ -51,9 +51,7 @@ class LineupStore {
         
     // Update ngn_inews_rundowns with given lineup 
     async updateInewsRundowns(lineup) {
-        // Ensure lineup is a valid string
         if (typeof lineup !== 'string') {console.error('Invalid lineup value. It must be a string..');return;}
-    
         const sqlQuery = `
         DECLARE @unixTimestamp BIGINT = DATEDIFF(SECOND, '1970-01-01', GETUTCDATE());
         DECLARE @outputTable TABLE (uid BIGINT);
@@ -83,6 +81,7 @@ class LineupStore {
     
     // Add db story and get asserted UID.
     async addItemToDatabase(lineup, storyData, index) {
+        const ordUpdate = true;
         const existingUid = this.lineupStore[lineup][index]?.uid || 1000000000000;
         const unixTimestamp = Math.floor(Date.now() / 1000);
         const name = storyData.storyName;
@@ -99,7 +98,7 @@ class LineupStore {
                     rundown = source.rundown,
                     production = source.production,
                     ord = source.ord,
-                    ordupdate = ${unixTimestamp},
+                    ${ordUpdate ? 'ordupdate = ' + unixTimestamp : ''}, 
                     enabled = source.enabled,
                     tag = source.tag
             WHEN NOT MATCHED THEN
@@ -119,10 +118,14 @@ class LineupStore {
         }
     }
 
-    // Delete stories from db
+    // Delete stories by length
     async deleteDbStories(rundown, length) {
+        console.log(this.lineupStore[rundown].uid, length)
         try {
-            const sql = `DELETE FROM ngn_inews_stories`;
+            const sql = `
+                DELETE FROM ngn_inews_stories
+                WHERE rundown = '${this.lineupStore[rundown].uid}' AND ord > ${length-1};
+            `;
             const result = await db.execute(sql);
             return result;
         } catch (error) {
@@ -130,7 +133,19 @@ class LineupStore {
             throw error;
         }
     }
+    
+    // Reset ngn_inews_stories
+    async resetDBStories() {
+        try {
+            const sql = `DELETE FROM ngn_inews_stories`;
+            await db.execute(sql);
+        } catch (error) {
+            console.error('Error deleting stories from SQL:', error);
+            throw error;
+        }
+    }
 
+    
 }
 
 
