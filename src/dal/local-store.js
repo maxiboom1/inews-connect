@@ -12,6 +12,7 @@ class LineupStore {
             for(let lineup of this.lineups){ 
                 this.lineupStore[lineup] = [];
                 await this.updateInewsRundowns(lineup);
+                await this.deleteDbStories(lineup,0)
                 console.log(`Lineup ${lineup} initialized in the database..`);
             }
             
@@ -23,8 +24,10 @@ class LineupStore {
     }
 
     async saveStory(lineup, index, story) {
+        const assertedUid = await this.addItemToDatabase(lineup,story,index);
+        story.uid = assertedUid;
         this.lineupStore[lineup][index] = { ...story };
-        //await this.addItemToDatabase(lineup,story,index);
+        
     }
 
     async deleteBasedLength(lineupName, newLength) {
@@ -78,49 +81,48 @@ class LineupStore {
         }
     }
     
-    // Add/Update db story
+    // Add db story and get asserted UID.
     async addItemToDatabase(lineup, storyData, index) {
-        try {
-            const sql = `
-                INSERT INTO ngn_inews_stories 
-                (name, lastupdate, rundown, rundownname, production, ord, ordupdate, enabled, tag) 
-                VALUES (
-                    '${storyData.storyName}', 
-                    UNIX_TIMESTAMP(NOW()) * 10000000, 
-                    (SELECT uid FROM ngn_inews_rundowns WHERE name = '${lineup}'),
-                    '${lineup}',
-                    '0',
-                    ${index}, 
-                    UNIX_TIMESTAMP(NOW()) * 10000000, 
-                    1, 
-                    'tag'
-                )
-                ON DUPLICATE KEY UPDATE
-                    name = VALUES(name),
-                    lastupdate = VALUES(lastupdate),
-                    production = VALUES(production),
-                    ordupdate = VALUES(ordupdate),
-                    enabled = VALUES(enabled),
-                    tag = VALUES(tag);
-            `;
+        const existingUid = this.lineupStore[lineup][index]?.uid || 1000000000000;
+        const unixTimestamp = Math.floor(Date.now() / 1000);
+        const name = storyData.storyName;
+        const rundown = this.lineupStore[lineup].uid;
+        const sqlQuery = `
+            DECLARE @outputTable TABLE (uid BIGINT);
+            MERGE INTO ngn_inews_stories AS target
+            USING (VALUES (${existingUid}, '${name}', '${rundown}', 1, ${index}, 1, 'tag')) AS source(uid, name, rundown, production, ord, enabled, tag)
+            ON target.uid = source.uid
+            WHEN MATCHED THEN
+                UPDATE SET 
+                    name = source.name,
+                    lastupdate = ${unixTimestamp},
+                    rundown = source.rundown,
+                    production = source.production,
+                    ord = source.ord,
+                    ordupdate = ${unixTimestamp},
+                    enabled = source.enabled,
+                    tag = source.tag
+            WHEN NOT MATCHED THEN
+                INSERT (name, lastupdate, rundown, production, ord, ordupdate, enabled, tag)
+                VALUES (source.name, ${unixTimestamp}, source.rundown, source.production, source.ord, ${unixTimestamp}, source.enabled, source.tag)
+            OUTPUT inserted.uid INTO @outputTable;
+            SELECT uid FROM @outputTable;
+        `;
     
-            const result = await db.execute(sql);
-            await this.updateInewsRundowns(lineup);
-            return result;
+        // Execute the query
+        try {
+            const result = await db.execute(sqlQuery);
+            return result[0].uid;
         } catch (error) {
-            console.error('Error adding/updating item:', error);
-            throw error;
+            console.error('Error executing query:', error);
+            return null;
         }
     }
-    
+
     // Delete stories from db
-    async deleteDbStories(lineup,newLength) {
+    async deleteDbStories(rundown, length) {
         try {
-            const sql = `
-                DELETE FROM ngn_inews_stories
-                WHERE rundownname = '${lineup}' AND ord > ${newLength};
-            `;
-    
+            const sql = `DELETE FROM ngn_inews_stories`;
             const result = await db.execute(sql);
             return result;
         } catch (error) {

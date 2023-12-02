@@ -5,9 +5,7 @@ import hebDecoder from "../utilities/hebrew-decoder.js";
 import lineupExists from "../utilities/lineup-validator.js";
 import logger from "../utilities/logger.js";
 
-async function startMainProcess() {
-    
-    // Create and reset DB && LS with lineups arr from config.json
+async function startMainProcess() { 
     await lineupStore.onLoadInit();
     lineupsIterator(true);
 }
@@ -15,14 +13,12 @@ async function startMainProcess() {
 async function lineupsIterator(firstLoad) {
     
     for(let lineup of await lineupStore.getWatchedLineups()){
-        const valid = await lineupExists(lineup);//Check if lineup exists
+        const valid = await lineupExists(lineup);
         if(valid){
             await processLineup(lineup,firstLoad); 
-            //await test(lineup);
         } else {
             logger(`Error! lineup "${lineup}" N/A`, true); 
         } 
-        console.log("lineup done,  ", lineup);
     }
     
     setTimeout(lineupsIterator, appConfig.pullInterval);
@@ -52,10 +48,9 @@ async function processLineup(lineupName, firstLoad = undefined) {
     
     if(firstLoad){
         console.log("SQL DB synced ☑");
-        //console.log(await lineupStore.getStore());
         await lineupStore.deleteBasedLength(lineupName,lineupList.length);
     } 
-    //
+   
 }
 
 function createStoryInfo(decodedStoryName, i, lineupList, story){
@@ -86,6 +81,13 @@ function createCheckCondition(cachedStory, lineupStory) {
 
 }
 
+export default {
+    startMainProcess
+};
+
+
+
+/*
 async function test(rundownName) {
     console.log('Testing lineup:', rundownName);
     let storyPromises = [];
@@ -121,18 +123,15 @@ async function test(rundownName) {
 }
 
 
-// conn.on('connections', connections => {
-//     console.log(connections + ' connections active');
-// });
-// conn.on('queued', queued => {
-//     console.log(queued + ' queued requests');
-// });
+conn.on('connections', connections => {
+    console.log(connections + ' connections active');
+});
+conn.on('queued', queued => {
+    console.log(queued + ' queued requests');
+});
     
-// conn.on('running', running => {
-//     console.log(running + ' running requests');
-// });
-export default {
-    startMainProcess
-};
+conn.on('running', running => {
+    console.log(running + ' running requests');
+});
 
-
+*/

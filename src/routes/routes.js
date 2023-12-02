@@ -10,7 +10,10 @@ router.get('/watcher/:lineup', async (req, res) => {
   const activeLineup = await lineupStore.getActiveLineup();
   res.json({[activeLineup]:responseData});
 });
-
+router.get('/get', async (req, res) => {
+  const store = await lineupStore.getStore();
+  res.json(store);
+});
   
 router.get('/services/get-dir/:dirName', async (req, res) => {
   const dirName = req.params.dirName;

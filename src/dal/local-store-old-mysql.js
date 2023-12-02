@@ -11,7 +11,7 @@ class LineupStore {
         try {
             for(let lineup of this.lineups){ 
                 this.lineupStore[lineup] = [];
-                //await this.updateInewsRundowns(lineup);
+                await this.updateInewsRundowns(lineup);
                 console.log(`Lineup ${lineup} initialized in the database..`);
             }
             
