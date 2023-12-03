@@ -11,18 +11,23 @@ async function startMainProcess() {
 }
 
 async function lineupsIterator() {
+    console.time('Process time for load inews rundowns'); // Start the timer
     
-    for(let lineup of await lineupStore.getWatchedLineups()){
+    for (let lineup of await lineupStore.getWatchedLineups()) {
         const valid = await lineupExists(lineup);
-        if(valid){
-            await processLineup(lineup); 
+        if (valid) {
+            await processLineup(lineup);
         } else {
-            logger(`Error! lineup "${lineup}" N/A`, true); 
-        } 
+            logger(`Error! Lineup "${lineup}" N/A`, true);
+        }
     }
-    
+
+    console.timeEnd('Process time for load inews rundowns'); // End the timer
+
     setTimeout(lineupsIterator, appConfig.pullInterval);
 }
+
+
 
 async function processLineup(lineupName) {
     const lineupList = await conn.list(lineupName); // Get lineup list from inews
