@@ -3,7 +3,8 @@
     "conn":{"host": "192.168.1.13","user": "avid","password": "inews", "maxConnections": 2},
     "lineups":[
 
-        "show.alex.test.new"
+        "show.alex.test.new",
+        "show.alex.rundown"
     ],
     "pullInterval":5000,
     "sqlServerHost" :"WINDOWS-11C0I62\\SQLEXPRESS",

@@ -1,0 +1,67 @@
+rundown with 2 stories story-1 and story-2
+
+[
+  {
+    fileType: 'STORY',
+    fileName: '0D6B337E:0002E10E:656F0BE8',
+    identifier: '0D6B337E',
+    locator: '0002E10E:656F0BE8',
+    storyName: 'story-1',
+    modified: 2023-12-05T04:39:00.000Z,
+    flags: { floated: false }
+  },
+  {
+    fileType: 'STORY',
+    fileName: '0C6B337E:0002E108:656F133B',
+    identifier: '0C6B337E',
+    locator: '0002E108:656F133B',
+    storyName: 'story-2',
+    modified: 2023-12-05T05:10:00.000Z,
+    flags: { floated: false }
+  }
+]
+
+same lineup after reorder stories:
+
+[
+  {
+    fileType: 'STORY',
+    fileName: '0C6B337E:0002E108:656F1435',
+    identifier: '0C6B337E',
+    locator: '0002E108:656F1435',
+    storyName: 'story-2',
+    modified: 2023-12-05T05:14:00.000Z,    
+    flags: { floated: false }
+  },
+  {
+    fileType: 'STORY',
+    fileName: '0D6B337E:0002E10E:656F0BE8',
+    identifier: '0D6B337E',
+    locator: '0002E10E:656F0BE8',
+    storyName: 'story-1',
+    modified: 2023-12-05T04:39:00.000Z,
+    flags: { floated: false }
+  }
+]
+
+// LOCALSTORE 
+
+{
+    "storyName": "story-2",
+    "index": 0,
+    "fileName": "0C6B337E:0002E108:656F1435",
+    "locator": "0002E108:656F1435",
+    "identifier": "0C6B337E",
+    "modified": "2023-12-05T05:14:00.000Z",
+    "floated": false,
+    "cues": [],
+    "attachments": {},
+    "body": "",
+    "meta": {
+        "rate": "180",
+        "wordlength": "6",
+        "version": "8"
+    },
+    "id": "0c6b337e:0002e108:656f133b",
+    "uid": "791"
+},

@@ -23,16 +23,37 @@ class LineupStore {
         }
     }
 
-    async saveStory(lineup, index, story) {
-        const assertedUid = await this.addItemToDatabase(lineup,story,index);
+    async createOrModifyStory(lineupName, story, index) {
+        const assertedUid = await this.saveOrModifyStorySQL(lineupName,story,index);
         story.uid = assertedUid;
-        this.lineupStore[lineup][index] = { ...story };
+        this.lineupStore[lineupName][index] = { ...story };
         
     }
+    
+    setNewStoryIndex(lineupName, story, index) {
+        const lineup = this.lineupStore[lineupName];
+      
+        if (lineup) {
+          const storyToUpdate = lineup.find((s) => s.identifier === story.identifier);
+      
+          if (storyToUpdate) {
+            // Update the index of the found story
+            storyToUpdate.index = index;
+            console.log(`Updated index for story with identifier ${story.identifier} in ${lineupName} to ${index}`);
+          } else {
+            this.createOrModifyStory(lineupName, story, index);
+            console.log(`Story with identifier ${story.identifier} not found in ${lineupName}`);
 
-    async deleteBasedLength(lineupName, newLength) {
-        this.lineupStore[lineupName].length = newLength;
-        await this.deleteDbStories(lineupName,newLength);
+          }
+        } else {
+          console.log(`Lineup ${lineupName} not found`);
+        }
+      }
+
+    // Needs to modified based uid now.
+    async deleteBasedLength(lineupName, length) {
+        this.lineupStore[lineupName].length = length;
+        await this.deleteDbStories(lineupName,length);
     }
 
     async getWatchedLineups(){
@@ -44,8 +65,10 @@ class LineupStore {
     }
 
     async getStore() { // Returns store object as is (debugging)
+        console.log(this.lineupStore);
         return this.lineupStore;
     }
+      
 
     // -----------     SQL Functions    --------------
         
@@ -62,8 +85,8 @@ class LineupStore {
         WHEN MATCHED THEN
         UPDATE SET lastupdate = @unixTimestamp
         WHEN NOT MATCHED THEN
-        INSERT (name, lastupdate, production, enabled, exported, tag)
-        VALUES (source.name, @unixTimestamp, 12, 1, 0, 'text')
+        INSERT (name, lastupdate, production, enabled, tag)
+        VALUES (source.name, @unixTimestamp, 12, 1,'text')
         OUTPUT inserted.uid INTO @outputTable;
 
         SELECT uid FROM @outputTable;`;
@@ -79,56 +102,55 @@ class LineupStore {
         }
     }
     
-// Add db story and get asserted UID.
-async addItemToDatabase(lineup, storyData, index) {
-    const ordUpdate = true;
-    const existingUid = this.lineupStore[lineup][index]?.uid || 1000000000000;
-    const unixTimestamp = Math.floor(Date.now() / 1000);
-    const name = storyData.storyName;
-    const rundown = this.lineupStore[lineup].uid;
+    // Add db story and get asserted UID.
+    async saveOrModifyStorySQL(lineup, storyData, index) {
+        const ordUpdate = true;
+        const existingUid = this.lineupStore[lineup][index]?.uid || 1000000000000;
+        const unixTimestamp = Math.floor(Date.now() / 1000);
+        const name = storyData.storyName;
+        const rundown = this.lineupStore[lineup].uid;
 
-    // Use @name as the parameter placeholder
-    const sqlQuery = `
-        DECLARE @outputTable TABLE (uid BIGINT);
-        MERGE INTO ngn_inews_stories AS target
-        USING (VALUES (@existingUid, @name, @rundown, 1, @index, 1, 'tag')) AS source(uid, name, rundown, production, ord, enabled, tag)
-        ON target.uid = source.uid
-        WHEN MATCHED THEN
-            UPDATE SET 
-                name = source.name,
-                lastupdate = @unixTimestamp,
-                rundown = source.rundown,
-                production = source.production,
-                ord = source.ord,
-                ${ordUpdate ? 'ordupdate = ' + '@unixTimestamp' : ''}, 
-                enabled = source.enabled,
-                tag = source.tag
-        WHEN NOT MATCHED THEN
-            INSERT (name, lastupdate, rundown, production, ord, ordupdate, enabled, tag)
-            VALUES (@name, @unixTimestamp, @rundown, 1, @index, @unixTimestamp, 1, 'tag')
-            OUTPUT inserted.uid INTO @outputTable;
-        SELECT uid FROM @outputTable;
-    `;
+        // Use @name as the parameter placeholder
+        const sqlQuery = `
+            DECLARE @outputTable TABLE (uid BIGINT);
+            MERGE INTO ngn_inews_stories AS target
+            USING (VALUES (@existingUid, @name, @rundown, 1, @index, 1, 'tag')) AS source(uid, name, rundown, production, ord, enabled, tag)
+            ON target.uid = source.uid
+            WHEN MATCHED THEN
+                UPDATE SET 
+                    name = source.name,
+                    lastupdate = @unixTimestamp,
+                    rundown = source.rundown,
+                    production = source.production,
+                    ord = source.ord,
+                    ${ordUpdate ? 'ordupdate = ' + '@unixTimestamp' : ''}, 
+                    enabled = source.enabled,
+                    tag = source.tag
+            WHEN NOT MATCHED THEN
+                INSERT (name, lastupdate, rundown, production, ord, ordupdate, enabled, tag)
+                VALUES (@name, @unixTimestamp, @rundown, 1, @index, @unixTimestamp, 1, 'tag')
+                OUTPUT inserted.uid INTO @outputTable;
+            SELECT uid FROM @outputTable;
+        `;
 
-    // Define parameters as an object
-    const params = {
-        existingUid,
-        name,
-        rundown,
-        index,
-        unixTimestamp,
-    };
+        // Define parameters as an object
+        const params = {
+            existingUid,
+            name,
+            rundown,
+            index,
+            unixTimestamp,
+        };
 
-    // Execute the query with parameters
-    try {
-        const result = await db.execute(sqlQuery, params);
-        return result[0].uid;
-    } catch (error) {
-        console.error('Error executing query:', error);
-        return null;
+        // Execute the query with parameters
+        try {
+            const result = await db.execute(sqlQuery, params);
+            return result[0].uid;
+        } catch (error) {
+            console.error('Error executing query:', error);
+            return null;
+        }
     }
-}
-
 
     // Delete stories by length
     async deleteDbStories(rundown, length) {
@@ -145,7 +167,7 @@ async addItemToDatabase(lineup, storyData, index) {
             throw error;
         }
     }
-    
+
     // Reset ngn_inews_stories
     async resetDBStories() {
         try {
@@ -159,7 +181,6 @@ async addItemToDatabase(lineup, storyData, index) {
 
 
 }
-
 
 const lineupStore = new LineupStore();
 

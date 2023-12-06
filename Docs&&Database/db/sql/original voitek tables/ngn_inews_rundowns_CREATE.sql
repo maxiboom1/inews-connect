@@ -13,7 +13,6 @@ CREATE TABLE [dbo].[ngn_inews_rundowns](
 	[lastupdate] [bigint] NOT NULL,
 	[production] [bigint] NOT NULL,
 	[enabled] [bit] NOT NULL,
-	[exported] [bit] NOT NULL,
 	[tag] [nvarchar](max) NULL,
 PRIMARY KEY CLUSTERED 
 (
