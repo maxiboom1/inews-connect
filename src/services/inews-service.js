@@ -8,32 +8,33 @@ import sqlAccess from "./sql-service.js";
 
 async function startMainProcess() { 
     await sqlAccess.initialize();
-    await lineupsIterator();
+    await rundownIterator();
 }
 
-async function lineupsIterator() {
-
+async function rundownIterator() {
+    console.time("Debug: Rundown Iteration process time:");
     const rundowns = await sqlAccess.getCachedRundowns();
-    await storyCache.syncStoryCache(); // Fetch stories from db and store in cache
+    await sqlAccess.syncStoryCache(); // Fetch stories from db and store in cache
     
     for(const [rundownStr] of Object.entries(rundowns)){
         const valid = await lineupExists(rundownStr);
         if (valid) {
             await processLineup(rundownStr);
         } else {
-            logger(`Error! Lineup "${lineup}" N/A`, true);
+            logger(`Error! Lineup "${rundownStr}" N/A`, true);
         }
     }
 
-    setTimeout(lineupsIterator, appConfig.pullInterval);
+    setTimeout(rundownIterator, appConfig.pullInterval);
+    console.timeEnd("Debug: Rundown Iteration process time:"); 
 }
 
 async function processLineup(rundownStr) {
     const lineupList = await conn.list(rundownStr); // Get lineup list from inews
-    const cachedStories = await storyCache.getStroyCache();
+    const cachedStories = await storyCache.getStoryCache(rundownStr);
     for(let i = 0; i < lineupList.length; i++) {
-        //const decodedStoryName = hebDecoder(lineupList[i].storyName); // Decode story name
         const story = lineupList[i];
+        story.storyName = hebDecoder(lineupList[i].storyName);
         const cachedStory = cachedStories.find(item => item.identifier === lineupList[i].identifier); 
         
         // Create new story
@@ -43,38 +44,18 @@ async function processLineup(rundownStr) {
         } else {
             const action = checkStory(story, cachedStory, i); // Compare inews version with cached
             if(action === "reorder"){
-                await sqlAccess.reorderDbStory(story, i);
+                // Reorder
+                await sqlAccess.reorderDbStory(story, i, rundownStr);
+            }else if(action === "modify"){
+                // Modify
+                await sqlAccess.modifyDbStory(story,rundownStr);
             }
-            console.log(action);
-        }
-
-
-    }
-/*
-        const storyEvent = checkStory(story, cachedStory); // Compare inews version with cached
-        
-        if (storyEvent === "modify") { 
-            //logger(`Story modify event:${lineupName}, story: ${decodedStoryName}`);  
-            const story = await conn.story(lineupName, lineupList[i].fileName); // Get expanded story data from inews
-            const storyInfo = createStoryInfo(decodedStoryName, i, lineupList, story); // Create story obj
-            await lineupStore.createOrModifyStory(lineupName, i, storyInfo);
-        }
-
-        if (storyEvent === "reorder") { 
-            //logger(`Story reorder event:${lineupName}, story: ${decodedStoryName}`);
-            const story = await conn.story(lineupName, lineupList[i].fileName); // Get expanded story data from inews
-            const storyInfo = createStoryInfo(decodedStoryName, i, lineupList, story); // Create story obj
-            await lineupStore.setNewStoryIndex(lineupName,storyInfo, i);
-
         }
     }
-    
-    if (lineupList.length < cachedLineup.length) {  // Check if items have been deleted
-        const deletedItems = cachedLineup.length - lineupList.length;
-        await lineupStore.deleteBasedLength(lineupName,deletedItems);
-        logger(`Delete event:${lineupName}: ${deletedItems} Items has been deleted`);
+
+    if(lineupList.length < cachedStories.length){
+        await sqlAccess.deleteStories(rundownStr, lineupList.length);
     }
-   */ 
 }
 
 function checkStory(story, cache, index) {
@@ -85,44 +66,13 @@ function checkStory(story, cache, index) {
     
     const modify = 
         story.fileType === "STORY" && 
-        story.identifier === cache.identifier &&
-        (story.locator != cache.locator);
+        story.identifier === cache.identifier && (story.locator != cache.locator);
 
     if(modify){return "modify"};
 
     return false;
 }
 
-function createCheckCondition(cachedStory, lineupStory) {
-
-    const reorder = 
-        lineupStory.fileType === "STORY" && (
-        !cachedStory || 
-        cachedStory.identifier != lineupStory.identifier
-    );  
-
-    if(reorder){return "reorder"};
-    
-    const modify = 
-        lineupStory.fileType === "STORY" && 
-        cachedStory.identifier === lineupStory.identifier &&
-        (!cachedStory || cachedStory.locator != lineupStory.locator);
-
-    if(modify){return "modify"};
-
-    return false;
-}
-
-function createStoryInfo(decodedStoryName, i, lineupList, story){
-    return {
-        storyName: decodedStoryName,
-        index: i,
-        locator: lineupList[i].locator,
-        identifier: lineupList[i].identifier,
-        floated: lineupList[i].flags.floated,
-        attachments: story.attachments,
-    };
-}
 
 export default {
     startMainProcess

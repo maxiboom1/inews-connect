@@ -1,5 +1,4 @@
-import appConfig from "../utilities/app-config.js";
-import db from "./sql.js"; // Make sure to import your database module
+import sqlAccess from "../services/sql-service.js";
 
 class StoryCache {
     
@@ -7,20 +6,18 @@ class StoryCache {
         this.stories = {};
     }
     
-    async syncStoryCache(){
-        console.log('sync');
-        try {
-            const sql = `SELECT * FROM ngn_inews_stories;`;
-            const result = await db.execute(sql);
-            this.stories = result;
-        } catch (error) {
-            console.error('Error deleting stories from SQL:', error);
-            throw error;
-        }
+    async setStoryCache(stories){
+        this.stories = {};
+        this.stories = stories;
     }
-
-    async getStroyCache() { 
-        return this.stories;
+    
+    async getStoryCache(rundownStr) { 
+        const rundowns = await sqlAccess.getCachedRundowns();
+        const rundownUid = rundowns[rundownStr].uid;
+        
+        // Filter stories based on the provided rundownUid
+        const result = Object.values(this.stories).filter(story => story.rundown === rundownUid);        
+        return result;
     }
       
 }
