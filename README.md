@@ -7,7 +7,8 @@ Releases:
 
 1.5.0
 - Inews-connect works with mssql. 
-- I fetching the whole stories table once on each rundowns iteration, store it in storiesCache (overwrite), then compare stories from inews to the cache. - CheckStory is checking if its new story/reorder/modify. 
+- I fetching the whole stories table once on each rundowns iteration, store it in storiesCache (overwrite), then compare stories from inews to the cache. 
+- CheckStory is checking if its new story/reorder/modify. 
 - Sql service have simplified methods to mssql (I avoided complicated merges and joins...). 
 - config.json including now production value and uid placeholder for each rundown (Data structure change).
 
