@@ -1,40 +1,57 @@
 import conn from "../dal/inews-ftp.js"
 import appConfig from "../utilities/app-config.js";
-import lineupStore from "../dal/local-store.js"
 import hebDecoder from "../utilities/hebrew-decoder.js";
 import lineupExists from "../utilities/lineup-validator.js";
 import logger from "../utilities/logger.js";
+import storyCache from "../dal/storiesCache.js";
+import sqlAccess from "./sql-service.js";
 
 async function startMainProcess() { 
-    await lineupStore.onLoadInit();
-    lineupsIterator();
+    await sqlAccess.initialize();
+    await lineupsIterator();
 }
 
 async function lineupsIterator() {
-    //console.time('Process time for load inews rundowns'); // Start the timer
+
+    const rundowns = await sqlAccess.getCachedRundowns();
+    await storyCache.syncStoryCache(); // Fetch stories from db and store in cache
     
-    for (let lineup of await lineupStore.getWatchedLineups()) {
-        const valid = await lineupExists(lineup);
+    for(const [rundownStr] of Object.entries(rundowns)){
+        const valid = await lineupExists(rundownStr);
         if (valid) {
-            await processLineup(lineup);
+            await processLineup(rundownStr);
         } else {
             logger(`Error! Lineup "${lineup}" N/A`, true);
         }
     }
 
-    //console.timeEnd('Process time for load inews rundowns'); // End the timer
-
     setTimeout(lineupsIterator, appConfig.pullInterval);
 }
 
-async function processLineup(lineupName) {
-    const lineupList = await conn.list(lineupName); // Get lineup list from inews
-    const cachedLineup = await lineupStore.getLineup(lineupName); // Get lineup cache from localStore
-    
+async function processLineup(rundownStr) {
+    const lineupList = await conn.list(rundownStr); // Get lineup list from inews
+    const cachedStories = await storyCache.getStroyCache();
     for(let i = 0; i < lineupList.length; i++) {
+        //const decodedStoryName = hebDecoder(lineupList[i].storyName); // Decode story name
+        const story = lineupList[i];
+        const cachedStory = cachedStories.find(item => item.identifier === lineupList[i].identifier); 
         
-        const decodedStoryName = hebDecoder(lineupList[i].storyName); // Decode story name
-        const storyEvent = createCheckCondition(cachedLineup[i], lineupList[i]); // Compare inews version with cached
+        // Create new story
+        if(cachedStory === undefined){
+            const expandedStoryData = await conn.story(rundownStr, story.fileName); // Get expanded story data from inews
+            await sqlAccess.addDbStory(rundownStr, story, expandedStoryData, i);
+        } else {
+            const action = checkStory(story, cachedStory, i); // Compare inews version with cached
+            if(action === "reorder"){
+                await sqlAccess.reorderDbStory(story, i);
+            }
+            console.log(action);
+        }
+
+
+    }
+/*
+        const storyEvent = checkStory(story, cachedStory); // Compare inews version with cached
         
         if (storyEvent === "modify") { 
             //logger(`Story modify event:${lineupName}, story: ${decodedStoryName}`);  
@@ -57,7 +74,23 @@ async function processLineup(lineupName) {
         await lineupStore.deleteBasedLength(lineupName,deletedItems);
         logger(`Delete event:${lineupName}: ${deletedItems} Items has been deleted`);
     }
+   */ 
+}
+
+function checkStory(story, cache, index) {
     
+    const reorder = story.fileType === "STORY" && (index != cache.ord);  
+
+    if(reorder){return "reorder"};
+    
+    const modify = 
+        story.fileType === "STORY" && 
+        story.identifier === cache.identifier &&
+        (story.locator != cache.locator);
+
+    if(modify){return "modify"};
+
+    return false;
 }
 
 function createCheckCondition(cachedStory, lineupStory) {
@@ -88,7 +121,6 @@ function createStoryInfo(decodedStoryName, i, lineupList, story){
         identifier: lineupList[i].identifier,
         floated: lineupList[i].flags.floated,
         attachments: story.attachments,
-        //modified: lineupList[i].modified,//body: story.body,//meta: story.meta,//id: story.id//fileName:lineupList[i].fileName,//cues: story.cues,
     };
 }
 
@@ -98,39 +130,3 @@ export default {
 
 
 
-/*
-async function processLineup(lineupName) {
-    const lineupList = await conn.list(lineupName); // Get lineup list from inews
-    const cachedLineup = await lineupStore.getLineup(lineupName); // Get lineup cache from localStore
-    for(let i = 0; i < lineupList.length; i++) {
-        
-        const decodedStoryName = hebDecoder(lineupList[i].storyName); // Decode story name
-        const shouldUpdate = createCheckCondition(cachedLineup[i], lineupList[i]); // Compare inews version with cached
-        if (shouldUpdate) { 
-            logger(`Update event:${lineupName}, story: ${decodedStoryName}`);  
-            const story = await conn.story(lineupName, lineupList[i].fileName); // Get expanded story data from inews
-            const storyInfo = createStoryInfo(decodedStoryName, i, lineupList, story); // Create story obj
-            await lineupStore.saveStory(lineupName, i, storyInfo);
-        }
-    }
-    
-    if (lineupList.length < cachedLineup.length) {  // Check if items have been deleted
-        const deletedItems = cachedLineup.length - lineupList.length;
-        await lineupStore.deleteBasedLength(lineupName,deletedItems);
-        logger(`Delete event:${lineupName}: ${deletedItems} Items has been deleted`);
-    }
-    
-}
-
-function createCheckCondition(cachedStory, lineupStory) {
-    
-    const result = 
-        lineupStory.fileType === "STORY" && (
-        !cachedStory || 
-        cachedStory.locator != lineupStory.locator
-        );
-   
-        return result;
-
-}
-*/

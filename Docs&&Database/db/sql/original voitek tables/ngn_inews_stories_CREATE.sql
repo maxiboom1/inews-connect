@@ -9,7 +9,7 @@ GO
 
 CREATE TABLE [dbo].[ngn_inews_stories](
 	[uid] [bigint] IDENTITY(1,1) NOT NULL,
-	[name] [nvarchar](32) NULL,
+	[name] [nvarchar](100) NULL,
 	[lastupdate] [bigint] NOT NULL,
 	[rundown] [bigint] NOT NULL,
 	[production] [bigint] NOT NULL,
@@ -17,6 +17,8 @@ CREATE TABLE [dbo].[ngn_inews_stories](
 	[ordupdate] [bigint] NOT NULL,
 	[enabled] [bit] NOT NULL,
 	[tag] [nvarchar](max) NULL,
+	[identifier] [nvarchar](100) NOT NULL,
+	[locator] [nvarchar](100) NOT NULL,
 PRIMARY KEY CLUSTERED 
 (
 	[uid] ASC

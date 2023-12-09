@@ -1,18 +1,17 @@
 
 {
     "conn":{"host": "192.168.1.13","user": "avid","password": "inews", "maxConnections": 2},
-    "lineups":[
-
-        "show.alex.test.new",
-        "show.alex.rundown"
-    ],
+    "rundowns":{
+        "show.alex.test.new":{
+            "production":1, 
+            "uid": ""
+        }
+    },
     "pullInterval":5000,
     "sqlServerHost" :"WINDOWS-11C0I62\\SQLEXPRESS",
     "sqlServerUser":"test",
     "sqlServerPassword":"test",
     "sqlServerDatabase":"newsarts"
 }
-
-
 
 

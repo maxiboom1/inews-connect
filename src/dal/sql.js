@@ -54,6 +54,5 @@ async function execute(sql, values) {
 }
 
 export default {
-  execute,
-  sql
+  execute
 };
