@@ -20,7 +20,6 @@ app.use(express.static('plugin'));
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
     const host = getServerIP();
-    console.log(`Starting inews-connect 1.2`)
     console.log(`Server service running on port ${port}`);
     console.log(`Plugin url: http://${host}:${port}/index.html`)
     

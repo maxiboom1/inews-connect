@@ -7,8 +7,10 @@ import storyCache from "../dal/storiesCache.js";
 import sqlAccess from "./sql-service.js";
 
 async function startMainProcess() { 
+    console.log('Starting Inews-connect 1.5.0 ...');
     await sqlAccess.initialize();
     await rundownIterator();
+
 }
 
 async function rundownIterator() {

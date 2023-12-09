@@ -1,7 +1,4 @@
-Inews-connect 1.2
-
-TODO: fetch flag from story - is it dir or queue.
-TODO: Refactor plugin functions.
+Inews-connect 1.5.0
 
 Releases:
 
@@ -11,6 +8,32 @@ Releases:
 - CheckStory is checking if its new story/reorder/modify. 
 - Sql service have simplified methods to mssql (I avoided complicated merges and joins...). 
 - config.json including now production value and uid placeholder for each rundown (Data structure change).
+- Added storiesCache module with single setter and getter.
+- Stories cache structure:
+[
+  {
+    uid: '3124',
+    name: '4',
+    lastupdate: '1702161927',   
+    rundown: '1091',
+    production: '1',
+    ord: 0,
+    ordupdate: '1702161927',    
+    enabled: true,
+    tag: '',
+    identifier: '046B337E',     
+    locator: '0002B980:6574ECB8'
+  },
+.
+.
+.
+]
+- Rundowns structure (from config.json):
+{
+  'SHOW.ALEX.RUNDOWN': { production: 1, uid: '1097' },
+  'SHOW.ALEX.RUNDOWN2': { production: 1, uid: '1098' }
+}
+
 
 1.2
 - Inews-connect now serving plugin webpage on http://server-ip-addr:3000/index.html
