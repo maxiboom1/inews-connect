@@ -5,6 +5,12 @@ TODO: Refactor plugin functions.
 
 Releases:
 
+1.5.0
+- Inews-connect works with mssql. 
+- I fetching the whole stories table once on each rundowns iteration, store it in storiesCache (overwrite), then compare stories from inews to the cache. - CheckStory is checking if its new story/reorder/modify. 
+- Sql service have simplified methods to mssql (I avoided complicated merges and joins...). 
+- config.json including now production value and uid placeholder for each rundown (Data structure change).
+
 1.2
 - Inews-connect now serving plugin webpage on http://server-ip-addr:3000/index.html
 - Data are stored in gfx server - inews storing only the ids. When open item from inews, the plugin receive element id => send this id to gfx server (now its emulator), and receives the element that user see on page.
