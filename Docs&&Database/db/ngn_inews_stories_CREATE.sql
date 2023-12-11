@@ -17,8 +17,8 @@ CREATE TABLE [dbo].[ngn_inews_stories](
 	[ordupdate] [bigint] NOT NULL,
 	[enabled] [bit] NOT NULL,
 	[tag] [nvarchar](max) NULL,
-	[identifier] [nvarchar](100) NOT NULL,
-	[locator] [nvarchar](100) NOT NULL,
+	[identifier] [nvarchar](8) NOT NULL,
+	[locator] [nvarchar](20) NOT NULL,
 PRIMARY KEY CLUSTERED 
 (
 	[uid] ASC
