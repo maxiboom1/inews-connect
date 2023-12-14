@@ -11,7 +11,6 @@ class SqlAccess {
     async initialize(){
         try {
             await this.deleteDBStories();
-            //await this.deleteDBRundowns();
             for (const [rundownStr] of Object.entries(this.hardcodedLineupList)) {
                 await this.addDbRundown(rundownStr);
             }
@@ -203,6 +202,7 @@ class SqlAccess {
         }
     }
 
+    // Deprecated
     async deleteDBRundowns() {
         try {
             const sql = `DELETE FROM ngn_inews_rundowns`;
