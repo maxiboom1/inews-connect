@@ -11,7 +11,7 @@ class SqlAccess {
     async initialize(){
         try {
             await this.deleteDBStories();
-            await this.deleteDBRundowns();
+            //await this.deleteDBRundowns();
             for (const [rundownStr] of Object.entries(this.hardcodedLineupList)) {
                 await this.addDbRundown(rundownStr);
             }
@@ -21,28 +21,49 @@ class SqlAccess {
         }
     }
 
-    async addDbRundown(rundownStr){
+    async addDbRundown(rundownStr) {
         const values = {
-            name:rundownStr,
-            lastupdate: Math.floor(Date.now() / 1000),
+            name: rundownStr,
+            lastUpdate: Math.floor(Date.now() / 1000),
             production: this.hardcodedLineupList[rundownStr].production,
             enabled: 1,
             tag: ""
-        }
-        const sqlQuery = `
-        INSERT INTO ngn_inews_rundowns (name, lastupdate, production, enabled, tag)
-        OUTPUT Inserted.uid
-        VALUES (@name, @lastUpdate, @production, @enabled, @tag);`;            
+        };
+    
+        const selectQuery = `
+            SELECT uid FROM ngn_inews_rundowns WHERE name = @name;
+        `;
+    
+        const insertQuery = `
+            INSERT INTO ngn_inews_rundowns (name, lastupdate, production, enabled, tag)
+            VALUES (@name, @lastUpdate, @production, @enabled, @tag);
+        `;
+    
+        const updateQuery = `
+            UPDATE ngn_inews_rundowns
+            SET lastupdate = @lastUpdate, 
+                production = @production, 
+                enabled = @enabled, 
+                tag = @tag
+            WHERE name = @name;
+        `;
+    
         try {
-            const result = await db.execute(sqlQuery, values); 
-            const uid = result[0].uid;
-            this.hardcodedLineupList[rundownStr].uid = uid;
-            console.log(`Added to watch list: ${rundownStr}`);
-
+            // Check if a record with the specified name exists
+            const result = await db.execute(selectQuery, values);
+    
+            if (result.length > 0) {
+                // If record exists, update it
+                await db.execute(updateQuery, values);
+                console.log(`Updated in the watch list: ${rundownStr}`);
+            } else {
+                // If record does not exist, insert a new one
+                await db.execute(insertQuery, values);
+                console.log(`Added to watch list: ${rundownStr}`);
+            }
         } catch (error) {
             console.error('Error executing query:', error);
         }
-
     }
 
     async addDbStory(rundownStr, story, expandedStoryData, order){
