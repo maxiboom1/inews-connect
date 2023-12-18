@@ -14,6 +14,7 @@ class SqlAccess {
             for (const [rundownStr] of Object.entries(this.hardcodedLineupList)) {
                 await this.addDbRundown(rundownStr);
             }
+            await this.getAndStoreDBRundowns();
         }        
         catch (error) {
             throw error;
@@ -202,12 +203,20 @@ class SqlAccess {
         }
     }
 
-    // Deprecated
-    async deleteDBRundowns() {
+    async getAndStoreDBRundowns(){
         try {
-            const sql = `DELETE FROM ngn_inews_rundowns`;
-            await db.execute(sql);
-            console.log(`ngn_inews_rundowns cleared....`);
+            const sql = `SELECT * FROM ngn_inews_rundowns`;
+            const rundowns = await db.execute(sql);
+            
+            // Convert rundown from DB to friendly structure {rundownName:{production:1, uid:1}}
+            rundowns.forEach(item => {
+                const { uid, name, production } = item;
+                // Check if the rundown already exists in hardcodedLineupList
+                if (this.hardcodedLineupList[name] !== undefined) {
+                    // Update only if it already exists (Since we don't erase rundowns from db)
+                    this.hardcodedLineupList[name] = { production: production, uid: uid };
+                }
+              });
         } catch (error) {
             console.error('Error deleting rundown from SQL:', error);
             throw error;
