@@ -139,25 +139,16 @@ class SqlAccess {
 
     }
 
-    async deleteStories(rundownStr, ord) {
+    async deleteStory(uid,rundownStr) {
         try {
-            const values = {
-                rundown: this.hardcodedLineupList[rundownStr].uid,
-                ord: ord-1,
-            };
-            console.log(values);
-            const sqlQuery = `
-                DELETE FROM ngn_inews_stories
-                WHERE rundown = @rundown
-                AND ord > @ord;
-            `;
-    
+            const values = {uid: uid};
+            const sqlQuery = `DELETE FROM ngn_inews_stories WHERE uid = @uid;`;
             await db.execute(sqlQuery, values);
             await this.rundownOrdUpdate(rundownStr);
-            console.log(`Story deleted in ${rundownStr}`);
+            console.log(`Story with uid ${uid} deleted in ${rundownStr}`);
     
         } catch (error) {
-            console.error('Error executing query:', error);
+            console.error(`Error deleting ${uid} story:`, error);
         }
     }
     

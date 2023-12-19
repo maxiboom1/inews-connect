@@ -56,7 +56,7 @@ async function processLineup(rundownStr) {
     }
 
     if(lineupList.length < cachedStories.length){
-        await sqlAccess.deleteStories(rundownStr, lineupList.length);
+        deleteDif(lineupList,cachedStories,rundownStr);
     }
 }
 
@@ -74,6 +74,21 @@ function checkStory(story, cache, index) {
 
     return false;
 }
+
+
+async function deleteDif(lineupList, cachedStories, rundownStr) {
+    console.time("Debug: deleteDiff process time:");
+
+    const identifiersSet = new Set(lineupList.map(story => story.identifier));
+    cachedStories.forEach(async story => {
+        if (!identifiersSet.has(story.identifier)) {
+            await sqlAccess.deleteStory(story.uid, rundownStr);
+        }
+    });
+    console.timeEnd("Debug: deleteDiff process time:");
+
+}
+
 
 
 export default {

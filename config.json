@@ -5,6 +5,14 @@
         "SHOW.ALEX.RUNDOWN":{
             "production":1, 
             "uid": ""
+        },
+        "SHOW.ALEX.test1":{
+            "production":1, 
+            "uid": ""
+        },
+        "SHOW.ALEX.test2":{
+            "production":1, 
+            "uid": ""
         }
 
     },
