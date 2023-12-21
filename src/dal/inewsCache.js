@@ -41,8 +41,14 @@ class InewsCache {
         this.templates = templates;
     }
 
-    async getTemplatesCache(){
-        return this.templates;
+    async getTemplatesCache(productionUid){
+        const filteredTemplates = [];
+        for(const template of this.templates){
+            if(template.production === productionUid){
+                filteredTemplates.push(template);
+            }
+        }
+        return filteredTemplates;
     }
 
 }

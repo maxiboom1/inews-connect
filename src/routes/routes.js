@@ -10,12 +10,10 @@ router.get('/productions', async (req, res) => {
 });
 
 // Get http://serverAddr:4001/api/templates
-router.get('/templates', async (req, res) => {
-  console.time()
-  const templates = await inewsCache.getTemplatesCache();
+router.get('/templates/:uid', async (req, res) => {
+  const productionUid = req.params.uid;
+  const templates = await inewsCache.getTemplatesCache(productionUid);
   res.json(templates);
-  console.timeEnd()
-
 });
 
 export default router;

@@ -4,31 +4,27 @@
 <head>
 	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 	<meta charset="utf-8" />
-	<title>iNEWS HTML5 Browser Plugin Sample</title>
+	<title>Inews connect</title>
 	<link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
 	
 	<div class="pluginBody">
 		<h2>Inews connect plugin</h2>
-
-		<label for="menu2">Choose element</label>
-		<select class="box" name="group" id="group">
-			<option value="1">סטרייפ</option>
-			<option value="2">סופר</option>	
-		</select>
-
-		<label for="name">Set payload:</label>
-		<textarea class="box" id="payload" rows="4"></textarea>
 		
-		<div class="controlBox">
-			<button id="drag" draggable="true" ondragstart="drag(event)" ondragend="drop(event)">Drag me</button>
-			<button id="save">Save</button>
+		<div id="productionContainer">
+			<label for="productionSelector">Production</label>
+			<select name="productionSelector" id="productionSelector">
+                <option value="" selected="selected">Set production</option>
+			</select>
+		</div>
+
+		<div id="templatesContainer">
+			<!-- here i should generate table of icons -->
 		</div>
 
 	</div>
-	
 
 </body>
-<script src="assets/index.js"></script>
+<script src="assets/menu.js"></script>
 </html>
