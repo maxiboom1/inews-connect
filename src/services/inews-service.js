@@ -3,7 +3,7 @@ import appConfig from "../utilities/app-config.js";
 import hebDecoder from "../utilities/hebrew-decoder.js";
 import lineupExists from "../utilities/lineup-validator.js";
 import logger from "../utilities/logger.js";
-import storyCache from "../dal/storiesCache.js";
+import inewsCache from "../dal/inewsCache.js";
 import sqlAccess from "./sql-service.js";
 
 async function startMainProcess() { 
@@ -33,7 +33,7 @@ async function rundownIterator() {
 
 async function processLineup(rundownStr) {
     const lineupList = await conn.list(rundownStr); // Get lineup list from inews
-    const cachedStories = await storyCache.getStoryCache(rundownStr);
+    const cachedStories = await inewsCache.getStoryCache(rundownStr);
     for(let i = 0; i < lineupList.length; i++) {
         const story = lineupList[i];
         story.storyName = hebDecoder(lineupList[i].storyName);
@@ -75,7 +75,6 @@ function checkStory(story, cache, index) {
     return false;
 }
 
-
 async function deleteDif(lineupList, cachedStories, rundownStr) {
     console.time("Debug: deleteDiff process time:");
 
@@ -88,7 +87,6 @@ async function deleteDif(lineupList, cachedStories, rundownStr) {
     console.timeEnd("Debug: deleteDiff process time:");
 
 }
-
 
 
 export default {

@@ -1,9 +1,27 @@
 import express from "express";
-import restService from "../services/rest-service.js";
-//import lineupStore from "../dal/local-store.js";
+import inewsCache from "../dal/inewsCache.js";
 
 const router = express.Router();
 
+// Get http://serverAddr:4001/api/productions
+router.get('/productions', async (req, res) => {
+  const productions = await inewsCache.getProductionsCache();
+  res.json(productions);
+});
+
+// Get http://serverAddr:4001/api/templates
+router.get('/templates', async (req, res) => {
+  console.time()
+  const templates = await inewsCache.getTemplatesCache();
+  res.json(templates);
+  console.timeEnd()
+
+});
+
+export default router;
+
+
+/*
 router.get('/watcher/:lineup', async (req, res) => {
   const lineup = req.params.lineup;
   const responseData = await restService.getInewsLineupFromStore(lineup);
@@ -27,6 +45,4 @@ router.post('/services/set-watcher/:lineupName', async (req, res) => {
   res.json(response);
 });
 
-
-
-export default router;
+*/

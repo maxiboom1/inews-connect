@@ -10,7 +10,7 @@ const app = express();
 app.use(cors());
 
 // Routes
-app.use("/api", routes);
+app.use("/api",routes);
 app.use(pluginRoutes);
 
 // "plugin" here is an folder name that contain index.html to serve. The url will be: http://localhost:3000/plugin

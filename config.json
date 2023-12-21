@@ -5,16 +5,7 @@
         "SHOW.ALEX.RUNDOWN":{
             "production":1, 
             "uid": ""
-        },
-        "SHOW.ALEX.test1":{
-            "production":1, 
-            "uid": ""
-        },
-        "SHOW.ALEX.test2":{
-            "production":1, 
-            "uid": ""
         }
-
     },
     "pullInterval":5000,
     "sqlServerHost" :"WINDOWS-11C0I62\\SQLEXPRESS",

@@ -1,6 +1,6 @@
 import appConfig from "../utilities/app-config.js";
 import db from "../dal/sql.js";
-import storyCache from "../dal/storiesCache.js";
+import inewsCache from "../dal/inewsCache.js";
 
 class SqlAccess {
     
@@ -14,7 +14,9 @@ class SqlAccess {
             for (const [rundownStr] of Object.entries(this.hardcodedLineupList)) {
                 await this.addDbRundown(rundownStr);
             }
+            await this.getAndStoreProductions();
             await this.getAndStoreDBRundowns();
+            await this.getAndStoreTemplates();
         }        
         catch (error) {
             throw error;
@@ -55,14 +57,14 @@ class SqlAccess {
             if (result.length > 0) {
                 // If record exists, update it
                 await db.execute(updateQuery, values);
-                console.log(`Updated in the watch list: ${rundownStr}`);
+                console.log(`Registering existing rundown to active watch: ${rundownStr}`);
             } else {
                 // If record does not exist, insert a new one
                 await db.execute(insertQuery, values);
-                console.log(`Added to watch list: ${rundownStr}`);
+                console.log(`Registering new rundown to active watch: ${rundownStr}`);
             }
         } catch (error) {
-            console.error('Error executing query:', error);
+            console.error('Error registering rundown:', error);
         }
     }
 
@@ -156,7 +158,7 @@ class SqlAccess {
         try {
             const sql = `SELECT * FROM ngn_inews_stories;`;
             const result = await db.execute(sql);
-            await storyCache.setStoryCache(result);
+            await inewsCache.setStoryCache(result);
         } catch (error) {
             console.error('Failed to fetch ngn_inews_stories:', error);
             throw error;
@@ -217,6 +219,31 @@ class SqlAccess {
     async getCachedRundowns(){
         return this.hardcodedLineupList;
     }
+
+    async getAndStoreProductions() {
+        try {
+            const sql = `SELECT * FROM ngn_productions`;
+            const productions = await db.execute(sql);
+            await inewsCache.setProductionsCache(productions);
+            console.log(`Loaded productions from SQL`);
+        } catch (error) {
+            console.error('Error loading productions from SQL:', error);
+            throw error;
+        }
+    }
+
+    async getAndStoreTemplates() {
+        try {
+            const sql = `SELECT * FROM ngn_templates`;
+            const templates = await db.execute(sql);
+            await inewsCache.setTemplatesCache(templates);
+            console.log(`Loaded templates from SQL`);
+        } catch (error) {
+            console.error('Error loading templates from SQL:', error);
+            throw error;
+        }
+    }
+
 }
 
 const sqlAccess = new SqlAccess();

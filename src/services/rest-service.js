@@ -1,7 +1,14 @@
 import conn from "../dal/inews-ftp.js";
-//import lineupStore from "../dal/local-store.js";
 import logger from "../utilities/logger.js";
 
+export default {
+
+}
+
+
+
+
+/*
 // GET: localhost:3000/api/watcher
 async function getInewsLineupFromStore(lineup){ 
     let result;
@@ -35,9 +42,4 @@ async function setActiveLineup(lineupName){
         await lineupStore.setActiveLineup(lineupName);
         return `Done! Active watch status: ${await lineupStore.getActiveLineup()}`;
 }
-
-export default {
-    getInewsLineupFromStore,
-    getAvailableLineups,
-    setActiveLineup
-}
+*/
