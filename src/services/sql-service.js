@@ -1,6 +1,7 @@
 import appConfig from "../utilities/app-config.js";
 import db from "../dal/sql.js";
 import inewsCache from "../dal/inewsCache.js";
+import processAndWriteFiles from "../utilities/file-processor.js";
 
 class SqlAccess {
     
@@ -236,7 +237,8 @@ class SqlAccess {
         try {
             const sql = `SELECT * FROM ngn_templates`;
             const templates = await db.execute(sql);
-            await inewsCache.setTemplatesCache(templates);
+            const templatesWithoutHtml = await processAndWriteFiles(templates);
+            await inewsCache.setTemplatesCache(templatesWithoutHtml);
             console.log(`Loaded templates from SQL`);
         } catch (error) {
             console.error('Error loading templates from SQL:', error);
