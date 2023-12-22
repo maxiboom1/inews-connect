@@ -8,7 +8,7 @@ const __dirname = dirname(__filename);
 
 async function processAndWriteFiles(templates) {
     
-    const templatesFolder = path.resolve(__dirname, "../assets/templates");
+    const templatesFolder = path.resolve(__dirname, "../../plugin/templates");
 
     try {
         await fsPromises.access(templatesFolder);

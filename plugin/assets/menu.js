@@ -25,6 +25,7 @@ async function getTemplates() {
 
     templates.forEach(function (template) {
         const el = createTemplateHtml(template);
+        el.addEventListener('click', () => navigate(el.id));
         templatesContainer.appendChild(el);
     });
 }
@@ -33,12 +34,12 @@ function createTemplateHtml(template){
     const container = document.createElement('div'); // Create a temporary container
     if(template.icon){
         container.innerHTML = `
-        <div class="col-1 themed-grid-col">
+        <div id=${template.uid} class="col-1 themed-grid-col">
             <img src='data:image/png;base64,${template.icon}' alt='Template Icon'>
         </div>`;
     } else {
         container.innerHTML = `
-        <div class="col-1 themed-grid-col">
+        <div id=${template.uid} class="col-1 themed-grid-col">
         ${template.name}
         </div>`;
     }
@@ -67,5 +68,8 @@ async function fetchData(url, method, msg) {
         console.error(`Error while fetching data at URL: ${url}`, error);
     }
 }
-
+function navigate(templateId){
+    const url = `${originUrl}/templates/${templateId}.html`; 
+    window.location.href = url;   
+}
 getProductions();
