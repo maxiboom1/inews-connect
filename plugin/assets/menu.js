@@ -20,19 +20,14 @@ async function getTemplates() {
     if (productionUid === "") return;
     const url = `${originUrl}/api/templates/${productionUid}`;
     const templates = await fetchData(url, 'GET', null);
-
     const templatesContainer = document.getElementById('templatesContainer');
-
-    // Clear previous content in templatesContainer
     templatesContainer.innerHTML = '';
 
     // Generate and append the table
     const table = document.createElement('table');
-    table.border = '1'; // Set border as needed
+    table.id = "templatesTable";
 
-    // Add table header
     const headerRow = document.createElement('tr');
-    headerRow.innerHTML = '<th>Icon</th>';
     table.appendChild(headerRow);
 
     // Iterate through templates and create rows
