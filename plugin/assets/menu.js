@@ -23,38 +23,28 @@ async function getTemplates() {
     const templatesContainer = document.getElementById('templatesContainer');
     templatesContainer.innerHTML = '';
 
-    // Generate and append the table
-    const table = document.createElement('table');
-    table.id = "templatesTable";
-
-    const headerRow = document.createElement('tr');
-    table.appendChild(headerRow);
-
-    // Iterate through templates and create rows
     templates.forEach(function (template) {
-        const row = document.createElement('tr');
-        const iconCell = document.createElement('td');
-
-        // Check if an icon is available
-        if (template.icon) {
-            // If an icon exists, create an image element and set its source
-            const iconImage = document.createElement('img');
-            iconImage.src = 'data:image/png;base64,' + template.icon;
-            iconCell.appendChild(iconImage);
-        } else {
-            // If no icon exists, set the text content with the short text (e.g., name)
-            iconCell.textContent = template.name;
-        }
-
-        // Append the cell to the row
-        row.appendChild(iconCell);
-
-        // Append the row to the table
-        table.appendChild(row);
+        const el = createTemplateHtml(template);
+        templatesContainer.appendChild(el);
     });
+}
 
-    // Append the table to the templatesContainer
-    templatesContainer.appendChild(table);
+function createTemplateHtml(template){
+    const container = document.createElement('div'); // Create a temporary container
+    if(template.icon){
+        container.innerHTML = `
+        <div class="col-1 themed-grid-col">
+            <img src='data:image/png;base64,${template.icon}' alt='Template Icon'>
+        </div>`;
+    } else {
+        container.innerHTML = `
+        <div class="col-1 themed-grid-col">
+        ${template.name}
+        </div>`;
+    }
+
+    // Return the first child of the container
+    return container.firstElementChild;
 }
 
 async function fetchData(url, method, msg) {
