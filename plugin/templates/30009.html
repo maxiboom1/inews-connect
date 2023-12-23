@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<!DOCTYPE html><html lang="en"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -425,7 +423,7 @@
 
     </style>
     <title>Responsive Toolbox</title>
-</head>
+<script src="assets/index.js"></script></head>
 <body>
     <div class="toolbox">
         <div class="toolbox-header">
@@ -471,13 +469,13 @@
             </div>
 
             <p>
-                <div class="input-group">
+                </p><div class="input-group">
                     <label for="stripeTextLocation" class="input-label">מיקום - אופציונלי (אם לא הוזן לא יוצג)</label>
                     <input type="text" id="stripeTextLocation" class="custom-input" oninput="checkInputLength(this)">
                 </div>
-            </p>
+            <p></p>
             <p>
-                <div class="input-group input-group-multi">
+                </p><div class="input-group input-group-multi">
                     <div class="input-item">
                         <label for="stripeTextDescription" class="input-label">תואר</label>
                         <input type="text" id="stripeTextDescription" class="custom-input" oninput="checkInputLength(this)">
@@ -493,18 +491,18 @@
                         <input type="text" id="stripeTextDegree" class="custom-input" oninput="checkInputLength(this)">
                     </div>
                 </div>
-            </p>
+            <p></p>
             <p>
-                <div class="input-item" style="direction: rtl;">
+                </p><div class="input-item" style="direction: rtl;">
                     <label for="imgPvw" class="input-label">בחירת תמונה לטלפון</label>
-                    <img src="" id="imgPvw" alt="Browse image..." width="142" height="80" onclick="(function(){ CefSharp.PostMessage('browseImage(imgPath, imgPvw, 142, 80)'); })(); return false;"/>
+                    <img src="" id="imgPvw" alt="Browse image..." width="142" height="80" onclick="(function(){ CefSharp.PostMessage('browseImage(imgPath, imgPvw, 142, 80)'); })(); return false;">
                     <p class="image-path" id="imgPath"></p>
                 </div>
-            </p>
+            <p></p>
         </div>
         <div class="logo-nobg"></div>
     </div>
 
     <script>init();</script>
-</body>
-</html>
+
+</body></html>
