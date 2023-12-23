@@ -38,10 +38,11 @@ async function processLineup(rundownStr) {
         const story = lineupList[i];
         story.storyName = hebDecoder(lineupList[i].storyName);
         const cachedStory = cachedStories.find(item => item.identifier === lineupList[i].identifier); 
-        
         // Create new story
         if(cachedStory === undefined){
             const expandedStoryData = await conn.story(rundownStr, story.fileName); // Get expanded story data from inews
+            console.log(expandedStoryData.attachments);
+
             await sqlAccess.addDbStory(rundownStr, story, expandedStoryData, i);
         } else {
             const action = checkStory(story, cachedStory, i); // Compare inews version with cached
