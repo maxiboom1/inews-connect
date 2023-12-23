@@ -41,7 +41,7 @@ async function execute(sql, values) {
 
       // Execute query with parameters
       const result = await request.query(sql);
-      return result.recordset;
+      return result;
     } else {
       // Execute query without parameters
       const result = await pool.request().query(sql);

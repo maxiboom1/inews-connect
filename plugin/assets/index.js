@@ -1,18 +1,35 @@
 //document.querySelector("#payload").addEventListener('change', showSaveButton);
+const originUrl = window.location.origin;
 document.querySelector("#save").addEventListener('click', clickOnSave);
-
+document.querySelector("#navigateBack").addEventListener('click', ()=>{
+    window.location.href = window.location.origin; 
+});
 function showSaveButton(){document.getElementById("save").style.display = 'block'; hideDragButton();}
 function hideSaveButton(){document.getElementById("save").style.display = 'none';}
 function showDragButton(){document.getElementById("drag").style.display = 'block'; hideSaveButton();}
 function hideDragButton(){document.getElementById("drag").style.display = 'none';}
-console.log("XOXOX");
 
 let currentId = {id:null};
 
 async function clickOnSave(){
     try{
-        currentId = await sendToGfxServer(createMosMessage());
-        showDragButton();
+        const _NA_Values = __NA_GetValues();// __NA_GetValues exists inline in html
+        const _NA_Scripts = __NA_GetScripts();// __NA_GetScripts exists inline in html
+        const pathname = window.location.pathname;
+        const match = pathname.match(/\/templates\/(\d+)\.html/);
+
+        // Extract the captured group from the match
+        const templateId = match ? match[1] : null;
+        const values = {
+            data: _NA_Values,
+            scripts: _NA_Scripts,
+            templateId: templateId,
+        }
+        const url = `${originUrl}/plugin/set-item`;
+        const result = await fetchData(url,"POST",JSON.stringify(values)); // Here we get itemId from server
+        console.log(result);
+        //currentId = await sendToGfxServer(createMosMessage());
+        //showDragButton();
     }catch(err){
         console.error("Failed to post data");
     }
@@ -141,7 +158,7 @@ async function fetchData(url, method, msg) {
         const response = await fetch(url, {
             method,
             headers: {
-                'Content-Type': 'text/plain', // Adjust content type as needed
+                'Content-Type': 'application/json',
             },
             body: msg,
         });

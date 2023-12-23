@@ -7,6 +7,12 @@ import { JSDOM } from 'jsdom';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+/** 
+ * Gets templates array @param templates. Takes template.source and injects scripts, css link and plugin panel.
+ * Then, we store modified HTML in plugin/assets/templates, as [template.name].html.
+ * Delete template.source from template. 
+ * @return templates array without source prop.
+ */
 async function processAndWriteFiles(templates) {
     
     const templatesFolder = path.resolve(__dirname, "../../plugin/templates");
@@ -32,24 +38,53 @@ function addScriptTagToHTML(htmlContent) {
     const dom = new JSDOM(htmlContent);
     const document = dom.window.document;
     const scriptFileName = "../assets/index.js";
-    
-    // Inject script tag
+
     const scriptTag = document.createElement('script');
     scriptTag.src = scriptFileName;
-    // Inject back btn
-    const backButton = document.createElement('button');
-    backButton.innerText = 'Back';
-    backButton.id = 'navigateBack';
-    // Inject save btn
-    const saveButton = document.createElement('button');
-    saveButton.innerText = 'Save';
-    saveButton.id = 'save';
-    // Append script, and buttons to document
-    document.body.appendChild(backButton);
-    document.body.appendChild(saveButton);
+
+    // Create style tag to link external CSS file
+    const styleTag = document.createElement('link');
+    styleTag.rel = 'stylesheet';
+    styleTag.href = "../assets/style.css";
+
+    const pluginPanelDiv = createPluginPanel(document);
+    const toolboxContentDiv = document.querySelector('.toolbox');
+
+    if (toolboxContentDiv) {
+        toolboxContentDiv.appendChild(pluginPanelDiv);
+    } else {
+        document.body.appendChild(pluginPanelDiv);
+    }
+
     document.body.appendChild(scriptTag);
+    document.head.appendChild(styleTag);
 
     return dom.serialize();
+}
+
+function createPluginPanel(document) {
+    // Create back btn
+    const backButton = document.createElement('button');
+    backButton.textContent  = 'Back';
+    backButton.id = 'navigateBack';
+    backButton.classList.add('pluginPanelBtn'); // Add the class to the back button
+
+    // Create save btn
+    const saveButton = document.createElement('button');
+    saveButton.textContent  = 'Save';
+    saveButton.id = 'save';
+    saveButton.classList.add('pluginPanelBtn'); // Add the class to the save button
+
+    // Create div with id "pluginPanel"
+    const pluginPanelDiv = document.createElement('div');
+    pluginPanelDiv.id = 'pluginPanel';
+    pluginPanelDiv.classList.add('pluginPanel'); // Add the class to the pluginPanel div
+
+    // Append buttons to the "pluginPanel" div
+    pluginPanelDiv.appendChild(backButton);
+    pluginPanelDiv.appendChild(saveButton);
+
+    return pluginPanelDiv;
 }
 
 export default processAndWriteFiles;

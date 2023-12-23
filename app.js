@@ -8,10 +8,10 @@ import getServerIP from "./src/utilities/host-ip.js";
 const app = express(); 
 
 app.use(cors());
-
+app.use(express.json()); // Apply express.json() here
 // Routes
 app.use("/api",routes);
-app.use(pluginRoutes);
+app.use("/plugin", pluginRoutes);
 
 // "plugin" here is an folder name that contain index.html to serve. The url will be: http://localhost:3000/plugin
 app.use(express.static('plugin')); 
@@ -25,3 +25,4 @@ app.listen(port, () => {
     
     dataService.startMainProcess();
 });
+

@@ -246,7 +246,36 @@ class SqlAccess {
         }
     }
 
-}
+    async storeNewItem(item) {
+        const values = {
+            name: "??",
+            lastupdate: Math.floor(Date.now() / 1000),
+            production: await inewsCache.getProductionByTemplateId(item.templateId),
+            rundown: "",
+            story: "",
+            ord: "",
+            ordupdate: Math.floor(Date.now() / 1000),
+            template: item.templateId,
+            data: item.data,
+            scripts: item.scripts,
+            enabled: 1,
+            tag: "",
+        };
+        
+        const sqlQuery = `
+            INSERT INTO ngn_inews_items (name, lastupdate, production, rundown, story, ord, ordupdate, template, data, scripts, enabled, tag)
+            OUTPUT INSERTED.uid
+            VALUES (@name, @lastupdate, @production, @rundown, @story, @ord, @ordupdate,@template, @data, @scripts, @enabled, @tag);`;
+    
+        try {
+            const result = await db.execute(sqlQuery, values);
+            return result.recordset[0].uid;
+        } catch (error) {
+            console.error('Error on storing GFX item:', error);
+            return null;
+        }
+    }
+}    
 
 const sqlAccess = new SqlAccess();
 
