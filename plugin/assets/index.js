@@ -1,6 +1,8 @@
-//document.querySelector("#payload").addEventListener('change', showSaveButton);
 const originUrl = window.location.origin;
+document.getElementById("drag").style.display = 'none';
 document.querySelector("#save").addEventListener('click', clickOnSave);
+document.getElementById('drag').addEventListener('dragstart', drag);
+document.getElementById('drag').addEventListener('dragend', drop);
 document.querySelector("#navigateBack").addEventListener('click', ()=>{
     window.location.href = window.location.origin; 
 });
@@ -26,10 +28,10 @@ async function clickOnSave(){
             templateId: templateId,
         }
         const url = `${originUrl}/plugin/set-item`;
-        const result = await fetchData(url,"POST",JSON.stringify(values)); // Here we get itemId from server
-        console.log(result);
-        //currentId = await sendToGfxServer(createMosMessage());
-        //showDragButton();
+        const itemId = await fetchData(url,"POST",JSON.stringify(values)); // Here we get itemId from server
+        currentId.id = itemId
+        console.log(`Returned itemUid ${currentId.id}`);
+        showDragButton();
     }catch(err){
         console.error("Failed to post data");
     }
@@ -46,24 +48,22 @@ function drop() {
 }
 
 function createMosMessage(){
-    const group = document.getElementById("group").value;
-    const payload = document.getElementById("payload").value;
-    message = `<mos>
+
+    return `<mos>
         <ncsItem>
             <item>
                 <itemID>0</itemID>
-                <itemSlug>${payload}</itemSlug>
+                <itemSlug>Item-name</itemSlug>
                 <objID>12345</objID>
                 <mosID>iNEWSMOS1</mosID>
                 <mosItemBrowserProgID>alex</mosItemBrowserProgID>
                 <mosItemEditorProgID>alexE</mosItemEditorProgID>
-                <mosAbstract>${payload}</mosAbstract>
-                <group>${group}</group>
+                <mosAbstract>some-data</mosAbstract>
+                <group>1</group>
                 <gfxItem>${currentId.id}</gfxItem>
             </item>
         </ncsItem>
     </mos>`;
-    return message;
 }
 
 function getNewsroomOrigin() {

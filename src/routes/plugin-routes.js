@@ -6,8 +6,8 @@ const router = express.Router();
 router.post('/set-item', async (req, res) => {
     try {
         const item = req.body;
-        await sqlAccess.storeNewItem(item);
-        res.json("Got data");
+        const templateUid = await sqlAccess.storeNewItem(item);
+        res.json(templateUid);
     } catch (error) {
         console.error('Error processing JSON data:', error);
         res.status(400).json("Error processing JSON data");

@@ -48,7 +48,7 @@ function addScriptTagToHTML(htmlContent) {
     styleTag.href = "../assets/style.css";
 
     const pluginPanelDiv = createPluginPanel(document);
-    const toolboxContentDiv = document.querySelector('.toolbox');
+    const toolboxContentDiv = document.querySelector('.toolbox-title');
 
     if (toolboxContentDiv) {
         toolboxContentDiv.appendChild(pluginPanelDiv);
@@ -75,6 +75,13 @@ function createPluginPanel(document) {
     saveButton.id = 'save';
     saveButton.classList.add('pluginPanelBtn'); // Add the class to the save button
 
+    // Create drag btn
+    const dragButton = document.createElement('button');
+    dragButton.textContent  = 'Drag';
+    dragButton.id = 'drag';
+    dragButton.draggable = true; // Set the draggable attribute
+    dragButton.classList.add('pluginPanelBtn'); // Add the class to the save button
+
     // Create div with id "pluginPanel"
     const pluginPanelDiv = document.createElement('div');
     pluginPanelDiv.id = 'pluginPanel';
@@ -83,6 +90,8 @@ function createPluginPanel(document) {
     // Append buttons to the "pluginPanel" div
     pluginPanelDiv.appendChild(backButton);
     pluginPanelDiv.appendChild(saveButton);
+    pluginPanelDiv.appendChild(dragButton);
+
 
     return pluginPanelDiv;
 }
