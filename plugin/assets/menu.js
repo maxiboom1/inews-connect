@@ -71,35 +71,6 @@ async function fetchData(url, method, msg) {
 
 function navigate(templateId){
     const url = `${originUrl}/templates/${templateId}.html`;
-
-    // Create an iframe element
-    const iframe = document.createElement('iframe');
-    iframe.src = url;
-    iframe.style.width = '100%';
-    iframe.style.height = '90vh';
-
-    // Append the iframe to your container or body
-    const container = document.getElementById('iframeContainer');
-    container.innerHTML = '';
-    container.appendChild(iframe);
-
-    // Communicate between the iframe and the parent
-    window.addEventListener('message', receiveMessage, false);
-
-    function receiveMessage(event) {
-        // Handle messages sent from the iframe
-        if (event.origin === originUrl && event.source === iframe.contentWindow) {
-            // Access data from the iframe
-            const templateData = event.data;
-            console.log('Data received from iframe:', templateData);
-
-            // Optionally, perform actions based on the received data
-            // For example, update the original HTML with the data
-            // updateOriginalHTML(templateData);
-
-            // Remove the event listener after receiving the data (if needed)
-            window.removeEventListener('message', receiveMessage);
-        }
-    }
+    window.location.href = url;
 }
 getProductions();

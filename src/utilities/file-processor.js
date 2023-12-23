@@ -31,15 +31,24 @@ async function processAndWriteFiles(templates) {
 function addScriptTagToHTML(htmlContent) {
     const dom = new JSDOM(htmlContent);
     const document = dom.window.document;
-    const scriptFileName = "assets/index.js";
-    // Create the script element
+    const scriptFileName = "../assets/index.js";
+    
+    // Inject script tag
     const scriptTag = document.createElement('script');
     scriptTag.src = scriptFileName;
-    
-    // Append the script tag to the head of the document
-    document.head.appendChild(scriptTag);
-    
-    // Return the updated HTML content
+    // Inject back btn
+    const backButton = document.createElement('button');
+    backButton.innerText = 'Back';
+    backButton.id = 'navigateBack';
+    // Inject save btn
+    const saveButton = document.createElement('button');
+    saveButton.innerText = 'Save';
+    saveButton.id = 'save';
+    // Append script, and buttons to document
+    document.body.appendChild(backButton);
+    document.body.appendChild(saveButton);
+    document.body.appendChild(scriptTag);
+
     return dom.serialize();
 }
 

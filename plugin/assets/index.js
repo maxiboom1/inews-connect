@@ -1,10 +1,11 @@
-document.querySelector("#payload").addEventListener('change', showSaveButton);
+//document.querySelector("#payload").addEventListener('change', showSaveButton);
 document.querySelector("#save").addEventListener('click', clickOnSave);
 
 function showSaveButton(){document.getElementById("save").style.display = 'block'; hideDragButton();}
 function hideSaveButton(){document.getElementById("save").style.display = 'none';}
 function showDragButton(){document.getElementById("drag").style.display = 'block'; hideSaveButton();}
 function hideDragButton(){document.getElementById("drag").style.display = 'none';}
+console.log("XOXOX");
 
 let currentId = {id:null};
 
