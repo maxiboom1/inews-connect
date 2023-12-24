@@ -1,5 +1,7 @@
 const originUrl = window.location.origin;
-console.log(window.location.href)
+const templateId = document.body.getAttribute('data-template');
+const productionId = document.body.getAttribute('data-production');
+console.log(window.location.href);
 document.getElementById("drag").style.display = 'none';
 document.querySelector("#save").addEventListener('click', clickOnSave);
 document.getElementById('drag').addEventListener('dragstart', drag);
@@ -13,27 +15,23 @@ function hideSaveButton(){document.getElementById("save").style.display = 'none'
 function showDragButton(){document.getElementById("drag").style.display = 'block'; hideSaveButton();}
 function hideDragButton(){document.getElementById("drag").style.display = 'none';}
 
-let gfxElement = {templateId:null, itemId:null};
+let gfxElement = {productionId, templateId, itemId:null};
 
 async function clickOnSave(){
     try{
         const _NA_Values = __NA_GetValues();// __NA_GetValues exists inline in html
         const _NA_Scripts = __NA_GetScripts();// __NA_GetScripts exists inline in html
-        const pathname = window.location.pathname;
-        const match = pathname.match(/\/templates\/(\d+)\.html/);
 
-        // Extract the captured group from the match
-        const templateId = match ? match[1] : null;
         const values = {
             data: _NA_Values,
             scripts: _NA_Scripts,
-            templateId: templateId,
+            templateId: gfxElement.templateId,
+            productionId: gfxElement.productionId
         }
         const url = `${originUrl}/plugin/set-item`;
         const itemId = await fetchData(url,"POST",JSON.stringify(values)); // Here we get itemId from server
-        gfxElement.templateId = itemId;
         gfxElement.itemId = itemId;
-        console.log(`Returned itemUid ${gfxElement.templateId}`);
+        console.log(`Returned itemUid ${gfxElement.itemId}`);
         showDragButton();
     }catch(err){
         console.error("Failed to post data");
@@ -52,7 +50,6 @@ function drop() {
 
 function createMosMessage(){
     const name = document.getElementById('stripeText1').value;
-    console.log(name);
     return `<mos>
         <ncsItem>
             <item>
@@ -64,7 +61,9 @@ function createMosMessage(){
                 <mosItemEditorProgID>alexE</mosItemEditorProgID>
                 <mosAbstract>${name}</mosAbstract>
                 <group>1</group>
-                <gfxItem>${gfxElement.templateId}</gfxItem>
+                <gfxItem>${gfxElement.itemId}</gfxItem>
+                <gfxTemplate>${gfxElement.templateId}</gfxTemplate>
+                <gfxProduction>${gfxElement.productionId}</gfxProduction>
             </item>
         </ncsItem>
     </mos>`;

@@ -49,8 +49,11 @@ function createTemplateHtml(template){
     return container.firstElementChild;
 }
 
-function navigate(templateId){
-    const url = `${originUrl}/templates/${templateId}.html`;
+function navigate(templateId, itemId = undefined){
+    let url = `${originUrl}/templates/${templateId}.html`;
+    if(itemId){
+        url = url + `?item=${itemId}`;
+    }
     window.location.href = url;
 }
 
@@ -60,9 +63,9 @@ async function mosMsgFromHost(event) {
     var message = event.data;
     // OPEN ITEM
     if (message !== "<mos><ncsItemRequest/></mos>"){
+        var templateId = extractTagContent(message, "gfxTemplate");
         var itemId = extractTagContent(message, "gfxItem");
-        console.log("From menu page! userOpenedItem " + itemId);        
-        return;
+        navigate(templateId, itemId);
     }
     
     if (event.origin != getNewsroomOrigin()) { 
