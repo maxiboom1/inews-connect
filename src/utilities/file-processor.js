@@ -23,8 +23,8 @@ async function processAndWriteFiles(templates) {
     }
 
     for (const template of templates) {
-        const { uid, source, name } = template;
-        const injectedHtml = addScriptTagToHTML(source);
+        const { uid, source, name, production } = template;
+        const injectedHtml = htmlWrapper(source,uid, production);
         const filePath = path.join(templatesFolder, `${uid}.html`);
         await fsPromises.writeFile(filePath, injectedHtml, 'utf-8');
         delete template.source;
@@ -34,7 +34,7 @@ async function processAndWriteFiles(templates) {
     return templates;
 }
 
-function addScriptTagToHTML(htmlContent) {
+function htmlWrapper(htmlContent,templateUid, productionUid) {
     const dom = new JSDOM(htmlContent);
     const document = dom.window.document;
     const scriptFileName = "../assets/index.js";
@@ -58,7 +58,9 @@ function addScriptTagToHTML(htmlContent) {
 
     document.body.appendChild(scriptTag);
     document.head.appendChild(styleTag);
-
+    document.body.setAttribute('data-template', templateUid);  
+    document.body.setAttribute('data-production', productionUid);    
+  
     return dom.serialize();
 }
 

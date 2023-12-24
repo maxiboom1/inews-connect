@@ -1,6 +1,7 @@
 const originUrl = window.location.origin;
 document.getElementById('productionSelector').addEventListener('change', getTemplates);
 
+// ******************************************* Menu functions *******************************************
 async function getProductions() {
     const url = `${originUrl}/api/productions`; 
     const productions = await fetchData(url, 'GET',null);
@@ -48,6 +49,45 @@ function createTemplateHtml(template){
     return container.firstElementChild;
 }
 
+function navigate(templateId){
+    const url = `${originUrl}/templates/${templateId}.html`;
+    window.location.href = url;
+}
+
+// ******************************************* Common functions *******************************************
+
+async function mosMsgFromHost(event) {
+    var message = event.data;
+    // OPEN ITEM
+    if (message !== "<mos><ncsItemRequest/></mos>"){
+        var itemId = extractTagContent(message, "gfxItem");
+        console.log("From menu page! userOpenedItem " + itemId);        
+        return;
+    }
+    
+    if (event.origin != getNewsroomOrigin()) { 
+        return; 
+    }
+
+}
+
+function extractTagContent(xmlString, tagName) {
+    try {
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+      const tagElement = xmlDoc.querySelector(tagName);
+  
+      if (tagElement !== null) {
+        return tagElement.textContent;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      // Handle parsing errors here, e.g., return an error message or throw an exception
+      return null;
+    }
+}
+
 async function fetchData(url, method, msg) {
     try {
         const response = await fetch(url, {
@@ -69,8 +109,13 @@ async function fetchData(url, method, msg) {
     }
 }
 
-function navigate(templateId){
-    const url = `${originUrl}/templates/${templateId}.html`;
-    window.location.href = url;
+// To handle inews post message when plugin are called from ncs
+if (window.addEventListener) {
+    console.log("window.addEventListener");
+    window.addEventListener('message', mosMsgFromHost, false);
+} else if (window.attachEvent) {
+    console.log("window.attachEvent");
+    window.attachEvent('onmessage', mosMsgFromHost, false);
 }
+
 getProductions();

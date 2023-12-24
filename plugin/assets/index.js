@@ -1,4 +1,5 @@
 const originUrl = window.location.origin;
+console.log(window.location.href)
 document.getElementById("drag").style.display = 'none';
 document.querySelector("#save").addEventListener('click', clickOnSave);
 document.getElementById('drag').addEventListener('dragstart', drag);
@@ -6,12 +7,13 @@ document.getElementById('drag').addEventListener('dragend', drop);
 document.querySelector("#navigateBack").addEventListener('click', ()=>{
     window.location.href = window.location.origin; 
 });
+
 function showSaveButton(){document.getElementById("save").style.display = 'block'; hideDragButton();}
 function hideSaveButton(){document.getElementById("save").style.display = 'none';}
 function showDragButton(){document.getElementById("drag").style.display = 'block'; hideSaveButton();}
 function hideDragButton(){document.getElementById("drag").style.display = 'none';}
 
-let currentId = {id:null};
+let gfxElement = {templateId:null, itemId:null};
 
 async function clickOnSave(){
     try{
@@ -29,8 +31,9 @@ async function clickOnSave(){
         }
         const url = `${originUrl}/plugin/set-item`;
         const itemId = await fetchData(url,"POST",JSON.stringify(values)); // Here we get itemId from server
-        currentId.id = itemId
-        console.log(`Returned itemUid ${currentId.id}`);
+        gfxElement.templateId = itemId;
+        gfxElement.itemId = itemId;
+        console.log(`Returned itemUid ${gfxElement.templateId}`);
         showDragButton();
     }catch(err){
         console.error("Failed to post data");
@@ -42,25 +45,26 @@ function drag(event) {
 }
 
 function drop() {
-    currentId.id = null;
+    gfxElement.templateId = null;
     hideDragButton();
     hideSaveButton();
 }
 
 function createMosMessage(){
-
+    const name = document.getElementById('stripeText1').value;
+    console.log(name);
     return `<mos>
         <ncsItem>
             <item>
                 <itemID>0</itemID>
-                <itemSlug>Item-name</itemSlug>
+                <itemSlug>${name}</itemSlug>
                 <objID>12345</objID>
                 <mosID>iNEWSMOS1</mosID>
                 <mosItemBrowserProgID>alex</mosItemBrowserProgID>
                 <mosItemEditorProgID>alexE</mosItemEditorProgID>
-                <mosAbstract>some-data</mosAbstract>
+                <mosAbstract>${name}</mosAbstract>
                 <group>1</group>
-                <gfxItem>${currentId.id}</gfxItem>
+                <gfxItem>${gfxElement.templateId}</gfxItem>
             </item>
         </ncsItem>
     </mos>`;
@@ -104,12 +108,12 @@ async function mosMsgFromHost(event) {
 }
 
 async function userOpenedItem(message){
-    
+    console.log("userOpenedItem");
     // Get gfxItem from inews
     var gfxItem = extractTagContent(message, "gfxItem");
     
     // Store gfxItem
-    currentId.id = gfxItem;
+    gfxElement.templateId = gfxItem;
     
     // Get element with gfxItem id from gfx server       
     const elementFromServer = await getFromGfxServer(gfxItem);
@@ -171,6 +175,22 @@ async function fetchData(url, method, msg) {
         }
     } catch (error) {
         console.error(`Error while fetching data at URL: ${url}`, error);
+    }
+}
+
+function getCurrentTemplateId(){
+    // Get the current href
+    var currentHref = window.location.href;
+
+    // Extract the template number
+    var templateNumber = currentHref.match(/\/templates\/(\d+)\.html/);
+
+    // Check if a match is found
+    if (templateNumber && templateNumber.length > 1) {
+        var extractedNumber = templateNumber[1];
+        console.log(extractedNumber);
+    } else {
+        console.log("Template number not found in the URL");
     }
 }
 
