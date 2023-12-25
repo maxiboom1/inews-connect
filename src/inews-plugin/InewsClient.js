@@ -15,7 +15,7 @@ class InewsClient extends EventEmitter {
             optimalConnectionJobs: 25,
             rotateHosts: true,
             connectionIdleTimeout: 60000, // 1 minute
-			debug: true
+			debug: false
         }, config);
 
 		if(typeof this.config.maxConnections !== 'number' || this.config.maxConnections < 1)

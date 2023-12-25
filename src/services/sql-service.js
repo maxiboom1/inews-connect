@@ -2,6 +2,7 @@ import appConfig from "../utilities/app-config.js";
 import db from "../dal/sql.js";
 import inewsCache from "../dal/inewsCache.js";
 import processAndWriteFiles from "../utilities/file-processor.js";
+import cloneCache from "../dal/clone-cache.js";
 
 class SqlAccess {
     
@@ -14,12 +15,24 @@ class SqlAccess {
             await this.deleteDBStories();
             for (const [rundownStr] of Object.entries(this.hardcodedLineupList)) {
                 await this.addDbRundown(rundownStr);
+                await cloneCache.initializeRundown(rundownStr);
             }
             await this.getAndStoreProductions();
             await this.getAndStoreDBRundowns();
             await this.getAndStoreTemplates();
         }        
         catch (error) {
+            throw error;
+        }
+    }
+
+    async syncStoryCache(){
+        try {
+            const sql = `SELECT * FROM ngn_inews_stories;`;
+            const result = await db.execute(sql);
+            await inewsCache.setStoryCache(result);
+        } catch (error) {
+            console.error('Failed to fetch ngn_inews_stories:', error);
             throw error;
         }
     }
@@ -155,16 +168,6 @@ class SqlAccess {
         }
     }
     
-    async syncStoryCache(){
-        try {
-            const sql = `SELECT * FROM ngn_inews_stories;`;
-            const result = await db.execute(sql);
-            await inewsCache.setStoryCache(result);
-        } catch (error) {
-            console.error('Failed to fetch ngn_inews_stories:', error);
-            throw error;
-        }
-    }
     // ---------------- Init reset, rundown ordupdate and getters/setters ----------------
 
     async rundownOrdUpdate(rundownStr){

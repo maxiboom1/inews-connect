@@ -22,7 +22,7 @@ class InewsConnectionClient extends EventEmitter {
 			maxRunning: 5000,
 			maxAttempts: 5,
 			maxReconnectAttempts: null,
-			debug: true,
+			debug: false,
 			rootDir: ''
 		}, config);
 

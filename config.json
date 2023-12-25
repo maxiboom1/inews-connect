@@ -1,8 +1,12 @@
 
 {
-    "conn":{"host": "192.168.1.13","user": "avid","password": "inews", "maxConnections": 2},
+    "conn":{"host": "192.168.1.13","user": "avid","password": "inews", "maxConnections": 4},
     "rundowns":{
-        "SHOW.ALEX.RUNDOWN":{
+        "SHOW.ALEX.test1":{
+            "production":1, 
+            "uid": ""
+        },
+        "SHOW.ALEX.test2":{
             "production":1, 
             "uid": ""
         }

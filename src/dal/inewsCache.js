@@ -3,9 +3,9 @@ import sqlAccess from "../services/sql-service.js";
 class InewsCache {
     
     constructor() {
-        this.stories = [];
-        this.rundowns = [];
         this.productions = [];
+        this.rundowns = [];
+        this.stories = [];
         this.templates = [];
     }
     
