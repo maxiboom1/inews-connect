@@ -1,5 +1,6 @@
 import express from "express";
 import inewsCache from "../dal/inewsCache.js";
+import sqlAccess from "../services/sql-service.js";
 
 const router = express.Router();
 
@@ -14,6 +15,18 @@ router.get('/templates/:uid', async (req, res) => {
   const productionUid = req.params.uid;
   const templates = await inewsCache.getTemplatesCache(productionUid);
   res.json(templates);
+});
+
+// Post http://serverAddr:4001/api/set-item
+router.post('/set-item', async (req, res) => {
+  try {
+      const item = req.body;
+      const templateUid = await sqlAccess.storeNewItem(item);
+      res.json(templateUid);
+  } catch (error) {
+      console.error('Error processing JSON data:', error);
+      res.status(400).json("Error processing JSON data");
+  }
 });
 
 export default router;

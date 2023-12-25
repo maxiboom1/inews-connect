@@ -28,7 +28,7 @@ async function clickOnSave(){
             templateId: gfxElement.templateId,
             productionId: gfxElement.productionId
         }
-        const url = `${originUrl}/plugin/set-item`;
+        const url = `${originUrl}/api/set-item`;
         const itemId = await fetchData(url,"POST",JSON.stringify(values)); // Here we get itemId from server
         gfxElement.itemId = itemId;
         console.log(`Returned itemUid ${gfxElement.itemId}`);
@@ -139,21 +139,6 @@ function extractTagContent(xmlString, tagName) {
       // Handle parsing errors here, e.g., return an error message or throw an exception
       return null;
     }
-}
-
-async function sendToGfxServer(msg) {
-    const url = 'http://localhost:3000/plugin/gfx'; // Replace with your API URL
-    return await fetchData(url, 'POST', msg);
-}
-
-async function getFromGfxServer(id) {
-    const url = `http://localhost:3000/plugin/gfx/${id}`;
-    return await fetchData(url, 'GET', null);
-}
-
-async function sendNotify(msg) {
-    const url = 'http://localhost:3000/plugin/debug'; // Replace with your API URL
-    await fetchData(url, 'POST', msg);
 }
 
 async function fetchData(url, method, msg) {

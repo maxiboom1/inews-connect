@@ -1,6 +1,5 @@
 import dataService from "./src/services/inews-service.js";
 import routes from "./src/routes/routes.js";
-import pluginRoutes from "./src/routes/plugin-routes.js"
 import express from "express";
 import cors from "cors";
 import getServerIP from "./src/utilities/host-ip.js";
@@ -8,12 +7,10 @@ import getServerIP from "./src/utilities/host-ip.js";
 const app = express(); 
 
 app.use(cors());
-app.use(express.json()); // Apply express.json() here
-// Routes
+app.use(express.json()); 
 app.use("/api",routes);
-app.use("/plugin", pluginRoutes);
 
-// "plugin" here is an folder name that contain index.html to serve. The url will be: http://localhost:3000/plugin
+// Static server http://localhost:3000/plugin
 app.use(express.static('plugin')); 
 
 // Start the Express server
@@ -25,4 +22,3 @@ app.listen(port, () => {
     
     dataService.startMainProcess();
 });
-
