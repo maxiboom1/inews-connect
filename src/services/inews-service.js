@@ -3,7 +3,6 @@ import appConfig from "../utilities/app-config.js";
 import hebDecoder from "../utilities/hebrew-decoder.js";
 import lineupExists from "../utilities/lineup-validator.js";
 import logger from "../utilities/logger.js";
-import inewsCache from "../dal/inewsCache.js";
 import sqlAccess from "./sql-service.js";
 import cloneCache from "../dal/clone-cache.js";
 
@@ -18,12 +17,10 @@ async function rundownIterator() {
     
     console.time("Debug: Rundown Iteration process time:");
     const rundowns = await sqlAccess.getCachedRundowns();
-    await sqlAccess.syncStoryCache(); // Fetch stories from db and store in cache
     for(const [rundownStr] of Object.entries(rundowns)){
-        const valid = await lineupExists(rundownStr);
+        const valid = await lineupExists(rundownStr); // Maybe we should avoid that?
         if (valid) {
-            //await processLineup(rundownStr);
-            await fetchAndProcessStories(rundownStr)
+            await rundownProcessor(rundownStr);
         } else {
             logger(`Error! Lineup "${rundownStr}" N/A`, true);
         }
@@ -31,6 +28,117 @@ async function rundownIterator() {
     setTimeout(rundownIterator, appConfig.pullInterval);
     console.timeEnd("Debug: Rundown Iteration process time:"); 
 }
+
+/**
+ * As we use more than 1 ftp connection, there is a need to handle parallelism in the code.
+ * Implemented common method is iterable of promises storyPromises.
+ * Types of story change that handled: story deleted, story added, story modified, story float, list order changed
+ * In the end, we make sure that all jobs are finished with Promise.all(storyPromises)
+ * @param {*} rundownStr - rundown string to process.
+ */
+async function rundownProcessor(rundownStr) {
+    
+    try {
+        const listItems = await conn.list(rundownStr);
+        const storyPromises = listItems
+            .filter(listItem => listItem.fileType === 'STORY')
+            .map(async (listItem, index) => {
+                
+                try {
+                    const isStoryExists = await cloneCache.isStoryExists(rundownStr,listItem.identifier);
+                    listItem.storyName = hebDecoder(listItem.storyName);
+                    
+                    // Create new story
+                    if(!isStoryExists){
+                        const storyPromise = conn.story(rundownStr, listItem.fileName);
+                        const story = await storyPromise;
+                        listItem.attachments = story.attachments; // Add attachment to listItem to avoid pass story to store funcs
+                        await sqlAccess.addDbStory(rundownStr,listItem,index);
+                        await cloneCache.saveStory(rundownStr,listItem,index);
+                    } else{
+                        
+                        const action = await checkStory(rundownStr,listItem,index); // Compare inews version with cached
+                        // Reorder story
+                        if(action === "reorder"){
+                            await sqlAccess.reorderDbStory(rundownStr,listItem,index);
+                            await cloneCache.reorderStory(rundownStr,listItem,index);
+                        
+                        // Modify story
+                        }else if(action === "modify"){
+                            const storyPromise = conn.story(rundownStr, listItem.fileName);
+                            const story = await storyPromise;
+                            listItem.attachments = story.attachments; // Add attachment to listItem to avoid pass story to store funcs
+                            await sqlAccess.modifyDbStory(rundownStr,listItem);
+                            await cloneCache.modifyStory(rundownStr,listItem);
+                        }
+                    }
+                    
+                    
+                } catch (error) {
+                    console.error(`ERROR at Index ${index}:`, error);
+                }
+            });
+        
+        // Wait for all promises to settle
+        await Promise.all(storyPromises);
+
+        // Delete stories  
+        if(listItems.length < await cloneCache.getRundownLength(rundownStr)){
+            deleteDif(rundownStr,listItems);
+        }
+
+    } catch (error) {
+        console.error("Error fetching and processing stories:", error);
+    }
+}
+
+async function checkStory(rundownStr ,story, index) {
+    
+    const cacheStory = await cloneCache.getStory(rundownStr, story.identifier);
+    // Reorder
+    if(index != cacheStory.ord){
+        return "reorder";
+    };
+
+    // Modify
+    if(story.locator != cacheStory.locator){
+        return "modify"
+    };
+    
+    // No changes
+    return false;
+}
+
+async function deleteDif(rundownStr,listItems) {
+    
+    // Create hash for inews identifiers
+    const inewsHashMap = {};
+    // Get cached story identifiers
+    const cachedIdentifiers = await cloneCache.getRundownIdentifiersList(rundownStr);
+    // Store inews identifiers in hash
+    for(const listItem of listItems){
+        inewsHashMap[listItem.identifier] = 1;
+    }
+    // Filter identifiers that in cache but not in inews
+    const identifiersToDelete = cachedIdentifiers.filter(identifier => !inewsHashMap.hasOwnProperty(identifier));
+    // Delete from cache and mssql
+    identifiersToDelete.forEach(async identifier=>{
+        await cloneCache.deleteStory(rundownStr,identifier);
+        await sqlAccess.deleteDBStories(rundownStr,identifier);
+    });
+}
+
+conn.on('connections', connections => {
+    console.log(connections + ' connections active');
+});
+
+export default {
+    startMainProcess
+};
+
+
+/*
+// Old, lineup processor without parallelism
 
 async function processLineup(rundownStr) {
     
@@ -41,10 +149,10 @@ async function processLineup(rundownStr) {
         story.storyName = hebDecoder(lineupList[i].storyName);
         const cachedStory = cachedStories.find(item => item.identifier === lineupList[i].identifier);
          
-        // Create new story
+        // Create new story 1
         if(cachedStory === undefined){
             const expandedStoryData = await conn.story(rundownStr, story.fileName); // Get expanded story data from inews
-            await sqlAccess.addDbStory(rundownStr, story, expandedStoryData, i);
+            await sqlAccess.addDbStory(rundownStr, story,i);
             await cloneCache.saveStory(
                 rundownStr,
                 i,
@@ -80,69 +188,5 @@ async function processLineup(rundownStr) {
 
     }
 }
-
-function checkStory(story, cache, index) {
-    
-    const reorder = story.fileType === "STORY" && (index != cache.ord);  
-
-    if(reorder){return "reorder"};
-    
-    const modify = 
-        story.fileType === "STORY" && 
-        story.identifier === cache.identifier && (story.locator != cache.locator);
-
-    if(modify){return "modify"};
-
-    return false;
-}
-
-async function deleteDif(lineupList, cachedStories, rundownStr) {
-    
-    // Create identifier set from inews lineup list
-    const identifiersSet = new Set(lineupList.map(story => story.identifier));
-    
-    // Run over cache, compare identifiers and delete diff.
-    cachedStories.forEach(async story => {
-        if (!identifiersSet.has(story.identifier)) {
-            await sqlAccess.deleteStory(story.uid, rundownStr);
-            await cloneCache.deleteStory(rundownStr,story.identifier);
-        }
-    });
-}
-
-// Parallel ftp connections => I need to research it.
-async function fetchAndProcessStories(inewsQueue) {
-    console.log("process " + inewsQueue);
-    try {
-        const listItems = await conn.list(inewsQueue);
-
-        const storyPromises = listItems
-            .filter(listItem => listItem.fileType === 'STORY')
-            .map(async (listItem, index) => {
-                try {
-                    const storyPromise = conn.story(inewsQueue, listItem.fileName);
-                    const story = await storyPromise;
-                    //console.log(`Index: ${index}, Story Name: ${story.id}`);
-                } catch (error) {
-                    console.error(`ERROR at Index ${index}:`, error);
-                }
-            });
-
-        // Wait for all promises to settle
-        await Promise.all(storyPromises);
-    } catch (error) {
-        console.error("Error fetching and processing stories:", error);
-    }
-}
-
-
-conn.on('connections', connections => {
-    console.log(connections + ' connections active');
-});
-
-export default {
-    startMainProcess
-};
-
-
+*/
 

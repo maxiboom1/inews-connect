@@ -1,7 +1,13 @@
-Inews-connect 1.5.0
+Inews-connect 1.6
 
 Releases:
-
+1.6.0
+- Implemented parallel ftp connections 
+- Caching mechanism from scratch rebuild.
+- HTML injector for templates, merge plugin js with templates js automatically by link js files(utilities/file-processor.js).
+- REST routes for plugin.
+- Bootstrap grid implemented.
+- Many other structure and code changes, merges and improvements.
 1.5.0
 - Inews-connect works with mssql. 
 - I fetching the whole stories table once on each rundowns iteration, store it in storiesCache (overwrite), then compare stories from inews to the cache. 

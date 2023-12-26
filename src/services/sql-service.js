@@ -82,7 +82,7 @@ class SqlAccess {
         }
     }
 
-    async addDbStory(rundownStr, story, expandedStoryData, order){
+    async addDbStory(rundownStr, story, order){
         const values = {
             name: story.storyName,
             lastupdate: Math.floor(Date.now() / 1000),
@@ -108,7 +108,7 @@ class SqlAccess {
 
     }
 
-    async reorderDbStory(story,ord, rundownStr){
+    async reorderDbStory(rundownStr,story,ord){
         const values = {
             ord: ord,
             locator: story.locator,
@@ -131,7 +131,7 @@ class SqlAccess {
 
     }
 
-    async modifyDbStory(story,rundownStr){
+    async modifyDbStory(rundownStr,story){
 
         const values = {
             identifier:story.identifier,
@@ -155,13 +155,13 @@ class SqlAccess {
 
     }
 
-    async deleteStory(uid,rundownStr) {
+    async deleteStory(rundownStr,identifier) {
         try {
-            const values = {uid: uid};
-            const sqlQuery = `DELETE FROM ngn_inews_stories WHERE uid = @uid;`;
+            const values = {identifier: identifier};
+            const sqlQuery = `DELETE FROM ngn_inews_stories WHERE identifier = @identifier;`;
             await db.execute(sqlQuery, values);
             await this.rundownOrdUpdate(rundownStr);
-            console.log(`Story with uid ${uid} deleted in ${rundownStr}`);
+            console.log(`Story with identifier ${identifier} deleted from ${rundownStr}`);
     
         } catch (error) {
             console.error(`Error deleting ${uid} story:`, error);
