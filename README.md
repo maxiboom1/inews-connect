@@ -1,6 +1,17 @@
-Inews-connect 1.6
+Inews-connect 1.6.1
+
+todo:
+- Cache template icons on hdd, and not in memory
+- WHAT SHOULD BE DISPLAYED AS HEADER TO ITEM IN INEWS?
+- Cache memory use monitor?
 
 Releases:
+
+1.6.1
+- The Inews-cache module has been implemented with support for all caching stores and methods.
+- Conducted horizontal development across the project, including module renaming and file deletions.
+- Cache data structures documented.
+
 1.6.0
 - Implemented parallel ftp connections 
 - Caching mechanism from scratch rebuild.
@@ -8,6 +19,7 @@ Releases:
 - REST routes for plugin.
 - Bootstrap grid implemented.
 - Many other structure and code changes, merges and improvements.
+
 1.5.0
 - Inews-connect works with mssql. 
 - I fetching the whole stories table once on each rundowns iteration, store it in storiesCache (overwrite), then compare stories from inews to the cache. 

@@ -6,7 +6,7 @@ async function getProductions() {
     const url = `${originUrl}/api/productions`; 
     const productions = await fetchData(url, 'GET',null);
     const productionSelector = document.getElementById('productionSelector');
-
+    console.log(productions)
     productions.forEach(function(production) {
         var option = document.createElement('option');
         option.value = production.uid;
@@ -21,6 +21,7 @@ async function getTemplates() {
     if (productionUid === "") return;
     const url = `${originUrl}/api/templates/${productionUid}`;
     const templates = await fetchData(url, 'GET', null);
+    console.log(templates)
     const templatesContainer = document.getElementById('templatesContainer');
     templatesContainer.innerHTML = '';
 
@@ -34,6 +35,7 @@ async function getTemplates() {
 function createTemplateHtml(template){
     const container = document.createElement('div'); // Create a temporary container
     if(template.icon){
+        console.log('x');
         container.innerHTML = `
         <div id=${template.uid} class="col-1 themed-grid-col">
             <img src='data:image/png;base64,${template.icon}' alt='Template Icon'>

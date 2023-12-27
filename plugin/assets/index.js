@@ -49,7 +49,10 @@ function drop() {
 }
 
 function createMosMessage(){
-    const name = document.getElementById('stripeText1').value;
+    let name = "where is the data?";
+    if(document.getElementById('stripeText1')){
+        name = document.getElementById('stripeText1').value;;
+    }
     return `<mos>
         <ncsItem>
             <item>

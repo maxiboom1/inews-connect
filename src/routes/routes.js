@@ -1,20 +1,19 @@
 import express from "express";
-import inewsCache from "../dal/inewsCache.js";
-import sqlAccess from "../services/sql-service.js";
-import cloneCache from "../dal/clone-cache.js";
+import sqlService from "../services/sql-service.js";
+import inewsCache from "../dal/inews-cache.js";
 
 const router = express.Router();
 
 // Get http://serverAddr:4001/api/productions
 router.get('/productions', async (req, res) => {
-  const productions = await inewsCache.getProductionsCache();
+  const productions = await inewsCache.getProductionsArr();
   res.json(productions);
 });
 
 // Get http://serverAddr:4001/api/templates
 router.get('/templates/:uid', async (req, res) => {
   const productionUid = req.params.uid;
-  const templates = await inewsCache.getTemplatesCache(productionUid);
+  const templates = await inewsCache.getTemplatesByProduction(productionUid);
   res.json(templates);
 });
 
@@ -22,7 +21,7 @@ router.get('/templates/:uid', async (req, res) => {
 router.post('/set-item', async (req, res) => {
   try {
       const item = req.body;
-      const templateUid = await sqlAccess.storeNewItem(item);
+      const templateUid = await sqlService.storeNewItem(item);
       res.json(templateUid);
   } catch (error) {
       console.error('Error processing JSON data:', error);
@@ -32,7 +31,7 @@ router.post('/set-item', async (req, res) => {
 
 // Get http://serverAddr:4001/api/getdata
 router.get('/getdata', async (req, res) => {
-  const data = await cloneCache.getData();
+  const data = await inewsCache.getData();
   res.json(data);
 });
 

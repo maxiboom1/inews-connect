@@ -1,19 +1,16 @@
 import appConfig from "../utilities/app-config.js";
 import db from "../dal/sql.js";
-import inewsCache from "../dal/inewsCache.js";
 import processAndWriteFiles from "../utilities/file-processor.js";
-import cloneCache from "../dal/clone-cache.js";
+import cloneCache from "../dal/inews-cache.js";
 
-class SqlAccess {
-    
-    constructor() {
-        this.hardcodedLineupList = appConfig.rundowns;
-    }
+class SqlService {
 
     async initialize(){
         try {
+            // Delete stories table in mssql
             await this.deleteDBStories();
-            for (const [rundownStr] of Object.entries(this.hardcodedLineupList)) {
+            // Iterate over appconfig rundowns, add them to db, and set in cache 
+            for (const [rundownStr] of Object.entries(appConfig.rundowns)) {
                 await this.addDbRundown(rundownStr);
                 await cloneCache.initializeRundown(rundownStr);
             }
@@ -26,22 +23,11 @@ class SqlAccess {
         }
     }
 
-    async syncStoryCache(){
-        try {
-            const sql = `SELECT * FROM ngn_inews_stories;`;
-            const result = await db.execute(sql);
-            await inewsCache.setStoryCache(result);
-        } catch (error) {
-            console.error('Failed to fetch ngn_inews_stories:', error);
-            throw error;
-        }
-    }
-
     async addDbRundown(rundownStr) {
         const values = {
             name: rundownStr,
             lastUpdate: Math.floor(Date.now() / 1000),
-            production: this.hardcodedLineupList[rundownStr].production,
+            production: appConfig.rundowns[rundownStr].production,
             enabled: 1,
             tag: ""
         };
@@ -67,8 +53,7 @@ class SqlAccess {
         try {
             // Check if a record with the specified name exists
             const result = await db.execute(selectQuery, values);
-    
-            if (result.length > 0) {
+            if (result.recordset.length > 0) {
                 // If record exists, update it
                 await db.execute(updateQuery, values);
                 console.log(`Registering existing rundown to active watch: ${rundownStr}`);
@@ -82,12 +67,64 @@ class SqlAccess {
         }
     }
 
+    async getAndStoreProductions() {
+        try {
+            const sql = `SELECT uid, name FROM ngn_productions`;
+            const productions = await db.execute(sql);
+            await cloneCache.setProductions(productions);
+            console.log(`Loaded productions from SQL`);
+        } catch (error) {
+            console.error('Error loading productions from SQL:', error);
+            throw error;
+        }
+    }
+
+    async getAndStoreDBRundowns(){
+        try {
+            const sql = `SELECT uid, name, production FROM ngn_inews_rundowns`;
+            const rundowns = await db.execute(sql);
+            await cloneCache.setRundowns(rundowns);
+        } catch (error) {
+            console.error('Error deleting rundown from SQL:', error);
+            throw error;
+        }
+    }
+
+    async getAndStoreTemplates() {
+        try {
+            const sql = `SELECT uid,source,name,production,icon FROM ngn_templates`;
+            
+            //{ uid, source, name, production,icon}
+            const templates = await db.execute(sql);
+            
+            //{ uid, name, production , icon}
+            const templatesWithoutHtml = await processAndWriteFiles(templates);
+            await cloneCache.setTemplates(templatesWithoutHtml);
+            console.log(`Loaded templates from SQL`);
+        } catch (error) {
+            console.error('Error loading templates from SQL:', error);
+            throw error;
+        }
+    }
+
+    async syncStoryCache(){
+        try {
+            const sql = `SELECT * FROM ngn_inews_stories;`;
+            const result = await db.execute(sql);
+            //await inewsCache.setStoryCache(result);
+        } catch (error) {
+            console.error('Failed to fetch ngn_inews_stories:', error);
+            throw error;
+        }
+    }
+
     async addDbStory(rundownStr, story, order){
+        const rundownMeta = await cloneCache.getRundownList(rundownStr);
         const values = {
             name: story.storyName,
             lastupdate: Math.floor(Date.now() / 1000),
-            rundown: this.hardcodedLineupList[rundownStr].uid,
-            production: this.hardcodedLineupList[rundownStr].production,
+            rundown: rundownMeta.uid,
+            production: rundownMeta.production,
             ord: order,
             ordupdate: Math.floor(Date.now() / 1000),
             enabled: 1,
@@ -171,9 +208,10 @@ class SqlAccess {
     // ---------------- Init reset, rundown ordupdate and getters/setters ----------------
 
     async rundownOrdUpdate(rundownStr){
+        const rundownMeta = await cloneCache.getRundownList(rundownStr);
         try {
             const values = {
-                uid: this.hardcodedLineupList[rundownStr].uid,
+                uid: rundownMeta.uid,
                 lastupdate: Math.floor(Date.now() / 1000)
             }
             const sqlQuery = `
@@ -200,60 +238,11 @@ class SqlAccess {
         }
     }
 
-    async getAndStoreDBRundowns(){
-        try {
-            const sql = `SELECT * FROM ngn_inews_rundowns`;
-            const rundowns = await db.execute(sql);
-            
-            // Convert rundown from DB to friendly structure {rundownName:{production:1, uid:1}}
-            rundowns.forEach(item => {
-                const { uid, name, production } = item;
-                // Check if the rundown already exists in hardcodedLineupList
-                if (this.hardcodedLineupList[name] !== undefined) {
-                    // Update only if it already exists (Since we don't erase rundowns from db)
-                    this.hardcodedLineupList[name] = { production: production, uid: uid };
-                }
-              });
-        } catch (error) {
-            console.error('Error deleting rundown from SQL:', error);
-            throw error;
-        }
-    }
-
-    async getCachedRundowns(){
-        return this.hardcodedLineupList;
-    }
-
-    async getAndStoreProductions() {
-        try {
-            const sql = `SELECT * FROM ngn_productions`;
-            const productions = await db.execute(sql);
-            await inewsCache.setProductionsCache(productions);
-            console.log(`Loaded productions from SQL`);
-        } catch (error) {
-            console.error('Error loading productions from SQL:', error);
-            throw error;
-        }
-    }
-
-    async getAndStoreTemplates() {
-        try {
-            const sql = `SELECT * FROM ngn_templates`;
-            const templates = await db.execute(sql);
-            const templatesWithoutHtml = await processAndWriteFiles(templates);
-            await inewsCache.setTemplatesCache(templatesWithoutHtml);
-            console.log(`Loaded templates from SQL`);
-        } catch (error) {
-            console.error('Error loading templates from SQL:', error);
-            throw error;
-        }
-    }
-
-    async storeNewItem(item) {
+    async storeNewItem(item) { // Expect: {data, scripts, templateId,productionId}
         const values = {
             name: "??",
             lastupdate: Math.floor(Date.now() / 1000),
-            production: await inewsCache.getProductionByTemplateId(item.templateId),
+            production: item.productionId,
             rundown: "",
             story: "",
             ord: "",
@@ -280,6 +269,6 @@ class SqlAccess {
     }
 }    
 
-const sqlAccess = new SqlAccess();
+const sqlService = new SqlService();
 
-export default sqlAccess;
+export default sqlService;
