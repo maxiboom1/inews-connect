@@ -2,6 +2,7 @@ import appConfig from "../utilities/app-config.js";
 import db from "../dal/sql.js";
 import processAndWriteFiles from "../utilities/file-processor.js";
 import cloneCache from "../dal/inews-cache.js";
+import inewsCache from "../dal/inews-cache.js";
 
 class SqlService {
 
@@ -134,9 +135,13 @@ class SqlService {
         }
         const sqlQuery = `
             INSERT INTO ngn_inews_stories (name, lastupdate, rundown, production, ord, ordupdate, enabled, tag, identifier, locator)
+            OUTPUT inserted.uid
             VALUES (@name, @lastupdate, @rundown, @production, @ord, @ordupdate, @enabled, @tag, @identifier, @locator);`;            
         try {
-            await db.execute(sqlQuery, values); 
+            const result = await db.execute(sqlQuery, values);
+            const assertedUid = result.recordset[0].uid;
+            story.uid = assertedUid;
+            await inewsCache.saveStory(rundownStr, story, order);
             await this.rundownOrdUpdate(rundownStr);
             console.log(`Registering new story to ${rundownStr}: ${story.storyName}`);
         } catch (error) {
@@ -240,7 +245,7 @@ class SqlService {
 
     async storeNewItem(item) { // Expect: {data, scripts, templateId,productionId}
         const values = {
-            name: "??",
+            name: "",
             lastupdate: Math.floor(Date.now() / 1000),
             production: item.productionId,
             rundown: "",
@@ -261,7 +266,32 @@ class SqlService {
     
         try {
             const result = await db.execute(sqlQuery, values);
-            return result.recordset[0].uid;
+            return result.recordset[0].uid; // We return it to front page and its stored in mos obj as gfxItem
+        } catch (error) {
+            console.error('Error on storing GFX item:', error);
+            return null;
+        }
+    }
+    
+    async updateItem(item) { // Expect: {itemId, rundownId, storyId, ord}
+        
+        const values = {
+            lastupdate: Math.floor(Date.now() / 1000),
+            rundown: item.rundownId,
+            story: item.storyId,
+            ord: item.ord,
+            ordupdate: Math.floor(Date.now() / 1000),
+            uid: item.itemId
+        };
+        const sqlQuery = `
+            UPDATE ngn_inews_items SET 
+            lastupdate = @lastupdate, rundown = @rundown, story = @story, ord = @ord, ordupdate = @ordupdate
+            WHERE uid = @uid;`;
+    
+        try {
+            await db.execute(sqlQuery, values);
+            console.log("Registered new GFX item ");
+
         } catch (error) {
             console.error('Error on storing GFX item:', error);
             return null;

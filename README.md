@@ -1,9 +1,10 @@
 Inews-connect 1.6.1
 
 todo:
-- Cache template icons on hdd, and not in memory
+- Cache template icons on hdd, and not in memory.
 - WHAT SHOULD BE DISPLAYED AS HEADER TO ITEM IN INEWS?
 - Cache memory use monitor?
+- Clear unused dependencies.
 
 Releases:
 

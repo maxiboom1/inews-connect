@@ -1,4 +1,5 @@
 class InewsCache {
+    
     constructor() {
         this.stories = {}; //{'rundownName': {'storyIdentifier': {storyProps...}, /* ...other stories... */}, /* ...other rundowns... */};
         this.productions = {}; //{name: uid,name2:uid2, ... other productions...}
@@ -48,6 +49,10 @@ class InewsCache {
         return Object.keys(this.rundownsList);
     }
 
+    async getRundownUid(rundownStr){
+        return this.rundownsList[rundownStr].uid;
+    }
+
     async setTemplates(templates){ // Expect: [{ uid, name, production, icon},{...}]
         this.templates = {};
         templates.forEach(t => {
@@ -79,6 +84,12 @@ class InewsCache {
         }
     }
 
+    async getStoryUid(rundownStr, identifier){
+        if (this.isStoryExists(rundownStr, identifier)) {
+            return this.stories[rundownStr][identifier].uid;
+        }
+    }
+
     async isStoryExists(rundownStr, identifier) {
         const storyExists = !!this.stories[rundownStr] && !!this.stories[rundownStr][identifier];
         return storyExists;
@@ -90,7 +101,8 @@ class InewsCache {
             locator: story.locator,
             flags: story.flags,
             attachments: story.attachments,
-            ord: ord
+            ord: ord,
+            uid:story.uid
         };
     }
 

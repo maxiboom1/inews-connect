@@ -1,55 +1,14 @@
-import { DOMParser, XMLSerializer } from 'xmldom';
+import {XMLParser} from "fast-xml-parser";
 
-function xmlParser(xmlString) {
-    var parser = new DOMParser();
-    var xmlDoc = parser.parseFromString(xmlString, 'text/xml');
-    var itemSlugElements = xmlDoc.getElementsByTagName('itemSlug');
+function parseXmlString(XMLdata) {
+    const parser = new XMLParser();
+    let jObj = parser.parse(XMLdata);
+    const item = jObj.AttachmentContent.mos.ncsItem.item;
+    return {
+      ord: item.itemID, 
+      itemId: item.gfxItem
+    };
+  }
+  
 
-    for (var i = 0; i < itemSlugElements.length; i++) {
-        var itemSlugElement = itemSlugElements[i];
-        var existingText = itemSlugElement.textContent;
-        itemSlugElement.textContent = 'From server: ' + existingText;
-    }
-
-    var modifiedXmlString = new XMLSerializer().serializeToString(xmlDoc);
-
-    return modifiedXmlString;
-}
-
-function getId(xmlString) {
-    const parser = new DOMParser();
-
-    const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
-
-    const gfxItem = xmlDoc.getElementsByTagName('gfxItem')[0];
-
-    if (gfxItem) {
-        return gfxItem.textContent;
-    } else {
-        return null; // Handle the case where <gfxItem> is not found
-    }
-}
-
-function insertId(xmlString,id) {
-    const parser = new DOMParser();
-
-    const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
-
-    const gfxItem = xmlDoc.getElementsByTagName('gfxItem')[0];
-
-    if (gfxItem) {
-        xmlDoc.getElementsByTagName('gfxItem')[0].textContent = id;
-    } else {
-        return null; // Handle the case where <gfxItem> is not found
-    }
-
-    var modifiedXmlString = new XMLSerializer().serializeToString(xmlDoc);
-
-    return modifiedXmlString;
-}
-
-export default {
-    xmlParser,
-    getId,
-    insertId
-}
+export default parseXmlString;

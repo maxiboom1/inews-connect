@@ -56,7 +56,7 @@ function createMosMessage(){
     return `<mos>
         <ncsItem>
             <item>
-                <itemID>0</itemID>
+                <itemID></itemID>
                 <itemSlug>${name}</itemSlug>
                 <objID>12345</objID>
                 <mosID>iNEWSMOS1</mosID>

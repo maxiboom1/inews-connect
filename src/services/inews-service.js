@@ -5,6 +5,7 @@ import lineupExists from "../utilities/lineup-validator.js";
 import logger from "../utilities/logger.js";
 import sqlService from "./sql-service.js";
 import inewsCache from "../dal/inews-cache.js";
+import parseXmlString from "../utilities/xml-parser.js";
 
 async function startMainProcess() { 
     console.log('Starting Inews-connect 1.5.0 ...');
@@ -53,8 +54,21 @@ async function rundownProcessor(rundownStr) {
                         const storyPromise = conn.story(rundownStr, listItem.fileName);
                         const story = await storyPromise;
                         listItem.attachments = story.attachments; // Add attachment to listItem to avoid pass story to store funcs
+                        
+                        // Save to db, and to cache (chained since i want to store asserted uid)
                         await sqlService.addDbStory(rundownStr,listItem,index);
-                        await inewsCache.saveStory(rundownStr,listItem,index);
+                        
+                        // Save item if exists
+                        if (Object.keys(listItem.attachments).length > 0){
+                            Object.entries(listItem.attachments).forEach(async ([key, entry]) => {
+                                const item = parseXmlString(entry); // Returns {ord, itemId}
+                                item.rundownId = await inewsCache.getRundownUid(rundownStr);
+                                item.storyId = await inewsCache.getStoryUid(rundownStr, listItem.identifier);
+                                await sqlService.updateItem(item);
+                              });
+
+                        }
+
                     } else{
                         
                         const action = await checkStory(rundownStr,listItem,index); // Compare inews version with cached
