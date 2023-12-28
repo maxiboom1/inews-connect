@@ -1,10 +1,10 @@
-import conn from "../dal/inews-ftp.js"
+import conn from "../1-dal/inews-ftp.js"
 import appConfig from "../utilities/app-config.js";
 import hebDecoder from "../utilities/hebrew-decoder.js";
 import lineupExists from "../utilities/lineup-validator.js";
 import logger from "../utilities/logger.js";
 import sqlService from "./sql-service.js";
-import inewsCache from "../dal/inews-cache.js";
+import inewsCache from "../1-dal/inews-cache.js";
 import parseXmlString from "../utilities/xml-parser.js";
 
 async function startMainProcess() { 

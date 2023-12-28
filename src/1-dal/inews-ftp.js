@@ -1,4 +1,4 @@
-import Inews from '../inews-plugin/InewsClient.js';
+import Inews from '../0-inews-plugin/InewsClient.js';
 import appConfig from '../utilities/app-config.js';
 
 async function Conn(){

@@ -1,8 +1,7 @@
 import appConfig from "../utilities/app-config.js";
-import db from "../dal/sql.js";
+import db from "../1-dal/sql.js";
 import processAndWriteFiles from "../utilities/file-processor.js";
-import cloneCache from "../dal/inews-cache.js";
-import inewsCache from "../dal/inews-cache.js";
+import inewsCache from "../1-dal/inews-cache.js";
 
 class SqlService {
 
@@ -13,7 +12,7 @@ class SqlService {
             // Iterate over appconfig rundowns, add them to db, and set in cache 
             for (const [rundownStr] of Object.entries(appConfig.rundowns)) {
                 await this.addDbRundown(rundownStr);
-                await cloneCache.initializeRundown(rundownStr);
+                await inewsCache.initializeRundown(rundownStr);
             }
             await this.getAndStoreProductions();
             await this.getAndStoreDBRundowns();
@@ -72,7 +71,7 @@ class SqlService {
         try {
             const sql = `SELECT uid, name FROM ngn_productions`;
             const productions = await db.execute(sql);
-            await cloneCache.setProductions(productions);
+            await inewsCache.setProductions(productions);
             console.log(`Loaded productions from SQL`);
         } catch (error) {
             console.error('Error loading productions from SQL:', error);
@@ -84,7 +83,7 @@ class SqlService {
         try {
             const sql = `SELECT uid, name, production FROM ngn_inews_rundowns`;
             const rundowns = await db.execute(sql);
-            await cloneCache.setRundowns(rundowns);
+            await inewsCache.setRundowns(rundowns);
         } catch (error) {
             console.error('Error deleting rundown from SQL:', error);
             throw error;
@@ -100,7 +99,7 @@ class SqlService {
             
             //{ uid, name, production , icon}
             const templatesWithoutHtml = await processAndWriteFiles(templates);
-            await cloneCache.setTemplates(templatesWithoutHtml);
+            await inewsCache.setTemplates(templatesWithoutHtml);
             console.log(`Loaded templates from SQL`);
         } catch (error) {
             console.error('Error loading templates from SQL:', error);
@@ -120,7 +119,7 @@ class SqlService {
     }
 
     async addDbStory(rundownStr, story, order){
-        const rundownMeta = await cloneCache.getRundownList(rundownStr);
+        const rundownMeta = await inewsCache.getRundownList(rundownStr);
         const values = {
             name: story.storyName,
             lastupdate: Math.floor(Date.now() / 1000),
@@ -213,7 +212,7 @@ class SqlService {
     // ---------------- Init reset, rundown ordupdate and getters/setters ----------------
 
     async rundownOrdUpdate(rundownStr){
-        const rundownMeta = await cloneCache.getRundownList(rundownStr);
+        const rundownMeta = await inewsCache.getRundownList(rundownStr);
         try {
             const values = {
                 uid: rundownMeta.uid,

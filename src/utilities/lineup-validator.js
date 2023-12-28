@@ -1,4 +1,4 @@
-import conn from "../dal/inews-ftp.js"
+import conn from "../1-dal/inews-ftp.js"
 
 async function lineupExists(path){
     const dir = path.split(".").slice(0,-1).join(".");

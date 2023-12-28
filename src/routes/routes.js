@@ -1,6 +1,6 @@
 import express from "express";
 import sqlService from "../services/sql-service.js";
-import inewsCache from "../dal/inews-cache.js";
+import inewsCache from "../1-dal/inews-cache.js";
 
 const router = express.Router();
 
