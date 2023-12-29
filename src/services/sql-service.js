@@ -2,6 +2,7 @@ import appConfig from "../utilities/app-config.js";
 import db from "../1-dal/sql.js";
 import processAndWriteFiles from "../utilities/file-processor.js";
 import inewsCache from "../1-dal/inews-cache.js";
+import parseXmlString from "../utilities/xml-parser.js";
 
 class SqlService {
 
@@ -107,18 +108,7 @@ class SqlService {
         }
     }
 
-    async syncStoryCache(){
-        try {
-            const sql = `SELECT * FROM ngn_inews_stories;`;
-            const result = await db.execute(sql);
-            //await inewsCache.setStoryCache(result);
-        } catch (error) {
-            console.error('Failed to fetch ngn_inews_stories:', error);
-            throw error;
-        }
-    }
-
-    async addDbStory(rundownStr, story, order){
+    async addDbStory(rundownStr, story, order){ //Story: {fileType,fileName,identifier,locator,storyName,modified,flags,attachments}
         const rundownMeta = await inewsCache.getRundownList(rundownStr);
         const values = {
             name: story.storyName,
@@ -138,15 +128,58 @@ class SqlService {
             VALUES (@name, @lastupdate, @rundown, @production, @ord, @ordupdate, @enabled, @tag, @identifier, @locator);`;            
         try {
             const result = await db.execute(sqlQuery, values);
-            const assertedUid = result.recordset[0].uid;
-            story.uid = assertedUid;
-            await inewsCache.saveStory(rundownStr, story, order);
+            const assertedStoryUid = result.recordset[0].uid;
+            story.uid = assertedStoryUid;
+            
+            //Check for items, and store
+            if (Object.keys(story.attachments).length > 0){
+                Object.entries(story.attachments).forEach(async ([key, entry]) => {
+                    if (entry.includes("<gfxProduction>")) { // Make sure that its gfx attachment, if not we just skipping it
+                        const item = parseXmlString(entry); //Returns {ord, itemId}
+                        item.rundownId = rundownMeta.uid;
+                        item.storyId = story.uid;
+                        await sqlService.updateItem(rundownStr, item); // item: {itemId, rundownId, storyId, ord}
+                    } else {
+                        console.log(`Noticed non-gfx item. Skipping...`); 
+                    }
+                  });
+            }
+
             await this.rundownOrdUpdate(rundownStr);
-            console.log(`Registering new story to ${rundownStr}: ${story.storyName}`);
+            console.log(`Registering new story to ${rundownStr}: ${story.storyName}`); 
+            return assertedStoryUid;
         } catch (error) {
             console.error('Error executing query:', error); 
         }
+    }
 
+    async updateItem(rundownStr, item) { // Expect: {itemId, rundownId, storyId, ord}
+        const values = {
+            lastupdate: Math.floor(Date.now() / 1000),
+            rundown: item.rundownId,
+            story: item.storyId,
+            ord: item.ord,
+            ordupdate: Math.floor(Date.now() / 1000),
+            uid: item.itemId
+        };
+        const sqlQuery = `
+            UPDATE ngn_inews_items SET 
+            lastupdate = @lastupdate, rundown = @rundown, story = @story, ord = @ord, ordupdate = @ordupdate
+            OUTPUT INSERTED.*
+            WHERE uid = @uid;`;
+    
+        try {
+            const result =await db.execute(sqlQuery, values);
+            if(result.rowsAffected[0] > 0){
+                console.log("Registered new GFX item ");
+            } else {
+                console.log(`WARNING! GFX ${item.itemId} [${item.ord}] in ${rundownStr}, story num ${item.ord} doesn't exists in DB`);
+            }
+
+        } catch (error) {
+            console.error('Error on storing GFX item:', error);
+            return null;
+        }
     }
 
     async reorderDbStory(rundownStr,story,ord){
@@ -172,10 +205,9 @@ class SqlService {
 
     }
 
-    async modifyDbStory(rundownStr,story){
-
+    async modifyDbStory(rundownStr,story){//Story: {fileType,fileName,identifier,locator,storyName,modified,flags,attachments}
         const values = {
-            identifier:story.identifier,
+            identifier:story.identifier, // Filter param from sql ("WHERE ")
             name:story.storyName,
             lastupdate: Math.floor(Date.now() / 1000),
             locator: story.locator
@@ -186,14 +218,94 @@ class SqlService {
             SET name = @name, lastupdate = @lastupdate, locator = @locator
             WHERE identifier = @identifier;
         `;
+
         try {
             await db.execute(sqlQuery, values);
             await this.rundownOrdUpdate(rundownStr);
+            const itemsModified = await this._compareItems(rundownStr,story);
+            console.log(itemsModified);
             console.log(`Story modified in ${rundownStr}: ${story.storyName}`);
         } catch (error) {
-            console.error('Error executing query:', error);
+            console.error('Error executing query:', error);  
         }
 
+    }
+    
+    /**
+     * Items processor. Handles item create, modify, reorder and delete actions.
+     * @param {*} rundownStr 
+     * @param {*} story 
+     * @returns {boolean} 
+     */
+    async _compareItems1(rundownStr, story) {
+        const cachedStory = await inewsCache.getStory(rundownStr, story.identifier); // return {storyName,locator,flags,attachments,ord,uid}
+        
+        // Filter entries in story.attachments that contain "<gfxProduction>"
+        const filteredStoryAttachments = Object.fromEntries(
+            Object.entries(story.attachments).filter(([_, entry]) => entry.includes("<gfxProduction>"))
+        );
+    
+        const keys1 = Object.keys(filteredStoryAttachments);
+        const keys2 = Object.keys(cachedStory.attachments);
+    
+        // Check if both objects have the same set of keys
+        if (keys1.length !== keys2.length || !keys1.every(key => keys2.includes(key))) {
+            return true;
+        }
+    
+        // Check if values for each key are equal
+        for (const key of keys1) {
+            if (filteredStoryAttachments[key] !== cachedStory.attachments[key]) {
+                return true;
+            }
+        }
+    
+        // Objects are equal
+        return false;
+    }
+    
+    /**
+ * Items processor. Handles item created, modified, deleted, reorder actions.
+ * @param {*} rundownStr 
+ * @param {*} story 
+ * @returns {Object} - Object indicating the action needed: { action: 'create' | 'update' | 'reorder' | 'delete' | 'none' }
+ */
+    async _compareItems(rundownStr, story) {
+        const cachedStory = await inewsCache.getStory(rundownStr, story.identifier); // return {storyName,locator,flags,attachments,ord,uid}
+        
+        // Filter entries in story.attachments that contain "<gfxProduction>"
+        const filteredStoryAttachments = Object.fromEntries(
+            Object.entries(story.attachments).filter(([_, entry]) => entry.includes("<gfxProduction>"))
+        );
+
+        const keys1 = Object.keys(filteredStoryAttachments);
+        const keys2 = Object.keys(cachedStory.attachments);
+
+        // Check if both objects have the same set of keys
+        if (keys1.length !== keys2.length || !keys1.every(key => keys2.includes(key))) {
+            return { action: 'create' }; // Different set of keys, create action
+        }
+
+        // Check if values for each key are equal
+        for (const key of keys1) {
+            if (filteredStoryAttachments[key] !== cachedStory.attachments[key]) {
+                return { action: 'update' }; // Different values, update action
+            }
+        }
+
+        // Check if there are extra keys in cachedStory
+        const extraKeysCache = keys2.filter(key => !keys1.includes(key));
+        if (extraKeysCache.length > 0) {
+            // Check if entries are equal for extra keys (reorder action)
+            if (extraKeysCache.every(key => cachedStory.attachments[key] === filteredStoryAttachments[key])) {
+                return { action: 'reorder' }; // Entries are equal, reorder action
+            } else {
+                return { action: 'delete' }; // Entries are not equal, delete action
+            }
+        }
+
+        // Objects are equal
+        return { action: 'none' }; // No action needed
     }
 
     async deleteStory(rundownStr,identifier) {
@@ -209,8 +321,6 @@ class SqlService {
         }
     }
     
-    // ---------------- Init reset, rundown ordupdate and getters/setters ----------------
-
     async rundownOrdUpdate(rundownStr){
         const rundownMeta = await inewsCache.getRundownList(rundownStr);
         try {
@@ -226,9 +336,7 @@ class SqlService {
             await db.execute(sqlQuery, values);
         } catch (error) {
             console.error('Error rundownOrdUpdate:', error);
-        }
-        
-        
+        }     
     }
 
     async deleteDBStories() {
@@ -241,7 +349,7 @@ class SqlService {
             throw error;
         }
     }
-
+    // This func triggered from web  page, when user click "save"
     async storeNewItem(item) { // Expect: {data, scripts, templateId,productionId}
         const values = {
             name: "",
@@ -272,30 +380,6 @@ class SqlService {
         }
     }
     
-    async updateItem(item) { // Expect: {itemId, rundownId, storyId, ord}
-        
-        const values = {
-            lastupdate: Math.floor(Date.now() / 1000),
-            rundown: item.rundownId,
-            story: item.storyId,
-            ord: item.ord,
-            ordupdate: Math.floor(Date.now() / 1000),
-            uid: item.itemId
-        };
-        const sqlQuery = `
-            UPDATE ngn_inews_items SET 
-            lastupdate = @lastupdate, rundown = @rundown, story = @story, ord = @ord, ordupdate = @ordupdate
-            WHERE uid = @uid;`;
-    
-        try {
-            await db.execute(sqlQuery, values);
-            console.log("Registered new GFX item ");
-
-        } catch (error) {
-            console.error('Error on storing GFX item:', error);
-            return null;
-        }
-    }
 }    
 
 const sqlService = new SqlService();

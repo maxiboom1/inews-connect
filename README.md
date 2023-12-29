@@ -8,6 +8,12 @@ todo:
 
 Releases:
 
+1.6.2
+- Store item refactor
+- Item handling moved to sql-service and chained to story events
+- Added handling for attachment type .includes("<gfxProduction>").
+- Items processor. Handles item create, modify, reorder and delete actions.
+
 1.6.1
 - The Inews-cache module has been implemented with support for all caching stores and methods.
 - Conducted horizontal development across the project, including module renaming and file deletions.
