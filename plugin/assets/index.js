@@ -28,7 +28,14 @@ async function clickOnSave(){
             templateId: gfxElement.templateId,
             productionId: gfxElement.productionId
         }
-        const url = `${originUrl}/api/set-item`;
+
+        let url= "";
+        if(getItemId()){
+            url = `${originUrl}/api/update-item/${param}`;
+        } else {
+            url = `${originUrl}/api/set-item`;
+        }
+        
         const itemId = await fetchData(url,"POST",JSON.stringify(values)); // Here we get itemId from server
         gfxElement.itemId = itemId;
         console.log(`Returned itemUid ${gfxElement.itemId}`);
@@ -89,22 +96,34 @@ function mosMsgFromPlugIn(message) {
 
 async function mosMsgFromHost(event) {
     var message = event.data;
+    console.log("GOT: ", message);
+    if (event.origin != getNewsroomOrigin()) { 
+        return; 
+    }
+
+    // To Reply, issue a postMessage on the event source.
+    if (message.indexOf('<ncsAck>') === -1) {
+        var reply = "<mos><ncsAck><status>ACK</status></ncsAck></mos>";
+        event.source.postMessage(reply, event.origin);
+    }
+    
     // OPEN ITEM
     if (message !== "<mos><ncsItemRequest/></mos>"){
+        console.log("open msg")
         await userOpenedItem(message);
         return;
     }
     
     // HERE USER IS CLICKING "APPLY"/"OK"
     if(message === "<mos><ncsItemRequest/></mos>"){
-        await sendToGfxServer(createMosMessage());
+        console.log("SAVEEEEE");
+        //await clickOnSave();
+        
     }
 
-    if (event.origin != getNewsroomOrigin()) { 
-        return; 
-    }
     // SEND 
     if (message.indexOf('<ncsItemRequest>') === -1){
+        console.log("SENDDDD")
         event.source.postMessage(createMosMessage(), event.origin);
     }
 }
@@ -181,11 +200,29 @@ function getCurrentTemplateId(){
     }
 }
 
-if (window.addEventListener) {
-    console.log("window.addEventListener");
-    window.addEventListener('message', mosMsgFromHost, false);
-} else if (window.attachEvent) {
-    console.log("window.attachEvent");
-    window.attachEvent('onmessage', mosMsgFromHost, false);
+async function getItemData(){
+    
+    if(getItemId()){
+        const url = `${originUrl}/api/get-item-data/${getItemId()}`;
+        const itemData = await fetchData(url, "GET");
+        __NA_SetValues(itemData);
+    }
+    
 }
 
+function getItemId(){
+    const urlToParse = new URL(window.location.href);
+    return urlToParse.searchParams.get('item');
+}
+
+getItemData();
+
+// window.onload = function() {
+//     if (window.addEventListener) {
+//         console.log("window.addEventListener");
+//         window.addEventListener('message', mosMsgFromHost, false);
+//     } else if (window.attachEvent) {
+//         console.log("window.attachEvent");
+//         window.attachEvent('onmessage', mosMsgFromHost);
+//     }
+// };

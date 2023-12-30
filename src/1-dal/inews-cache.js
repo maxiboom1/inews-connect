@@ -7,11 +7,10 @@ class InewsCache {
         this.rundownsList = {}; // {rundownName:{uid,production}, otherRundownName:{...}, ...}
     }
 
-    async initializeRundown(rundownStr) {
-        if (!this.stories[rundownStr]) {
-            this.stories[rundownStr] = {};
-            this.rundownsList[rundownStr] = {};
-        }
+    async initializeRundown(rundownStr,uid,production) {
+        this.stories[rundownStr] = {};
+        this.rundownsList[rundownStr] = {};
+        this.rundownsList[rundownStr] = {uid,production}
     }
 
     async setProductions(productions){ // Expect [{ uid: '20006', name: 'TEST' }, {...}]
@@ -32,13 +31,7 @@ class InewsCache {
         for(const [name, uid] of Object.entries(this.productions)){
             arr.push({name,uid});
         }
-        return arr;
-    }
-
-    async setRundowns(rundowns){ // Expect: [{ uid: '1825', name: 'SHOW.ALEX.rundown2', production: '1'}, {...}]
-        rundowns.forEach(r => {
-            this.rundownsList[r.name] = {uid:r.uid, production:r.production};
-        });
+        return arr; 
     }
 
     async getRundownList(rundownStr){

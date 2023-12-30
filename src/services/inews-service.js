@@ -135,7 +135,7 @@ async function deleteDif(rundownStr,listItems) {
 }
 
 conn.on('connections', connections => {
-    console.log(connections + ' connections active');
+    console.log(connections + ' FTP connections active');
 });
 
 export default {

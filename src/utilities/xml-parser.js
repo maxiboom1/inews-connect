@@ -10,5 +10,11 @@ function parseXmlString(XMLdata) {
     };
   }
   
-
-export default parseXmlString;
+function parseXmlForReorder(XMLdata) {
+  const parser = new XMLParser();
+  let jObj = parser.parse(XMLdata);
+  const item = jObj.AttachmentContent.mos.ncsItem.item;
+  delete item.gfxItem; // Remove gfxItem for reorder comparison
+  return item;
+}
+export default {parseXmlString, parseXmlForReorder};
