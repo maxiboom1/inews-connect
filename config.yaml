@@ -1,0 +1,19 @@
+# Connection configuration
+conn:
+  host: 192.168.1.13
+  user: avid
+  password: inews
+  maxConnections: 4
+
+# Rundowns configuration
+rundowns:
+  SHOW.ALEX.rundown2:
+    production: 1
+    uid: ""
+
+# Other configurations
+pullInterval: 5000
+sqlServerHost: "WINDOWS-11C0I62\\SQLEXPRESS"
+sqlServerUser: test
+sqlServerPassword: test
+sqlServerDatabase: newsarts

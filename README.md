@@ -6,8 +6,11 @@ todo:
 - Cache memory use monitor?
 - Clear unused dependencies.
 
-Releases:
 
+
+Releases:
+1.6.3
+- Config.yaml instead json
 1.6.2
 - Store item refactor
 - Item handling moved to sql-service and chained to story events
