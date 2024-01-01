@@ -53,12 +53,13 @@ async function rundownProcessor(rundownStr) {
                         const storyPromise = conn.story(rundownStr, listItem.fileName);
                         const story = await storyPromise;
                         listItem.attachments = story.attachments; // Add attachment to listItem
-                        
+                        console.log('raw story ', story); 
+
                         // Save to db and get asserted uid to store in cached story
                         const assertedStoryUid = await sqlService.addDbStory(rundownStr,listItem,index);
                         listItem.uid = assertedStoryUid;
                         // Cache story with uid and attachments
-                        await inewsCache.saveStory(rundownStr, listItem, index);
+                        await inewsCache.saveStory(rundownStr, listItem, index); 
 
                     } else{
                         
