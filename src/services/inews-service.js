@@ -5,6 +5,7 @@ import lineupExists from "../utilities/lineup-validator.js";
 import logger from "../utilities/logger.js";
 import sqlService from "./sql-service.js";
 import inewsCache from "../1-dal/inews-cache.js";
+import xmlParser from "../utilities/xml-parser.js";
 
 async function startMainProcess() { 
     console.log('Starting Inews-connect 1.5.0 ...');
@@ -50,15 +51,12 @@ async function rundownProcessor(rundownStr) {
                     
                     // Create new story
                     if(!isStoryExists){
-                        const storyPromise = conn.story(rundownStr, listItem.fileName);
-                        const story = await storyPromise;
-                        listItem.attachments = story.attachments; // Add attachment to listItem
-                        console.log('raw story ', story); 
-
-                        // Save to db and get asserted uid to store in cached story
+                        const storyAttachments = await getStoryAttachments(rundownStr, listItem.fileName);
+                        listItem.attachments =storyAttachments; //return {gfxItem: { gfxTemplate, gfxProduction, itemSlug, ord }}
+                        // Save story and attachment to db 
                         const assertedStoryUid = await sqlService.addDbStory(rundownStr,listItem,index);
                         listItem.uid = assertedStoryUid;
-                        // Cache story with uid and attachments
+                        // Save to cache 
                         await inewsCache.saveStory(rundownStr, listItem, index); 
 
                     } else{
@@ -72,9 +70,8 @@ async function rundownProcessor(rundownStr) {
                         
                         // Modify story
                         }else if(action === "modify"){
-                            const storyPromise = conn.story(rundownStr, listItem.fileName);
-                            const story = await storyPromise;
-                            listItem.attachments = story.attachments; // Add attachment to listItem to avoid pass story to store funcs
+                            const storyAttachments = await getStoryAttachments(rundownStr, listItem.fileName);
+                            listItem.attachments =storyAttachments; //return {gfxItem: { gfxTemplate, gfxProduction, itemSlug, ord }}
                             await sqlService.modifyDbStory(rundownStr,listItem);
                             await inewsCache.modifyStory(rundownStr,listItem);
                         }
@@ -133,6 +130,18 @@ async function deleteDif(rundownStr,listItems) {
         await sqlService.deleteStory(rundownStr,identifier);
         await inewsCache.deleteStory(rundownStr,identifier);
     });
+}
+/**
+ * Retrieves story attachments and parses them.
+ * 
+ * @param {string} rundownStr - The rundown string.
+ * @param {string} fileName - The file name.
+ * @returns {Promise<{gfxItem: {gfxTemplate: number, gfxProduction: number, itemSlug: string, ord: number}}>} 
+ */
+async function getStoryAttachments(rundownStr, fileName){
+    const storyPromise = conn.story(rundownStr, fileName);
+    const story = await storyPromise;
+    return xmlParser.parseAttachments(story.attachments); //return {gfxItem: { gfxTemplate, gfxProduction, itemSlug, ord }}
 }
 
 conn.on('connections', connections => {

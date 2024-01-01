@@ -1,7 +1,7 @@
 class InewsCache {
     
     constructor() {
-        this.stories = {}; //{'rundownName': {'storyIdentifier': {storyProps...}, /* ...other stories... */}, /* ...other rundowns... */};
+        this.stories = {}; //{'rundownName': {'storyIdentifier': {storyProps...} } }; ==> see example at page footer
         this.productions = {}; //{name: uid,name2:uid2, ... other productions...}
         this.templates = {}; // {templateName:{uid:uid, production:production,icon:iconData}, otherTemplateName:{...}, ...}
         this.rundownsList = {}; // {rundownName:{uid,production}, otherRundownName:{...}, ...}
@@ -89,6 +89,7 @@ class InewsCache {
     }
 
     async saveStory(rundownStr, story, ord) {
+
         this.stories[rundownStr][story.identifier] = {
             storyName: story.storyName,
             locator: story.locator,
@@ -108,6 +109,7 @@ class InewsCache {
         this.stories[rundownStr][story.identifier].storyName = story.storyName;
         this.stories[rundownStr][story.identifier].locator = story.locator;
         this.stories[rundownStr][story.identifier].flags = story.flags;
+        this.stories[rundownStr][story.identifier].attachments = story.attachments;
     }
 
     async deleteStory(rundownStr, identifier) {
@@ -135,3 +137,30 @@ const inewsCache = new InewsCache();
 
 export default inewsCache;
 
+/*
+this.stories example
+{
+    "SHOW.ALEX.rundown2": {
+        "1689F6A3": {
+            "storyName": "anveks4ever",
+            "locator": "000308ED:65930449",
+            "flags": {
+                "floated": false
+            },
+            "attachments": {
+                "103": {
+                    "gfxTemplate": 10005,
+                    "gfxProduction": 2,
+                    "itemSlug": "I like hard OOP",
+                    "ord": 2
+                },
+                other items...
+            },
+            "ord": 0,
+            "uid": "41999"
+        },
+        other stories...
+    }
+    other rundowns...
+}
+*/

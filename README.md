@@ -1,14 +1,21 @@
-Inews-connect 1.6.1
+Inews-connect gateway to third party application, with HTML5 GFX plugin.
 
 todo:
 - Cache template icons on hdd, and not in memory.
 - WHAT SHOULD BE DISPLAYED AS HEADER TO ITEM IN INEWS?
 - Cache memory use monitor?
-- Clear unused dependencies.
+- Check all LAST UPDATE && ORD LAST UPDATE FUNCTIONS.
 
 
 
 Releases:
+1.6.4
+- Storing parsed attachments as : attachments{ gfxItem {gfxTemplate, gfxProduction, itemSlug, ord} }.
+- Item service handles create andd reorder items. then, its call sql updateItem/updateItemOrd to update item in db. Then, cache the story.
+- Added getStoryAttachments in inews-service.
+- Sql-service func ordered by categories.
+- Added parseAttachments in xmlParser utility module.
+- Returned config.json and deleted yaml kombina.
 1.6.3
 - Config.yaml instead json
 1.6.2
