@@ -7,16 +7,15 @@ import itemsService from "./items-service.js";
 class SqlService {
 
 // ****************************** INIT FUNCTIONS - RUNS ONCE ONLOAD ****************************** //
+    
     async initialize(){
         try {
-            // Delete stories table in mssql
+            // Delete stories table in mssql 
             await this.deleteDBStories();
             for (const [rundownStr] of Object.entries(appConfig.rundowns)) {
                 const assertedRDUid = await this.addDbRundown(rundownStr);
                 await inewsCache.initializeRundown(rundownStr,assertedRDUid, appConfig.rundowns[rundownStr].production);
-                console.log(await inewsCache.getRundownList(rundownStr))
             }
-            
             await this.getAndStoreProductions();
             await this.getAndStoreTemplates();
         }        
@@ -197,8 +196,9 @@ class SqlService {
         try {
             await db.execute(sqlQuery, values);
             await this.rundownLastUpdate(rundownStr);
-            // Here we work.
-            await itemsService.compareItems(rundownStr,story);
+            if(Object.keys(story.attachments).length !== 0){ // Check for attachments
+                await itemsService.compareItems(rundownStr,story); // Process attachments
+            }
             console.log(`Story modified in ${rundownStr}: ${story.storyName}`);
         } catch (error) {
             console.error('Error executing query:', error);  
@@ -208,10 +208,16 @@ class SqlService {
 
     async deleteStory(rundownStr,identifier) {
         try {
+            const story = await inewsCache.getStory(rundownStr,identifier);
             const values = {identifier: identifier};
             const sqlQuery = `DELETE FROM ngn_inews_stories WHERE identifier = @identifier;`;
             await db.execute(sqlQuery, values);
             await this.rundownLastUpdate(rundownStr);
+            
+            // Check for attachments in story
+            if(Object.keys(story.attachments).length > 0){
+                await this.deleteAllStoryItems(story.uid); // Delete all story items 
+            }
             console.log(`Story with identifier ${identifier} deleted from ${rundownStr}`);
     
         } catch (error) {
@@ -219,33 +225,6 @@ class SqlService {
         }
     }
 
-// ********************* LAST UPDATE && ORD LAST UPDATE FUNCTIONS ********************** //
-
-    async rundownLastUpdate(rundownStr){
-        const rundownMeta = await inewsCache.getRundownList(rundownStr);
-        try {
-            const values = {
-                uid: rundownMeta.uid,
-                lastupdate: Math.floor(Date.now() / 1000)
-            }
-            const sqlQuery = `
-                UPDATE ngn_inews_rundowns
-                SET lastupdate = @lastupdate
-                WHERE uid = @uid;
-            `;
-            await db.execute(sqlQuery, values);
-        } catch (error) {
-            console.error('Error rundownLastUpdate:', error);
-        }     
-    }
-
-    async storyOrdUpdate(rundownStr,storyUid){
-
-    }
-
-    async storyLastUpdate(rundownStr,storyUid){
-        
-    }
 // ********************* ITEMS FUNCTIONS ********************** //
 
     async updateItem(rundownStr, item) { // Item: {itemId, rundownId, storyId, ord}
@@ -301,11 +280,74 @@ class SqlService {
             return null;
         }
     }
+
+    async updateItemSlug(rundownStr, item){// Item: {itemId, rundownId, storyId, itemSlug}
+        const values = {
+            lastupdate: Math.floor(Date.now() / 1000),
+            name:item.itemSlug,
+            uid: item.itemId
+        };
+        const sqlQuery = `
+            UPDATE ngn_inews_items SET 
+            lastupdate = @lastupdate, name = @name
+            OUTPUT INSERTED.*
+            WHERE uid = @uid;`;
     
+        try {
+            const result =await db.execute(sqlQuery, values);
+            // ADD HERE STORY UPDATE
+            if(result.rowsAffected[0] > 0){
+                console.log("Registered new GFX item ");
+            } else {
+                console.log(`WARNING! GFX ${item.itemId} [${item.ord}] in ${rundownStr}, story num ${item.ord} doesn't exists in DB`);
+            }
+
+        } catch (error) {
+            console.error('Error on storing GFX item:', error);
+            return null;
+        }
+    }
+
+    async deleteItem(rundownStr, item){ //Item: {itemId, rundownId, storyId}
+        const values = {uid: item.itemId};
+        const sqlQuery = `DELETE FROM ngn_inews_items WHERE uid = @uid;`;
+    
+        try {
+            const result =await db.execute(sqlQuery, values);
+            if(result.rowsAffected[0] > 0){
+                console.log(`Delete GFX item ${item.itemId} in ${rundownStr}, story num ${item.storyId}`);
+            } else {
+                console.log(`WARNING! GFX ${item.itemId} [${item.ord}] in ${rundownStr}, story num ${item.ord} doesn't exists in DB`);
+            }
+
+        } catch (error) {
+            console.error('Error deleting GFX item:', error);
+            return null;
+        }
+    }
+    
+    async deleteAllStoryItems(storyUid){
+        const values = {storyUid: storyUid};
+        const sqlQuery = `DELETE FROM ngn_inews_items WHERE story = @storyUid;`;
+    
+        try {
+            const result =await db.execute(sqlQuery, values);
+            if(result.rowsAffected[0] > 0){
+                console.log(`All GFX items of story ${storyUid} was deleted.`);
+            } else {
+                console.log(`WARNING! Story ${storyUid} doesn't contained items in DB, but in inews they exists.`);
+            }
+
+        } catch (error) {
+            console.error('Error deleting GFX item:', error);
+            return null;
+        }
+    }
 // ********************* FRONT-TRIGGERED ITEMS FUNCTIONS ********************** //
 
     //This func triggered from web  page, when user click "save". 
     //We don't save it to cache! It will be updated from inews-service modify story event.  
+    
     async storeNewItem(item) { // Expect: {data, scripts, templateId,productionId}
         const values = {
             name: "",
@@ -388,6 +430,26 @@ class SqlService {
             console.error('Error on updating GFX item:', error);
             // Since the function is void, we don't return anything, but you might want to handle the error appropriately
         }
+    }
+    
+// ********************* LAST UPDATE && ORD LAST UPDATE FUNCTIONS ********************** //
+    
+async rundownLastUpdate(rundownStr){
+        const rundownMeta = await inewsCache.getRundownList(rundownStr);
+        try {
+            const values = {
+                uid: rundownMeta.uid,
+                lastupdate: Math.floor(Date.now() / 1000)
+            }
+            const sqlQuery = `
+                UPDATE ngn_inews_rundowns
+                SET lastupdate = @lastupdate
+                WHERE uid = @uid;
+            `;
+            await db.execute(sqlQuery, values);
+        } catch (error) {
+            console.error('Error rundownLastUpdate:', error);
+        }     
     }
 
     

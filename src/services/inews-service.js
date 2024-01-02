@@ -63,7 +63,7 @@ async function rundownProcessor(rundownStr) {
                         
                         const action = await checkStory(rundownStr,listItem,index); // Compare inews version with cached
                         
-                        // Reorder story (seems that reorder doesn't affect items)
+                        // Reorder story 
                         if(action === "reorder"){
                             await sqlService.reorderDbStory(rundownStr,listItem,index);
                             await inewsCache.reorderStory(rundownStr,listItem,index);
