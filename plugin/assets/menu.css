@@ -19,3 +19,14 @@ hr{
     background-color: #ccc;
     border: none;
 }
+
+.full-screen-iframe {
+    display:none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+    z-index: 1000; 
+}

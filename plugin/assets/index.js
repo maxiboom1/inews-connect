@@ -1,45 +1,23 @@
-const originUrl = window.location.origin;
-const templateId = document.body.getAttribute('data-template');
-const productionId = document.body.getAttribute('data-production');
-console.log(window.location.href);
-document.getElementById("drag").style.display = 'none';
-document.querySelector("#save").addEventListener('click', clickOnSave);
-document.getElementById('drag').addEventListener('dragstart', drag);
-document.getElementById('drag').addEventListener('dragend', drop);
-document.querySelector("#navigateBack").addEventListener('click', ()=>{
-    window.location.href = window.location.origin; 
-});
-
-function showSaveButton(){document.getElementById("save").style.display = 'block'; hideDragButton();}
-function hideSaveButton(){document.getElementById("save").style.display = 'none';}
-function showDragButton(){document.getElementById("drag").style.display = 'block'; hideSaveButton();}
-function hideDragButton(){document.getElementById("drag").style.display = 'none';}
-
-let gfxElement = {productionId, templateId, itemId:null};
-
+// window.parent.funcName()
+// Show/Hide btns logic
 async function clickOnSave(){
     try{
-        const _NA_Values = __NA_GetValues();// __NA_GetValues exists inline in html
-        const _NA_Scripts = __NA_GetScripts();// __NA_GetScripts exists inline in html
+        // Those func exists in every gfx template inline
+        const _NA_Values = __NA_GetValues();
+        const _NA_Scripts = __NA_GetScripts();
+        const templateId = document.body.getAttribute('data-template');
+        const productionId = document.body.getAttribute('data-production');
 
         const values = {
             data: _NA_Values,
             scripts: _NA_Scripts,
-            templateId: gfxElement.templateId,
-            productionId: gfxElement.productionId
-        }
-
-        let url= "";
-        if(getItemId()){
-            url = `${originUrl}/api/update-item/${param}`;
-        } else {
-            url = `${originUrl}/api/set-item`;
-        }
-        
-        const itemId = await fetchData(url,"POST",JSON.stringify(values)); // Here we get itemId from server
-        gfxElement.itemId = itemId;
-        console.log(`Returned itemUid ${gfxElement.itemId}`);
+            templateId: templateId,
+            productionId: productionId
+        }        
+        const gfxItem = await window.parent.fetchData(`${originUrl}/api/set-item`,"POST",JSON.stringify(values));
+        setGfxItem(gfxItem);
         showDragButton();
+
     }catch(err){
         console.error("Failed to post data");
     }
@@ -50,138 +28,32 @@ function drag(event) {
 }
 
 function drop() {
-    gfxElement.templateId = null;
     hideDragButton();
     hideSaveButton();
 }
 
 function createMosMessage(){
-    let name = "where is the data?";
-    if(document.getElementById('stripeText1')){
-        name = document.getElementById('stripeText1').value;;
-    }
+    const templateId = document.body.getAttribute('data-template');
+    const productionId = document.body.getAttribute('data-production');
+    const gfxItem = document.body.getAttribute('data-gfxItem');
+    
     return `<mos>
         <ncsItem>
             <item>
                 <itemID></itemID>
-                <itemSlug>${name}</itemSlug>
+                <itemSlug>${slugName()}</itemSlug>
                 <objID>12345</objID>
                 <mosID>iNEWSMOS1</mosID>
                 <mosItemBrowserProgID>alex</mosItemBrowserProgID>
                 <mosItemEditorProgID>alexE</mosItemEditorProgID>
-                <mosAbstract>${name}</mosAbstract>
+                <mosAbstract></mosAbstract>
                 <group>1</group>
-                <gfxItem>${gfxElement.itemId}</gfxItem>
-                <gfxTemplate>${gfxElement.templateId}</gfxTemplate>
-                <gfxProduction>${gfxElement.productionId}</gfxProduction>
+                <gfxItem>${gfxItem}</gfxItem>
+                <gfxTemplate>${templateId}</gfxTemplate>
+                <gfxProduction>${productionId}</gfxProduction>
             </item>
         </ncsItem>
     </mos>`;
-}
-
-function getNewsroomOrigin() {
-    var qs = document.location.search.split("+").join(" ");
-    var params = {};
-    var regex = /[?&]?([^=]+)=([^&]*)/g;
-    while (tokens = regex.exec(qs)) {
-        params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
-    }
-    return params['origin'];
-}
-
-function mosMsgFromPlugIn(message) {
-    console.log("SHOOOO>>>>");
-    window.parent.postMessage(message, getNewsroomOrigin());
-}
-
-async function mosMsgFromHost(event) {
-    var message = event.data;
-    console.log("GOT: ", message);
-    if (event.origin != getNewsroomOrigin()) { 
-        return; 
-    }
-
-    // To Reply, issue a postMessage on the event source.
-    if (message.indexOf('<ncsAck>') === -1) {
-        var reply = "<mos><ncsAck><status>ACK</status></ncsAck></mos>";
-        event.source.postMessage(reply, event.origin);
-    }
-    
-    // OPEN ITEM
-    if (message !== "<mos><ncsItemRequest/></mos>"){
-        console.log("open msg")
-        await userOpenedItem(message);
-        return;
-    }
-    
-    // HERE USER IS CLICKING "APPLY"/"OK"
-    if(message === "<mos><ncsItemRequest/></mos>"){
-        console.log("SAVEEEEE");
-        //await clickOnSave();
-        
-    }
-
-    // SEND 
-    if (message.indexOf('<ncsItemRequest>') === -1){
-        console.log("SENDDDD")
-        event.source.postMessage(createMosMessage(), event.origin);
-    }
-}
-
-async function userOpenedItem(message){
-    console.log("userOpenedItem");
-    // Get gfxItem from inews
-    var gfxItem = extractTagContent(message, "gfxItem");
-    
-    // Store gfxItem
-    gfxElement.templateId = gfxItem;
-    
-    // Get element with gfxItem id from gfx server       
-    const elementFromServer = await getFromGfxServer(gfxItem);
-
-    // Get and render data
-    var payload = extractTagContent(elementFromServer, "itemSlug");  
-    var group = extractTagContent(elementFromServer, "group");  
-    document.getElementById("payload").value = payload;
-    document.getElementById("group").value = group;
-}
-
-function extractTagContent(xmlString, tagName) {
-    try {
-      const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(xmlString, "text/xml");
-      const tagElement = xmlDoc.querySelector(tagName);
-  
-      if (tagElement !== null) {
-        return tagElement.textContent;
-      } else {
-        return null;
-      }
-    } catch (error) {
-      // Handle parsing errors here, e.g., return an error message or throw an exception
-      return null;
-    }
-}
-
-async function fetchData(url, method, msg) {
-    try {
-        const response = await fetch(url, {
-            method,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: msg,
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            return data;
-        } else {
-            console.error(`Failed to ${method} data at URL: ${url}`);
-        }
-    } catch (error) {
-        console.error(`Error while fetching data at URL: ${url}`, error);
-    }
 }
 
 function getCurrentTemplateId(){
@@ -200,29 +72,31 @@ function getCurrentTemplateId(){
     }
 }
 
-async function getItemData(){
-    
-    if(getItemId()){
-        const url = `${originUrl}/api/get-item-data/${getItemId()}`;
-        const itemData = await fetchData(url, "GET");
-        __NA_SetValues(itemData);
+const slugName = () => {
+    // Find the first input element of type "text"
+    const firstTextInput = document.querySelector('input[type="text"]');
+
+    if (firstTextInput) {
+        return firstTextInput.value;
+    } else {
+        return "No text input found.";
     }
-    
 }
 
-function getItemId(){
-    const urlToParse = new URL(window.location.href);
-    return urlToParse.searchParams.get('item');
+function setGfxItem(gfxItem){
+    document.body.setAttribute("data-gfxItem",gfxItem);
 }
+function showSaveButton(){document.getElementById("save").style.display = 'block'; hideDragButton();}
+function hideSaveButton(){document.getElementById("save").style.display = 'none';}
+function showDragButton(){document.getElementById("drag").style.display = 'block'; hideSaveButton();}
+function hideDragButton(){document.getElementById("drag").style.display = 'none';}
 
-getItemData();
+const originUrl = window.location.origin;
+document.getElementById("drag").style.display = 'none';
+document.querySelector("#save").addEventListener('click', clickOnSave);
+document.getElementById('drag').addEventListener('dragstart', drag);
+document.getElementById('drag').addEventListener('dragend', drop);
+document.querySelector("#navigateBack").addEventListener('click', ()=>{
+    window.parent.hideIframe();
+});
 
-// window.onload = function() {
-//     if (window.addEventListener) {
-//         console.log("window.addEventListener");
-//         window.addEventListener('message', mosMsgFromHost, false);
-//     } else if (window.attachEvent) {
-//         console.log("window.attachEvent");
-//         window.attachEvent('onmessage', mosMsgFromHost);
-//     }
-// };
