@@ -1,8 +1,6 @@
 import conn from "../1-dal/inews-ftp.js"
 import appConfig from "../utilities/app-config.js";
 import hebDecoder from "../utilities/hebrew-decoder.js";
-import lineupExists from "../utilities/lineup-validator.js";
-import logger from "../utilities/logger.js";
 import sqlService from "./sql-service.js";
 import inewsCache from "../1-dal/inews-cache.js";
 import xmlParser from "../utilities/xml-parser.js";
@@ -16,18 +14,13 @@ async function startMainProcess() {
 
 async function rundownIterator() {
     
-    console.time("Debug: Rundown Iteration process time:");
+    //console.time("Debug: Rundown Iteration process time:");
     const rundowns = await inewsCache.getRundownsArr(); 
     for(const rundownStr of rundowns){
-        const valid = await lineupExists(rundownStr); // Maybe we should avoid that?
-        if (valid) {
-            await rundownProcessor(rundownStr);
-        } else {
-            logger(`Error! Lineup "${rundownStr}" N/A`, true);
-        }
+        await rundownProcessor(rundownStr);
     }
     setTimeout(rundownIterator, appConfig.pullInterval);
-    console.timeEnd("Debug: Rundown Iteration process time:"); 
+    //console.timeEnd("Debug: Rundown Iteration process time:"); 
 }
 
 /**

@@ -66,17 +66,26 @@ async function mosMsgFromHost(event) {
     if (message.indexOf('<ncsItem>') !== -1){
         const templateId = extractTagContent(message, "gfxTemplate");
         const gfxItem = extractTagContent(message, "gfxItem");
-        renderItem(templateId, gfxItem);
+        const itemID = extractTagContent(message, "itemID")
+        renderItem(templateId, gfxItem,itemID);
     }
     
     // User click apply/ok
+    // we should get from iframe  
     if (message.indexOf('<ncsItemRequest/>') !== -1){
-        console.log("got item request");
+        const values = iframe.contentWindow.getItemData();
+        values.gfxItem = iframe.contentWindow.getGfxItem();
+        await fetchData(`${originUrl}/api/update-item`, "POST", JSON.stringify(values));
+        const updatedMosMsg = iframe.contentWindow.createMosMessage();
+        event.source.postMessage(updatedMosMsg, event.origin);
+        console.log("got item request. Collected data from iframe: ", values);
     }
 
 }
 
 // ******************************************* Iframe logic  *******************************************
+
+// User open template new template in plugin menu
 function renderTemplate(templateId){
     let url = `${originUrl}/templates/${templateId}.html`;
     const iframe = document.getElementById('contentIframe');
@@ -86,19 +95,30 @@ function renderTemplate(templateId){
     };
 }
 
-async function renderItem(templateId,gfxItem){
+// User loaded exists item in inews
+async function renderItem(templateId,gfxItem, itemID){
     const itemData = await fetchData(`${originUrl}/api/get-item-data/${gfxItem}`, "GET");
     let url = `${originUrl}/templates/${templateId}.html`;
     const iframe = document.getElementById('contentIframe');
     iframe.src = url; // Set the source of the iframe to the URL  
     
     iframe.onload = function() {
-        iframe.contentWindow.__NA_SetValues(itemData); // Set item values in template
-        iframe.style.display = 'block'; // Show the iframe
+        // Hide "save" btn in iframe 
+
+        iframe.contentWindow.hideSaveButton();
+        // Set item values in template
+        iframe.contentWindow.__NA_SetValues(itemData); 
+        
+        // Set item values
         iframe.contentWindow.setGfxItem(gfxItem); // Set gfxItemId in iframe head as "data-gfxitem"
+        iframe.contentWindow.setItemID(itemID); // Set itemID in iframe head as "data-itemID"
+        // Show iframe
+        iframe.style.display = 'block'; // Show the iframe
+        
     };
 }
 
+// Iframe calls that when user click "back"
 function hideIframe() {
     document.getElementById('contentIframe').style.display = 'none';
 }
@@ -152,7 +172,7 @@ async function fetchData(url, method, msg) {
         console.error(`Error while fetching data at URL: ${url}`, error);
     }
 }
-
+function print(msg){console.log(msg)}
 
 // Communication listeners with inews
 if (window.addEventListener) {
@@ -162,5 +182,3 @@ if (window.addEventListener) {
     window.attachEvent('onmessage', mosMsgFromHost, false);
 }
 getProductions();
-
-function print(msg){console.log(msg)}

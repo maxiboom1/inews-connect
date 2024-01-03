@@ -37,7 +37,7 @@ async function processAndWriteFiles(templates) {
 function htmlWrapper(htmlContent,templateUid, productionUid) {
     const dom = new JSDOM(htmlContent);
     const document = dom.window.document;
-    const scriptFileName = "../assets/index.js";
+    const scriptFileName = "../assets/iframe.js";
 
     const scriptTag = document.createElement('script');
     scriptTag.src = scriptFileName;

@@ -39,11 +39,10 @@ router.post('/set-item', async (req, res) => {
 });
 
 // Post http://serverAddr:4001/api/update-item
-router.post('/update-item/:uid', async (req, res) => {
+router.post('/update-item', async (req, res) => {
   try {
-      const itemUid = req.params.uid;
       const item = req.body;
-      await sqlService.updateItemFromFront(itemUid, item);
+      await sqlService.updateItemFromFront(item);
       res.json("");
   } catch (error) {
       console.error('Error processing JSON data:', error);

@@ -13,7 +13,7 @@ import sqlService from "./sql-service.js";
  * @return {void}
  */
 async function compareItems(rundownStr, story) {
-    
+
     const cachedStory = await inewsCache.getStory(rundownStr, story.identifier);
     const storyId = cachedStory.uid;
     const rundownId = await inewsCache.getRundownUid(rundownStr);

@@ -196,10 +196,13 @@ class SqlService {
         try {
             await db.execute(sqlQuery, values);
             await this.rundownLastUpdate(rundownStr);
-            if(Object.keys(story.attachments).length !== 0){ // Check for attachments
+            
+            // Check if attachments exists in cache OR story, and compare.
+            if(Object.keys(story.attachments).length !== 0 || await inewsCache.hasAttachments(rundownStr,story.identifier)){ 
                 await itemsService.compareItems(rundownStr,story); // Process attachments
             }
             console.log(`Story modified in ${rundownStr}: ${story.storyName}`);
+
         } catch (error) {
             console.error('Error executing query:', error);  
         }
@@ -348,9 +351,9 @@ class SqlService {
     //This func triggered from web  page, when user click "save". 
     //We don't save it to cache! It will be updated from inews-service modify story event.  
     
-    async storeNewItem(item) { // Expect: {data, scripts, templateId,productionId}
+    async storeNewItem(item) { // Expect: {name, data, scripts, templateId,productionId}
         const values = {
-            name: "",
+            name: item.name,
             lastupdate: Math.floor(Date.now() / 1000),
             production: item.productionId,
             rundown: "",
@@ -397,17 +400,17 @@ class SqlService {
     }
 
     // This func is triggered from a web page, when the user clicks "save" 
-    async updateItemFromFront(itemUid, item) { // Expect: {data, scripts, templateId, productionId}
+    async updateItemFromFront(item) { // Expect: {name, data, scripts, templateId, productionId, gfxItem}
         const values = {
-            name: "", // You should define how to get the new 'name' value
+            name: item.name,
             lastupdate: Math.floor(Date.now() / 1000),
             production: item.productionId,
             template: item.templateId,
             data: item.data,
             scripts: item.scripts,
             enabled: 1,
-            tag: "", // You should define how to get the new 'tag' value
-            uid: itemUid
+            tag: "", 
+            uid: item.gfxItem
         };
 
         const sqlQuery = `
@@ -425,7 +428,7 @@ class SqlService {
         try {
             // Execute the update query with the provided values
             await db.execute(sqlQuery, values);
-            console.log(`Item ${itemUid} updated from the plugin`);
+            console.log(`Item ${item.gfxItem} updated from the plugin`);
         } catch (error) {
             console.error('Error on updating GFX item:', error);
             // Since the function is void, we don't return anything, but you might want to handle the error appropriately

@@ -2,25 +2,29 @@
 // Show/Hide btns logic
 async function clickOnSave(){
     try{
-        // Those func exists in every gfx template inline
+        const values = getItemData(); // returns item{name,data,scripts,templateId,productionId}       
+        const gfxItem = await window.parent.fetchData(`${originUrl}/api/set-item`,"POST",JSON.stringify(values));
+        setGfxItem(gfxItem);
+        showDragButton();
+    }catch(err){
+        console.error("Failed to post data");
+    }
+}
+
+// returns item{name,data,scripts,templateId,productionId}
+function getItemData(){
         const _NA_Values = __NA_GetValues();
         const _NA_Scripts = __NA_GetScripts();
         const templateId = document.body.getAttribute('data-template');
         const productionId = document.body.getAttribute('data-production');
 
-        const values = {
+        return values = {
+            name: slugName(),
             data: _NA_Values,
             scripts: _NA_Scripts,
             templateId: templateId,
             productionId: productionId
         }        
-        const gfxItem = await window.parent.fetchData(`${originUrl}/api/set-item`,"POST",JSON.stringify(values));
-        setGfxItem(gfxItem);
-        showDragButton();
-
-    }catch(err){
-        console.error("Failed to post data");
-    }
 }
 
 function drag(event) {  
@@ -36,13 +40,16 @@ function createMosMessage(){
     const templateId = document.body.getAttribute('data-template');
     const productionId = document.body.getAttribute('data-production');
     const gfxItem = document.body.getAttribute('data-gfxItem');
-    
+    let itemID = "";
+    if(document.body.hasAttribute("data-itemID")){
+        itemID = document.body.getAttribute('data-itemID');
+    }
     return `<mos>
         <ncsItem>
             <item>
-                <itemID></itemID>
+                <itemID>${itemID}</itemID>
                 <itemSlug>${slugName()}</itemSlug>
-                <objID>12345</objID>
+                <objID></objID>
                 <mosID>iNEWSMOS1</mosID>
                 <mosItemBrowserProgID>alex</mosItemBrowserProgID>
                 <mosItemEditorProgID>alexE</mosItemEditorProgID>
@@ -54,22 +61,6 @@ function createMosMessage(){
             </item>
         </ncsItem>
     </mos>`;
-}
-
-function getCurrentTemplateId(){
-    // Get the current href
-    var currentHref = window.location.href;
-
-    // Extract the template number
-    var templateNumber = currentHref.match(/\/templates\/(\d+)\.html/);
-
-    // Check if a match is found
-    if (templateNumber && templateNumber.length > 1) {
-        var extractedNumber = templateNumber[1];
-        console.log(extractedNumber);
-    } else {
-        console.log("Template number not found in the URL");
-    }
 }
 
 const slugName = () => {
@@ -86,6 +77,19 @@ const slugName = () => {
 function setGfxItem(gfxItem){
     document.body.setAttribute("data-gfxItem",gfxItem);
 }
+
+function getGfxItem(){
+    return document.body.getAttribute("data-gfxItem");
+}
+// Internal inews id
+function setItemID(itemID){
+    document.body.setAttribute("data-itemID",itemID);
+}
+// Internal inews id
+function getItemID(){
+    return document.body.getAttribute("data-itemID");
+}
+
 function showSaveButton(){document.getElementById("save").style.display = 'block'; hideDragButton();}
 function hideSaveButton(){document.getElementById("save").style.display = 'none';}
 function showDragButton(){document.getElementById("drag").style.display = 'block'; hideSaveButton();}
@@ -93,10 +97,9 @@ function hideDragButton(){document.getElementById("drag").style.display = 'none'
 
 const originUrl = window.location.origin;
 document.getElementById("drag").style.display = 'none';
-document.querySelector("#save").addEventListener('click', clickOnSave);
+document.getElementById("save").addEventListener('click', clickOnSave);
 document.getElementById('drag').addEventListener('dragstart', drag);
 document.getElementById('drag').addEventListener('dragend', drop);
 document.querySelector("#navigateBack").addEventListener('click', ()=>{
     window.parent.hideIframe();
 });
-

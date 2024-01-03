@@ -1,14 +1,25 @@
 Inews-connect gateway to third party application, with HTML5 GFX plugin.
 
-todo:
-- Cache template icons on hdd, and not in memory.
-- WHAT SHOULD BE DISPLAYED AS HEADER TO ITEM IN INEWS?
-- Cache memory use monitor?
-- Check all LAST UPDATE && ORD LAST UPDATE FUNCTIONS.
+Known-limitations && bugs:
 
+- In Inews, if you delete the item star "*", and jumps to other story before inews clears the item preview box, the ftp api wont be updated. 
+This is pure Inews bug..
+- If user saves item, but not drag it to story - it will create unlinked items in db - those should be cleaned automatically by some timer mechanism..
+- We have bug in items - reorder events. It should be researched at project end.
 
+Optimizations:
+- Cache template icons (base64) on hdd, and not in cache memory. 
+It will increase hdd load when users opens plugin, but reduce memory usage of server.
 
 Releases:
+
+1.6.5
+- Plugin works.
+- hasAttachments() method added in inews-cache class.
+- We don't perform lineupExist() check anymore (increase performance).
+- Attachments parser can handle 2 types of MOS messages (edited item has different structure).
+- Iframe js file renamed to "iframe.js".
+
 1.6.4
 - Storing parsed attachments as : attachments{ gfxItem {gfxTemplate, gfxProduction, itemSlug, ord} }.
 - Item service handles create andd reorder items. then, its call sql updateItem/updateItemOrd to update item in db. Then, cache the story.
@@ -16,8 +27,10 @@ Releases:
 - Sql-service func ordered by categories.
 - Added parseAttachments in xmlParser utility module.
 - Returned config.json and deleted yaml kombina.
+
 1.6.3
 - Config.yaml instead json
+
 1.6.2
 - Store item refactor
 - Item handling moved to sql-service and chained to story events
@@ -76,7 +89,6 @@ Releases:
 - Plugin interacts with with db-emulator (that emulate gfx elements play-out server) in those schemas:
 
 Open gfx item from Inews:
-
 
 ![](docs/plugin%20open%20from%20inews.bmp)
 

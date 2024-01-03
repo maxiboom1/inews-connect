@@ -131,6 +131,14 @@ class InewsCache {
         return Object.keys(rundown);
     }
 
+    async hasAttachments(rundownStr, identifier) {
+        // Check if the story and identifier exist
+        if (this.stories[rundownStr] && this.stories[rundownStr][identifier]) {
+            const attachments = this.stories[rundownStr][identifier].attachments;
+            if (Object.keys(attachments).length === 0) return false;
+            return true;
+        }
+    }
 }
 
 const inewsCache = new InewsCache();

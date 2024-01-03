@@ -24,7 +24,17 @@ function parseAttachments(attachments) {
       if (attachments[a].includes("<gfxProduction>")) {
         const parser = new XMLParser();
         let jObj = parser.parse(attachments[a]);
-        const item = jObj.AttachmentContent.mos.ncsItem.item;
+        //const item = jObj.AttachmentContent.mos.ncsItem.item;
+
+        let item;
+        if (jObj.AttachmentContent.mos.ncsItem) {
+            // Type 1 XML
+            item = jObj.AttachmentContent.mos.ncsItem.item;
+        } else {
+            // Type 2 XML
+            item = jObj.AttachmentContent.mos;
+        }
+
 
         // Create a new object with only the specified properties
         obj[item.gfxItem] = {
@@ -64,4 +74,24 @@ Example attachment:
                         </item>
                 </ncsItem>
         </mos></AttachmentContent>
+
+
+
+
+// Example for edited attachment
+{
+  '1': '<AttachmentContent><mos>\r\n' +
+    '\t\t<itemID>1</itemID>\r\n' +
+    '\t\t<itemSlug>eee123</itemSlug>\r\n' +
+    '\t\t<objID>12345</objID>\r\n' +
+    '\t\t<mosID>iNEWSMOS1</mosID>\r\n' +
+    '\t\t<mosItemBrowserProgID>alex</mosItemBrowserProgID>\r\n' +
+    '\t\t<mosItemEditorProgID>alexE</mosItemEditorProgID>\r\n' +
+    '\t\t<mosAbstract/>\r\n' +
+    '\t\t<group>1</group>\r\n' +
+    '\t\t<gfxItem>143</gfxItem>\r\n' +
+    '\t\t<gfxTemplate>10005</gfxTemplate>\r\n' +
+    '\t\t<gfxProduction>2</gfxProduction>\r\n' +
+    '\t</mos></AttachmentContent>'
+}        
 */

@@ -7,7 +7,7 @@
             "uid": ""
         }
     },
-    "pullInterval":5000,
+    "pullInterval":200,
     "sqlServerHost" :"WINDOWS-11C0I62\\SQLEXPRESS",
     "sqlServerUser":"test",
     "sqlServerPassword":"test",
