@@ -19,6 +19,7 @@ Releases:
 - We don't perform lineupExist() check anymore (increase performance).
 - Attachments parser can handle 2 types of MOS messages (edited item has different structure).
 - Iframe js file renamed to "iframe.js".
+- Handle "enabled" based on attachments. Still write all stories to db.
 
 1.6.4
 - Storing parsed attachments as : attachments{ gfxItem {gfxTemplate, gfxProduction, itemSlug, ord} }.
