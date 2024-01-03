@@ -1,5 +1,5 @@
 // window.parent.funcName()
-// Show/Hide btns logic
+// Show/Hide buttons logic
 async function clickOnSave(){
     try{
         const values = getItemData(); // returns item{name,data,scripts,templateId,productionId}       

@@ -45,12 +45,16 @@ async function rundownProcessor(rundownStr) {
                     // Create new story
                     if(!isStoryExists){
                         const storyAttachments = await getStoryAttachments(rundownStr, listItem.fileName);
-                        listItem.attachments =storyAttachments; //return {gfxItem: { gfxTemplate, gfxProduction, itemSlug, ord }}
+                        listItem.attachments = storyAttachments; //return {gfxItem: { gfxTemplate, gfxProduction, itemSlug, ord }}
+                        
+                        // Set enabled
+                        if(isEmpty(storyAttachments)){listItem.enabled = 0} else {listItem.enabled = 1}
+
                         // Save story and attachment to db 
                         const assertedStoryUid = await sqlService.addDbStory(rundownStr,listItem,index);
                         listItem.uid = assertedStoryUid;
-                        // Save to cache 
-                        await inewsCache.saveStory(rundownStr, listItem, index); 
+                        // Save to cache
+                        await inewsCache.saveStory(rundownStr, listItem, index);  
 
                     } else{
                         
@@ -64,6 +68,8 @@ async function rundownProcessor(rundownStr) {
                         // Modify story
                         }else if(action === "modify"){
                             const storyAttachments = await getStoryAttachments(rundownStr, listItem.fileName);
+                            // Set enabled
+                            if(isEmpty(storyAttachments)){listItem.enabled = 0} else {listItem.enabled = 1}
                             listItem.attachments =storyAttachments; //return {gfxItem: { gfxTemplate, gfxProduction, itemSlug, ord }}
                             await sqlService.modifyDbStory(rundownStr,listItem);
                             await inewsCache.modifyStory(rundownStr,listItem);
@@ -135,6 +141,10 @@ async function getStoryAttachments(rundownStr, fileName){
     const storyPromise = conn.story(rundownStr, fileName);
     const story = await storyPromise;
     return xmlParser.parseAttachments(story.attachments); //return {gfxItem: { gfxTemplate, gfxProduction, itemSlug, ord }}
+}
+
+function isEmpty(obj) {
+    return Object.keys(obj).length === 0;
 }
 
 conn.on('connections', connections => {

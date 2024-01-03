@@ -1,11 +1,13 @@
 class InewsCache {
     
     constructor() {
-        this.stories = {}; //{'rundownName': {'storyIdentifier': {storyProps...} } }; ==> see example at page footer
         this.productions = {}; //{name: uid,name2:uid2, ... other productions...}
         this.templates = {}; // {templateName:{uid:uid, production:production,icon:iconData}, otherTemplateName:{...}, ...}
+        this.stories = {}; //{'rundownName': {'storyIdentifier': {storyProps...} } }; ==> see example at page footer
         this.rundownsList = {}; // {rundownName:{uid,production}, otherRundownName:{...}, ...}
     }
+
+    // ********************* Init FUNCTIONS ********************** //
 
     async initializeRundown(rundownStr,uid,production) {
         this.stories[rundownStr] = {};
@@ -21,6 +23,14 @@ class InewsCache {
           }
     }
 
+    async setTemplates(templates){ // Expect: [{ uid, name, production, icon},{...}]
+        this.templates = {};
+        templates.forEach(t => {
+            this.templates[t.name] = {uid:t.uid, production: t.production, icon:t.icon};
+        });
+    }
+
+    // ********************* PRODUCTIONS FUNCTIONS ********************** //
     async getProductions(){
 
         return this.productions;
@@ -34,24 +44,7 @@ class InewsCache {
         return arr; 
     }
 
-    async getRundownList(rundownStr){
-        return this.rundownsList[rundownStr];
-    }
-
-    async getRundownsArr(){ // Return arr of rundownStr's 
-        return Object.keys(this.rundownsList);
-    }
-
-    async getRundownUid(rundownStr){
-        return this.rundownsList[rundownStr].uid;
-    }
-
-    async setTemplates(templates){ // Expect: [{ uid, name, production, icon},{...}]
-        this.templates = {};
-        templates.forEach(t => {
-            this.templates[t.name] = {uid:t.uid, production: t.production, icon:t.icon};
-        });
-    }
+    // ********************* TEMPLATES FUNCTIONS ********************** //
 
     async getTemplatesByProduction(productionUid) {
         const filteredTemplates = [];
@@ -67,9 +60,7 @@ class InewsCache {
         return filteredTemplates;
     }
 
-    async getRundown(rundownStr) {
-        return this.stories[rundownStr];
-    }
+    // ********************* STORY FUNCTIONS ********************** //
 
     async getStory(rundownStr, identifier) {
         if (this.isStoryExists(rundownStr, identifier)) {
@@ -96,7 +87,8 @@ class InewsCache {
             flags: story.flags,
             attachments: story.attachments,
             ord: ord,
-            uid:story.uid
+            uid:story.uid,
+            enabled:story.enabled
         };
     }
 
@@ -116,8 +108,31 @@ class InewsCache {
         delete this.stories[rundownStr][identifier];
     }
 
-    async getData() {
-        return this.stories;
+    async hasAttachments(rundownStr, identifier) {
+        // Check if the story and identifier exist
+        if (this.stories[rundownStr] && this.stories[rundownStr][identifier]) {
+            const attachments = this.stories[rundownStr][identifier].attachments;
+            if (Object.keys(attachments).length === 0) return false;
+            return true;
+        }
+    }
+    
+    // ********************* RUNDOWNS FUNCTIONS ********************** //
+
+    async getRundownsArr(){ // Return arr of rundownStr's 
+        return Object.keys(this.rundownsList);
+    }
+
+    async getRundownUid(rundownStr){
+        return this.rundownsList[rundownStr].uid;
+    }
+
+    async getRundown(rundownStr) {
+        return this.stories[rundownStr];
+    }
+
+    async getRundownList(rundownStr){
+        return this.rundownsList[rundownStr];
     }
 
     async getRundownLength(rundownStr) {
@@ -131,14 +146,10 @@ class InewsCache {
         return Object.keys(rundown);
     }
 
-    async hasAttachments(rundownStr, identifier) {
-        // Check if the story and identifier exist
-        if (this.stories[rundownStr] && this.stories[rundownStr][identifier]) {
-            const attachments = this.stories[rundownStr][identifier].attachments;
-            if (Object.keys(attachments).length === 0) return false;
-            return true;
-        }
+    async getData() {
+        return this.stories;
     }
+
 }
 
 const inewsCache = new InewsCache();

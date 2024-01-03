@@ -122,7 +122,7 @@ class SqlService {
             production: rundownMeta.production,
             ord: order,
             ordupdate: Math.floor(Date.now() / 1000),
-            enabled: 1,
+            enabled: story.enabled,
             tag: "",
             identifier: story.identifier,
             locator:story.locator
@@ -185,11 +185,12 @@ class SqlService {
             identifier:story.identifier, // Filter param from sql ("WHERE ")
             name:story.storyName,
             lastupdate: Math.floor(Date.now() / 1000),
-            locator: story.locator
+            locator: story.locator,
+            enabled: story.enabled
         };
         const sqlQuery = `
             UPDATE ngn_inews_stories
-            SET name = @name, lastupdate = @lastupdate, locator = @locator
+            SET name = @name, lastupdate = @lastupdate, locator = @locator, enabled = @enabled
             WHERE identifier = @identifier;
         `;
 
