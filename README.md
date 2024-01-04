@@ -7,9 +7,10 @@ This is pure Inews bug..
 - If user saves item, but not drag it to story - it will create unlinked items in db - those should be cleaned automatically by some timer mechanism..
 - We have bug in items - reorder events. It should be researched at project end.
 
-Optimizations:
+Possible optimizations:
 - Cache template icons (base64) on hdd, and not in cache memory. 
 It will increase hdd load when users opens plugin, but reduce memory usage of server.
+- Avoid to write non-item stories to db 
 
 Releases:
 
@@ -20,6 +21,7 @@ Releases:
 - Attachments parser can handle 2 types of MOS messages (edited item has different structure).
 - Iframe js file renamed to "iframe.js".
 - Handle "enabled" based on attachments. Still write all stories to db.
+- Added copy to clipboard option to copy items from stand-alone browser into inews
 
 1.6.4
 - Storing parsed attachments as : attachments{ gfxItem {gfxTemplate, gfxProduction, itemSlug, ord} }.

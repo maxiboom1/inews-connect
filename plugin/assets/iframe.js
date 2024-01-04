@@ -27,8 +27,9 @@ function getItemData(){
         }        
 }
 
-function drag(event) {  
-    event.dataTransfer.setData("text/plain",createMosMessage());
+function drag(event) { 
+    const msg = createMosMessage();
+    event.dataTransfer.setData("text/plain",msg);
 }
 
 function drop() {
@@ -100,6 +101,10 @@ document.getElementById("drag").style.display = 'none';
 document.getElementById("save").addEventListener('click', clickOnSave);
 document.getElementById('drag').addEventListener('dragstart', drag);
 document.getElementById('drag').addEventListener('dragend', drop);
+document.getElementById('drag').addEventListener('click', ()=>{
+    navigator.clipboard.writeText(createMosMessage());
+    hideDragButton();
+});
 document.querySelector("#navigateBack").addEventListener('click', ()=>{
     window.parent.hideIframe();
 });

@@ -79,7 +79,7 @@ function createPluginPanel(document) {
 
     // Create drag btn
     const dragButton = document.createElement('button');
-    dragButton.textContent  = 'Drag';
+    dragButton.textContent  = 'Drag/Save to clipboard';
     dragButton.id = 'drag';
     dragButton.draggable = true; // Set the draggable attribute
     dragButton.classList.add('pluginPanelBtn'); // Add the class to the save button
