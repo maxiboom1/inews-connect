@@ -21,7 +21,8 @@ Releases:
 - Attachments parser can handle 2 types of MOS messages (edited item has different structure).
 - Iframe js file renamed to "iframe.js".
 - Handle "enabled" based on attachments. Still write all stories to db.
-- Added copy to clipboard option to copy items from stand-alone browser into inews
+- Added copy to clipboard option to copy items from stand-alone browser into inews.
+- Added float story handling
 
 1.6.4
 - Storing parsed attachments as : attachments{ gfxItem {gfxTemplate, gfxProduction, itemSlug, ord} }.

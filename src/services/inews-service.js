@@ -6,7 +6,7 @@ import inewsCache from "../1-dal/inews-cache.js";
 import xmlParser from "../utilities/xml-parser.js";
 
 async function startMainProcess() { 
-    console.log('Starting Inews-connect 1.5.0 ...');
+    console.log('Starting Inews-connect 1.6.5 ...');
     await sqlService.initialize();
     await rundownIterator();
 
@@ -46,9 +46,8 @@ async function rundownProcessor(rundownStr) {
                     if(!isStoryExists){
                         const storyAttachments = await getStoryAttachments(rundownStr, listItem.fileName);
                         listItem.attachments = storyAttachments; //return {gfxItem: { gfxTemplate, gfxProduction, itemSlug, ord }}
-                        
                         // Set enabled
-                        if(isEmpty(storyAttachments)){listItem.enabled = 0} else {listItem.enabled = 1}
+                        if(isEmpty(storyAttachments) || listItem.flags.floated){listItem.enabled = 0} else {listItem.enabled = 1}
 
                         // Save story and attachment to db 
                         const assertedStoryUid = await sqlService.addDbStory(rundownStr,listItem,index);
@@ -69,7 +68,7 @@ async function rundownProcessor(rundownStr) {
                         }else if(action === "modify"){
                             const storyAttachments = await getStoryAttachments(rundownStr, listItem.fileName);
                             // Set enabled
-                            if(isEmpty(storyAttachments)){listItem.enabled = 0} else {listItem.enabled = 1}
+                            if(isEmpty(storyAttachments) || listItem.flags.floated){listItem.enabled = 0} else {listItem.enabled = 1}
                             listItem.attachments =storyAttachments; //return {gfxItem: { gfxTemplate, gfxProduction, itemSlug, ord }}
                             await sqlService.modifyDbStory(rundownStr,listItem);
                             await inewsCache.modifyStory(rundownStr,listItem);
