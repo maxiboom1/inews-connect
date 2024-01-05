@@ -19,6 +19,8 @@ Releases:
 - Hide un-watched rundowns (enabled=0) on app load.
 - Implement new column "floating" in ngn_inews_stories.
 - "Make copy" button added on plugin-panel.
+- FTP client can set SITE FORMAT now, so its independent from inews site config. The optimal for us is "3nsml".
+The setting can be changed in config.json
 
 1.6.5
 - Plugin works.

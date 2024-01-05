@@ -8,6 +8,7 @@
         }
     },
     "pullInterval":200,
+    "ftpSiteFormat": "3nsml",
     "sqlServerHost" :"WINDOWS-11C0I62\\SQLEXPRESS",
     "sqlServerUser":"test",
     "sqlServerPassword":"test",

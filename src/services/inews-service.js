@@ -139,6 +139,7 @@ async function deleteDif(rundownStr,listItems) {
 async function getStoryAttachments(rundownStr, fileName){
     const storyPromise = conn.story(rundownStr, fileName);
     const story = await storyPromise;
+    //console.log(story)
     return xmlParser.parseAttachments(story.attachments); //return {gfxItem: { gfxTemplate, gfxProduction, itemSlug, ord }}
 }
 

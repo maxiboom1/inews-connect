@@ -4,6 +4,7 @@ import FtpClient from "ftp";
 import JobsQueue from "./JobsQueue.js";
 import parseNsml from "./inewsStoryParser.js";
 import NestedMap from "./NestedMap.js";
+import appConfig from "../utilities/app-config.js";
 
 Promise.config({
 	cancellation: true
@@ -128,6 +129,20 @@ class InewsConnectionClient extends EventEmitter {
 				}, ms);
 			});
 		}
+		// NEW
+		const sendSiteFormatCommand = () => {
+			return new Promise((resolve, reject) => {
+				console.log(appConfig.ftpSiteFormat);
+			  this._ftpConn.site(`FORMAT=${appConfig.ftpSiteFormat}`, (error, response) => { 
+				if (error) {
+				  reject(error);
+				} else {
+				  resolve(response);
+				}
+			  });
+			});
+		  };
+		  
 
 		const connectFtp = (ftpConnConfig) => {
 			this.status = 'connecting';
@@ -138,9 +153,18 @@ class InewsConnectionClient extends EventEmitter {
 				const onReady = () => {
 					if(!returned) {
 						returned = true;
-						this._currentDir = null;
-						removeListeners();
-						resolve(this._ftpConn);
+						// NEW
+						sendSiteFormatCommand().then(() => {
+							this._currentDir = null;
+							removeListeners();
+							resolve(this._ftpConn);
+						  }).catch(error => {
+							removeListeners();
+							reject(error);
+						  });
+						// this._currentDir = null;
+						// removeListeners();
+						// resolve(this._ftpConn);
 					}
 				}
 
