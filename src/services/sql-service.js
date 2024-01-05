@@ -3,6 +3,7 @@ import db from "../1-dal/sql.js";
 import processAndWriteFiles from "../utilities/file-processor.js";
 import inewsCache from "../1-dal/inews-cache.js";
 import itemsService from "./items-service.js";
+import itemsHash from "../1-dal/items-hashmap.js";
 
 class SqlService {
 
@@ -166,6 +167,7 @@ class SqlService {
                         itemId: gfxItem,
                         ord:att.ord
                     }
+                    itemsHash.add(gfxItem);
                     await sqlService.updateItem(rundownStr, item); // item: {itemId, rundownId, storyId, ord}
                   });
             }
@@ -243,7 +245,14 @@ class SqlService {
             
             // Check for attachments in story
             if(Object.keys(story.attachments).length > 0){
-                await this.deleteAllStoryItems(story.uid); // Delete all story items 
+                for(const item of Object.keys(story.attachments)){
+                    await this.deleteItem(rundownStr,{
+                        itemId: item, // item id to delete
+                        rundownId:await inewsCache.getRundownUid(rundownStr), 
+                        storyId:story.uid, 
+                    });   
+                }
+                
             }
             console.log(`Story with identifier ${identifier} deleted from ${rundownStr}`);
     
@@ -336,22 +345,31 @@ class SqlService {
     }
 
     async deleteItem(rundownStr, item){ //Item: {itemId, rundownId, storyId}
-        const values = {uid: item.itemId};
-        const sqlQuery = `DELETE FROM ngn_inews_items WHERE uid = @uid;`;
+        
+        // Update items hashmap
+        itemsHash.remove(item.itemId); 
+        
+        if(!itemsHash.isUsed){
+            const values = {uid: item.itemId};
+            const sqlQuery = `DELETE FROM ngn_inews_items WHERE uid = @uid;`;
+        
+            try {
+                const result =await db.execute(sqlQuery, values);
+                if(result.rowsAffected[0] > 0){
+                    console.log(`Delete GFX item ${item.itemId} in ${rundownStr}, story num ${item.storyId}`);
+                } else {
+                    console.log(`WARNING! GFX ${item.itemId} [${item.ord}] in ${rundownStr}, story num ${item.ord} doesn't exists in DB`);
+                }
     
-        try {
-            const result =await db.execute(sqlQuery, values);
-            if(result.rowsAffected[0] > 0){
-                console.log(`Delete GFX item ${item.itemId} in ${rundownStr}, story num ${item.storyId}`);
-            } else {
-                console.log(`WARNING! GFX ${item.itemId} [${item.ord}] in ${rundownStr}, story num ${item.ord} doesn't exists in DB`);
+            } catch (error) {
+                console.error('Error deleting GFX item:', error);
+                return null;
             }
-
-        } catch (error) {
-            console.error('Error deleting GFX item:', error);
-            return null;
+        } else{
+            console.log("[Skip deleting item] - Deleted item is in use in other stories.");
         }
-    }
+
+    } 
     
     async deleteAllStoryItems(storyUid){
         const values = {storyUid: storyUid};

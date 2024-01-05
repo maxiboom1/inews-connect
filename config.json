@@ -5,9 +5,13 @@
         "SHOW.ALEX.rundown2":{
             "production":1, 
             "uid": ""
+        },
+        "SHOW.ALEX.rundown":{
+            "production":1, 
+            "uid": ""
         }
     },
-    "pullInterval":5000,
+    "pullInterval":500,
     "ftpSiteFormat": "3nsml",
     "sqlServerHost" :"WINDOWS-11C0I62\\SQLEXPRESS",
     "sqlServerUser":"test",

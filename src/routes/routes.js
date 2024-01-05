@@ -1,6 +1,7 @@
 import express from "express";
 import sqlService from "../services/sql-service.js";
 import inewsCache from "../1-dal/inews-cache.js";
+import itemsHash from "../1-dal/items-hashmap.js";
 
 const router = express.Router();
 
@@ -21,7 +22,6 @@ router.get('/templates/:uid', async (req, res) => {
 router.get('/get-item-data/:uid', async (req, res) => {
   const itemUid = req.params.uid;
   const itemData = await sqlService.getItemData(itemUid);
-  console.log("returner data", itemData);
   res.json(itemData);
 });
 
@@ -54,7 +54,8 @@ router.post('/update-item', async (req, res) => {
 // Get http://serverAddr:4001/api/getdata
 router.get('/getdata', async (req, res) => {
   const data = await inewsCache.getData();
-  res.json(data);
+  const hash = itemsHash.get();
+  res.json(hash);
 });
 
 export default router;

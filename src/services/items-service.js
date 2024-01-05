@@ -1,8 +1,10 @@
 import inewsCache from "../1-dal/inews-cache.js";
+import itemsHash from "../1-dal/items-hashmap.js";
 import sqlService from "./sql-service.js";
 
 
 /**
+ * Handles story modify event.
  * Gets Inews story obj and rundown Str. 
  * Fetch cached story by identifier, compare cache stories with inews stories for create, modify, reorder and delete events.
  * Depends on event, calls updateItem/updateItemOrd/updateItemSlug/deleteItem from sql service.
@@ -28,7 +30,7 @@ async function compareItems(rundownStr, story) {
         
         // Create item event
         if (!cacheStoryKeys.includes(storyGfxItem)){
-            
+            itemsHash.add(storyGfxItem);
             await sqlService.updateItem(rundownStr,{
                 itemId: storyGfxItem, 
                 rundownId:rundownId, 

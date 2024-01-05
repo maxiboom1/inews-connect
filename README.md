@@ -23,7 +23,11 @@ Releases:
 The setting can be changed in config.json
 - In edit mode, "back" button is hidden.
 - When user try to open item that was deleted in db, he got error message (sql getItemData method returns "N/A" in this case).
-
+- Implemented new items hashmap to handle in use items globally in all watched rundowns. So, if user duplicate story, with the same items, and then delete one of those stories, inews-connect wont delete the item in the deleted stories, because in hash we count item use. It will delete the item only of its count will be 0. To handle it, hash class has add, remove, and isUsed methods. 
+   * We add to hash in items service => create item event, and in sql service => addDbStory. 
+   * We remove from cache in sql service => deleteItem.
+   * We use isUsed method to check if item can be deleted in sql service => deleteItem.
+   
 1.6.5
 - Plugin works.
 - hasAttachments() method added in inews-cache class.

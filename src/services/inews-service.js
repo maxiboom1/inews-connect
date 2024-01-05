@@ -129,6 +129,7 @@ async function deleteDif(rundownStr,listItems) {
         await inewsCache.deleteStory(rundownStr,identifier);
     });
 }
+
 /**
  * Retrieves story attachments and parses them.
  * 

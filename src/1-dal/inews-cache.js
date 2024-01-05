@@ -149,7 +149,7 @@ class InewsCache {
     async getData() {
         return this.stories;
     }
-
+    
 }
 
 const inewsCache = new InewsCache();
