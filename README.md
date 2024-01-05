@@ -27,6 +27,11 @@ The setting can be changed in config.json
    * We add to hash in items service => create item event, and in sql service => addDbStory. 
    * We remove from cache in sql service => deleteItem.
    * We use isUsed method to check if item can be deleted in sql service => deleteItem.
+- Implemented handling for "unlinked items" - those who has been saved in db but not inews. 
+Unlinked item-list backed up in json file. 
+Scheduled task updates the json file every 10 mins. 
+On load, inews-connect loads those items from cache file. 
+In future, its possible to clear db based on unlinked list.
    
 1.6.5
 - Plugin works.

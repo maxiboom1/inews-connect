@@ -1,6 +1,34 @@
+import fs from 'fs';
+import path from 'path';
+
 class ItemsHashmap {
     constructor() {
         this.map = {}; 
+        this.unlinked = {};
+        
+        this.cacheFilePath = path.join(path.resolve(), 'src', '1-dal', 'unlinkedItemsCache.json');        
+        this.loadUnlinkedFromCache();
+        setInterval(() => this.updateCacheFile(), 10 * 60 * 1000); // Update cache every 10 minutes
+
+    }
+
+    loadUnlinkedFromCache() {
+        try {
+            const data = fs.readFileSync(this.cacheFilePath, 'utf8');
+            this.unlinked = JSON.parse(data);
+        } catch (err) {
+            console.error('Error reading from cache file:', err);
+            this.unlinked = {};
+        }
+    }
+
+    updateCacheFile() {
+        try {
+            const data = JSON.stringify(this.unlinked);
+            fs.writeFileSync(this.cacheFilePath, data, 'utf8');
+        } catch (err) {
+            console.error('Error writing to cache file:', err);
+        }
     }
 
     add(gfxItem) {
@@ -9,6 +37,9 @@ class ItemsHashmap {
         } else {
             this.map[gfxItem] = 1;
         }
+
+        delete this.unlinked[gfxItem];
+        
     }
 
     remove(gfxItem) {
@@ -25,8 +56,14 @@ class ItemsHashmap {
     }
 
     get(){
-        return this.map;
+        return this.unlinked;
     }
+
+    addUnlinked(gfxItem){
+        this.unlinked[gfxItem] = "";
+    }
+
+    
 }
 
 const itemsHash = new ItemsHashmap();

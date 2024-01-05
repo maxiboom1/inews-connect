@@ -35,6 +35,7 @@ function drag(event) {
 function drop() {
     hideDragButton();
     hideSaveButton();
+    showNewButton();
 }
 
 function createMosMessage(){
@@ -96,6 +97,10 @@ function hideSaveButton(){document.getElementById("save").style.display = 'none'
 function showDragButton(){document.getElementById("drag").style.display = 'block'; hideSaveButton();}
 function hideDragButton(){document.getElementById("drag").style.display = 'none';}
 function hideBackButton(){document.getElementById("navigateBack").style.display = 'none';}
+function hideNewButton(){document.getElementById("createCopy").style.display = 'none';}
+function showNewButton(){document.getElementById("createCopy").style.display = 'block';}
+
+
 
 const originUrl = window.location.origin;
 document.getElementById("drag").style.display = 'none';
@@ -109,3 +114,9 @@ document.getElementById('drag').addEventListener('click', ()=>{
 document.querySelector("#navigateBack").addEventListener('click', ()=>{
     window.parent.hideIframe();
 });
+document.getElementById("createCopy").addEventListener('click', saveAsNew);
+
+function saveAsNew(){
+    showSaveButton();
+    hideNewButton();
+}

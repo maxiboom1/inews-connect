@@ -45,7 +45,7 @@ function htmlWrapper(htmlContent,templateUid, productionUid) {
     // Create style tag to link external CSS file
     const styleTag = document.createElement('link');
     styleTag.rel = 'stylesheet';
-    styleTag.href = "../assets/style.css";
+    styleTag.href = "../assets/iframe.css";
 
     const pluginPanelDiv = createPluginPanel(document);
     const toolboxContentDiv = document.querySelector('.toolbox-title');
@@ -79,10 +79,16 @@ function createPluginPanel(document) {
 
     // Create drag btn
     const dragButton = document.createElement('button');
-    dragButton.textContent  = 'Drag/Save to clipboard';
+    dragButton.textContent  = 'Drag';
     dragButton.id = 'drag';
     dragButton.draggable = true; // Set the draggable attribute
     dragButton.classList.add('pluginPanelBtn'); // Add the class to the save button
+
+    // Create make copy btn
+    const copyButton = document.createElement('button');
+    copyButton.textContent  = 'New';
+    copyButton.id = 'createCopy';
+    copyButton.classList.add('pluginPanelBtn'); // Add the class to the save button
 
     // Create div with id "pluginPanel"
     const pluginPanelDiv = document.createElement('div');
@@ -93,6 +99,8 @@ function createPluginPanel(document) {
     pluginPanelDiv.appendChild(backButton);
     pluginPanelDiv.appendChild(saveButton);
     pluginPanelDiv.appendChild(dragButton);
+    pluginPanelDiv.appendChild(copyButton);
+
 
 
     return pluginPanelDiv;
