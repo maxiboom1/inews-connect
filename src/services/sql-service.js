@@ -143,14 +143,15 @@ class SqlService {
             ord: order,
             ordupdate: Math.floor(Date.now() / 1000),
             enabled: story.enabled,
+            floating: story.flags.floated,
             tag: "",
             identifier: story.identifier,
             locator:story.locator
         }
         const sqlQuery = `
-            INSERT INTO ngn_inews_stories (name, lastupdate, rundown, production, ord, ordupdate, enabled, tag, identifier, locator)
+            INSERT INTO ngn_inews_stories (name, lastupdate, rundown, production, ord, ordupdate, enabled, floating, tag, identifier, locator)
             OUTPUT inserted.uid
-            VALUES (@name, @lastupdate, @rundown, @production, @ord, @ordupdate, @enabled, @tag, @identifier, @locator);`;            
+            VALUES (@name, @lastupdate, @rundown, @production, @ord, @ordupdate, @enabled, @floating, @tag, @identifier, @locator);`;            
         try {
             const result = await db.execute(sqlQuery, values);
             const assertedStoryUid = result.recordset[0].uid;
@@ -206,11 +207,13 @@ class SqlService {
             name:story.storyName,
             lastupdate: Math.floor(Date.now() / 1000),
             locator: story.locator,
-            enabled: story.enabled
+            enabled: story.enabled,
+            floating: story.flags.floated
+
         };
         const sqlQuery = `
             UPDATE ngn_inews_stories
-            SET name = @name, lastupdate = @lastupdate, locator = @locator, enabled = @enabled
+            SET name = @name, lastupdate = @lastupdate, locator = @locator, enabled = @enabled, floating = @floating
             WHERE identifier = @identifier;
         `;
 
@@ -218,7 +221,7 @@ class SqlService {
             await db.execute(sqlQuery, values);
             await this.rundownLastUpdate(rundownStr);
             
-            // Check if attachments exists in cache OR story, and compare.
+            // Check if attachments exists in cache OR inews story. If exists => compare.
             if(Object.keys(story.attachments).length !== 0 || await inewsCache.hasAttachments(rundownStr,story.identifier)){ 
                 await itemsService.compareItems(rundownStr,story); // Process attachments
             }

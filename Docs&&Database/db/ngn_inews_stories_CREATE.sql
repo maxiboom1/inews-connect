@@ -9,13 +9,14 @@ GO
 
 CREATE TABLE [dbo].[ngn_inews_stories](
 	[uid] [bigint] IDENTITY(1,1) NOT NULL,
-	[name] [nvarchar](100) NULL,
+	[name] [nvarchar](300) NULL,
 	[lastupdate] [bigint] NOT NULL,
 	[rundown] [bigint] NOT NULL,
 	[production] [bigint] NOT NULL,
 	[ord] [int] NOT NULL,
 	[ordupdate] [bigint] NOT NULL,
 	[enabled] [bit] NOT NULL,
+	[floating] [bit],
 	[tag] [nvarchar](max) NULL,
 	[identifier] [nvarchar](8) NOT NULL,
 	[locator] [nvarchar](20) NOT NULL,
