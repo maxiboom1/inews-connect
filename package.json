@@ -1,22 +1,19 @@
 {
   "name": "inews-connect",
-  "version": "1.6.5",
+  "version": "1.6.6",
   "description": "Connects to an Avid iNews server over FTP. Provide GFX plugin",
   "license": "MIT",
   "author": {
     "name": "Alex Samih-Zade",
     "email": "galutziogen@gmail.com"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.org/johnvmt/node-inews.git"
-  },
   "type": "module",
   "main": "app.js",
-  "module": "src/InewsClient.js",
   "dependencies": {
     "bluebird": "^3.7.2",
+    "bufferutil": "^4.0.8",
     "camelcase": "^6.2.0",
+    "canvas": "^2.11.2",
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "fast-xml-parser": "^4.3.2",
@@ -25,12 +22,20 @@
     "htmlparser2": "^6.1.0",
     "jsdom": "^23.0.1",
     "mssql": "^10.0.1",
-    "unescape": "^1.0.1"
+    "unescape": "^1.0.1",
+    "utf-8-validate": "^6.0.3"
   },
   "scripts": {
-    "start": "nodemon app.js"
+    "start": "nodemon --ignore unlinkedItemsCache.json app.js",
+    "build": "webpack --mode production"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "@babel/core": "^7.23.7",
+    "@babel/preset-env": "^7.23.7",
+    "babel-loader": "^9.1.3",
+    "nodemon": "^3.0.1",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-node-externals": "^3.0.0"
   }
 }
