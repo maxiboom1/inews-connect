@@ -7,7 +7,7 @@
             "uid": ""
         }
     },
-    "pullInterval":200,
+    "pullInterval":5000,
     "ftpSiteFormat": "3nsml",
     "sqlServerHost" :"WINDOWS-11C0I62\\SQLEXPRESS",
     "sqlServerUser":"test",

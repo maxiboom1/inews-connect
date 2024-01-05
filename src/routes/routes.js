@@ -21,6 +21,7 @@ router.get('/templates/:uid', async (req, res) => {
 router.get('/get-item-data/:uid', async (req, res) => {
   const itemUid = req.params.uid;
   const itemData = await sqlService.getItemData(itemUid);
+  console.log("returner data", itemData);
   res.json(itemData);
 });
 

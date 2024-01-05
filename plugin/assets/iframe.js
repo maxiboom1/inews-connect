@@ -95,6 +95,7 @@ function showSaveButton(){document.getElementById("save").style.display = 'block
 function hideSaveButton(){document.getElementById("save").style.display = 'none';}
 function showDragButton(){document.getElementById("drag").style.display = 'block'; hideSaveButton();}
 function hideDragButton(){document.getElementById("drag").style.display = 'none';}
+function hideBackButton(){document.getElementById("navigateBack").style.display = 'none';}
 
 const originUrl = window.location.origin;
 document.getElementById("drag").style.display = 'none';

@@ -162,9 +162,6 @@ class InewsConnectionClient extends EventEmitter {
 							removeListeners();
 							reject(error);
 						  });
-						// this._currentDir = null;
-						// removeListeners();
-						// resolve(this._ftpConn);
 					}
 				}
 
@@ -579,6 +576,7 @@ class InewsConnectionClient extends EventEmitter {
 			DIRECTORY: 'DIRECTORY'
 		});
 	}
+
 }
 
 export default InewsConnectionClient;

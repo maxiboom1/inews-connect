@@ -416,6 +416,7 @@ class SqlService {
     
         try {
             const result = await db.execute(sqlQuery, values);
+            if(result.rowsAffected[0] === 0) return "N/A";
             return result.recordset[0].data; // We return it to front page and its stored in mos obj as gfxItem
         } catch (error) {
             console.error('Error on fetching item data:', error);

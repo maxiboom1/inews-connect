@@ -39,7 +39,7 @@ function createTemplateHtml(template){
     const container = document.createElement('div'); // Create a temporary container
     if(template.icon){
         container.innerHTML = `
-        <div id=${template.uid} class="col-1 themed-grid-col">
+        <div id=${template.uid} class="col-1 m-3 themed-grid-col">
             <img src='data:image/png;base64,${template.icon}' alt='Template Icon'>
         </div>`;
     } else {
@@ -98,24 +98,32 @@ function renderTemplate(templateId){
 // User loaded exists item in inews
 async function renderItem(templateId,gfxItem, itemID){
     const itemData = await fetchData(`${originUrl}/api/get-item-data/${gfxItem}`, "GET");
-    let url = `${originUrl}/templates/${templateId}.html`;
-    const iframe = document.getElementById('contentIframe');
-    iframe.src = url; // Set the source of the iframe to the URL  
+    if(itemData !== "N/A"){
+        let url = `${originUrl}/templates/${templateId}.html`;
+        const iframe = document.getElementById('contentIframe');
+        iframe.src = url; // Set the source of the iframe to the URL  
+        
+        iframe.onload = function() {
+            // Hide "save" btn in iframe 
     
-    iframe.onload = function() {
-        // Hide "save" btn in iframe 
+            iframe.contentWindow.hideSaveButton();        
+            iframe.contentWindow.hideBackButton();
+    
+            // Set item values in template
+            iframe.contentWindow.__NA_SetValues(itemData); 
+            
+            // Set item values
+            iframe.contentWindow.setGfxItem(gfxItem); // Set gfxItemId in iframe head as "data-gfxitem"
+            iframe.contentWindow.setItemID(itemID); // Set itemID in iframe head as "data-itemID"
+            // Show iframe
+            iframe.style.display = 'block'; // Show the iframe
+            
+        };
+    } else {
+        showPopup(`Error! This element was deleted. Close this window and delete the element from Inews story`);
+        document.getElementById("productionContainer").style.display = "none";
+    }
 
-        iframe.contentWindow.hideSaveButton();
-        // Set item values in template
-        iframe.contentWindow.__NA_SetValues(itemData); 
-        
-        // Set item values
-        iframe.contentWindow.setGfxItem(gfxItem); // Set gfxItemId in iframe head as "data-gfxitem"
-        iframe.contentWindow.setItemID(itemID); // Set itemID in iframe head as "data-itemID"
-        // Show iframe
-        iframe.style.display = 'block'; // Show the iframe
-        
-    };
 }
 
 // Iframe calls that when user click "back"
@@ -173,6 +181,19 @@ async function fetchData(url, method, msg) {
     }
 }
 function print(msg){console.log(msg)}
+
+function showPopup(message, delay=undefined) {
+    var popup = document.getElementById("popup");
+    popup.innerHTML = message;
+    popup.style.display = "block";
+  
+    if(delay){
+        setTimeout(function() {
+            popup.style.display = "none";
+          }, delay); 
+    }
+    
+  };
 
 // Communication listeners with inews
 if (window.addEventListener) {

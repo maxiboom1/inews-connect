@@ -21,6 +21,8 @@ Releases:
 - "Make copy" button added on plugin-panel.
 - FTP client can set SITE FORMAT now, so its independent from inews site config. The optimal for us is "3nsml".
 The setting can be changed in config.json
+- In edit mode, "back" button is hidden.
+- When user try to open item that was deleted in db, he got error message (sql getItemData method returns "N/A" in this case).
 
 1.6.5
 - Plugin works.

@@ -107,7 +107,7 @@ class InewsClient extends EventEmitter {
 			});
 		}
 	}
-
+	
 	_optimalConnectionClient(directory) {
 		/*
 		Sort by number of jobs running decreasing
