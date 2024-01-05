@@ -5,10 +5,6 @@
         "SHOW.ALEX.rundown2":{
             "production":1, 
             "uid": ""
-        },
-        "SHOW.ALEX.rundown":{
-            "production":1, 
-            "uid": ""
         }
     },
     "pullInterval":500,

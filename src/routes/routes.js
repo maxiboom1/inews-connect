@@ -55,7 +55,7 @@ router.post('/update-item', async (req, res) => {
 router.get('/getdata', async (req, res) => {
   const data = await inewsCache.getData();
   const hash = itemsHash.get();
-  res.json(hash);
+  res.json(data);
 });
 
 export default router;

@@ -52,7 +52,7 @@ class ItemsHashmap {
     }
 
     isUsed(gfxItem) {
-        return this.get(gfxItem) > 0;
+        return this.map[gfxItem] > 0;
     }
 
     get(){

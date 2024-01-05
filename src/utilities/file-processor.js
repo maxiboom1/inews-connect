@@ -84,12 +84,6 @@ function createPluginPanel(document) {
     dragButton.draggable = true; // Set the draggable attribute
     dragButton.classList.add('pluginPanelBtn'); // Add the class to the save button
 
-    // Create make copy btn
-    const copyButton = document.createElement('button');
-    copyButton.textContent  = 'New';
-    copyButton.id = 'createCopy';
-    copyButton.classList.add('pluginPanelBtn'); // Add the class to the save button
-
     // Create div with id "pluginPanel"
     const pluginPanelDiv = document.createElement('div');
     pluginPanelDiv.id = 'pluginPanel';
@@ -99,9 +93,6 @@ function createPluginPanel(document) {
     pluginPanelDiv.appendChild(backButton);
     pluginPanelDiv.appendChild(saveButton);
     pluginPanelDiv.appendChild(dragButton);
-    pluginPanelDiv.appendChild(copyButton);
-
-
 
     return pluginPanelDiv;
 }

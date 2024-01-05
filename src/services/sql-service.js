@@ -345,11 +345,11 @@ class SqlService {
     }
 
     async deleteItem(rundownStr, item){ //Item: {itemId, rundownId, storyId}
-        
+
         // Update items hashmap
         itemsHash.remove(item.itemId); 
         
-        if(!itemsHash.isUsed){
+        if(!itemsHash.isUsed(item.itemId)){
             const values = {uid: item.itemId};
             const sqlQuery = `DELETE FROM ngn_inews_items WHERE uid = @uid;`;
         
@@ -371,23 +371,6 @@ class SqlService {
 
     } 
     
-    async deleteAllStoryItems(storyUid){
-        const values = {storyUid: storyUid};
-        const sqlQuery = `DELETE FROM ngn_inews_items WHERE story = @storyUid;`;
-    
-        try {
-            const result =await db.execute(sqlQuery, values);
-            if(result.rowsAffected[0] > 0){
-                console.log(`All GFX items of story ${storyUid} was deleted.`);
-            } else {
-                console.log(`WARNING! Story ${storyUid} doesn't contained items in DB, but in inews they exists.`);
-            }
-
-        } catch (error) {
-            console.error('Error deleting GFX item:', error);
-            return null;
-        }
-    }
 // ********************* FRONT-TRIGGERED ITEMS FUNCTIONS ********************** //
 
     //This func triggered from web  page, when user click "save". 
