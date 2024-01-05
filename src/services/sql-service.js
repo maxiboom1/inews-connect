@@ -18,8 +18,28 @@ class SqlService {
             }
             await this.getAndStoreProductions();
             await this.getAndStoreTemplates();
+            await this.hideUnwatchedRundowns();
+             
         }        
         catch (error) {
+            throw error;
+        }
+    }
+
+    async hideUnwatchedRundowns() { // Compare rundowns from db with cached, and set enable=0 to those who are not in cache
+        try {
+            const sql = `SELECT * FROM ngn_inews_rundowns`;
+            const result = await db.execute(sql);
+            const cacheRundowns = await inewsCache.getRundownsArr();
+            const unwatchedRundowns = result.filter(item => !cacheRundowns.includes(item.name)).map(item => item.uid);
+            for(const r of unwatchedRundowns){
+                const values = {uid: r};
+                const sql = "UPDATE ngn_inews_rundowns SET enabled=0 WHERE uid = @uid";
+                await db.execute(sql,values);
+            }
+            console.log(`Noticed ${unwatchedRundowns.length} unwatched rundowns in db.`);
+        } catch (error) {
+            console.error('Error deleting stories from SQL:', error);
             throw error;
         }
     }

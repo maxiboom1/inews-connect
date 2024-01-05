@@ -14,6 +14,12 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 Releases:
 
+1.6.6
+
+- Hide un-watched rundowns (enabled=0) on app load.
+- Implement new column "floating" in ngn_inews_stories.
+- "Make copy" button added on plugin-panel.
+
 1.6.5
 - Plugin works.
 - hasAttachments() method added in inews-cache class.
