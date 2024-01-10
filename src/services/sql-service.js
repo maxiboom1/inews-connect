@@ -4,6 +4,7 @@ import processAndWriteFiles from "../utilities/file-processor.js";
 import inewsCache from "../1-dal/inews-cache.js";
 import itemsService from "./items-service.js";
 import itemsHash from "../1-dal/items-hashmap.js";
+import createTick from "../utilities/time-tick.js";
 
 class SqlService {
 
@@ -41,7 +42,7 @@ class SqlService {
     async addDbRundown(rundownStr) {
         const values = {
             name: rundownStr,
-            lastUpdate: Math.floor(Date.now() / 1000),
+            lastUpdate: createTick(),
             production: appConfig.rundowns[rundownStr].production,
             enabled: 1,
             tag: ""
@@ -138,11 +139,11 @@ class SqlService {
         const rundownMeta = await inewsCache.getRundownList(rundownStr);
         const values = {
             name: story.storyName,
-            lastupdate: Math.floor(Date.now() / 1000),
+            lastupdate: createTick(),
             rundown: rundownMeta.uid,
             production: rundownMeta.production,
             ord: order,
-            ordupdate: Math.floor(Date.now() / 1000),
+            ordupdate: createTick(),
             enabled: story.enabled,
             floating: story.flags.floated,
             tag: "",
@@ -185,7 +186,7 @@ class SqlService {
             ord: ord,
             locator: story.locator,
             identifier: story.identifier,
-            ordupdate: Math.floor(Date.now() / 1000),
+            ordupdate: createTick(),
         };
         
         const sqlQuery = `
@@ -207,7 +208,7 @@ class SqlService {
         const values = {
             identifier:story.identifier, // Filter param from sql ("WHERE ")
             name:story.storyName,
-            lastupdate: Math.floor(Date.now() / 1000),
+            lastupdate: createTick(),
             locator: story.locator,
             enabled: story.enabled,
             floating: story.flags.floated
@@ -218,7 +219,7 @@ class SqlService {
             SET name = @name, lastupdate = @lastupdate, locator = @locator, enabled = @enabled, floating = @floating
             WHERE identifier = @identifier;
         `;
-
+        
         try {
             await db.execute(sqlQuery, values);
             await this.rundownLastUpdate(rundownStr);
@@ -265,11 +266,11 @@ class SqlService {
 
     async updateItem(rundownStr, item) { // Item: {itemId, rundownId, storyId, ord}
         const values = {
-            lastupdate: Math.floor(Date.now() / 1000),
+            lastupdate: createTick(),
             rundown: item.rundownId,
             story: item.storyId,
             ord: item.ord,
-            ordupdate: Math.floor(Date.now() / 1000),
+            ordupdate: createTick(),
             uid: item.itemId
         };
         const sqlQuery = `
@@ -296,7 +297,7 @@ class SqlService {
     async updateItemOrd(rundownStr, item) { // Item: {itemId, rundownId, storyId, ord}
         const values = {
             ord: item.ord,
-            ordupdate: Math.floor(Date.now() / 1000),
+            ordupdate: createTick(),
             uid: item.itemId
         };
         const sqlQuery = `
@@ -319,7 +320,7 @@ class SqlService {
 
     async updateItemSlug(rundownStr, item){// Item: {itemId, rundownId, storyId, itemSlug}
         const values = {
-            lastupdate: Math.floor(Date.now() / 1000),
+            lastupdate: createTick(),
             name:item.itemSlug,
             uid: item.itemId
         };
@@ -379,12 +380,12 @@ class SqlService {
     async storeNewItem(item) { // Expect: {name, data, scripts, templateId,productionId}
         const values = {
             name: item.name,
-            lastupdate: Math.floor(Date.now() / 1000),
+            lastupdate: createTick(),
             production: item.productionId,
             rundown: "",
             story: "",
             ord: "",
-            ordupdate: Math.floor(Date.now() / 1000),
+            ordupdate: createTick(),
             template: item.templateId,
             data: item.data,
             scripts: item.scripts,
@@ -430,7 +431,7 @@ class SqlService {
     async updateItemFromFront(item) { // Expect: {name, data, scripts, templateId, productionId, gfxItem}
         const values = {
             name: item.name,
-            lastupdate: Math.floor(Date.now() / 1000),
+            lastupdate: createTick(),
             production: item.productionId,
             template: item.templateId,
             data: item.data,
@@ -469,7 +470,7 @@ async rundownLastUpdate(rundownStr){
         try {
             const values = {
                 uid: rundownMeta.uid,
-                lastupdate: Math.floor(Date.now() / 1000)
+                lastupdate: createTick()
             }
             const sqlQuery = `
                 UPDATE ngn_inews_rundowns
