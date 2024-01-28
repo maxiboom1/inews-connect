@@ -1,6 +1,17 @@
 Inews-connect gateway to third party application, with HTML5 GFX plugin.
 
-Known-limitations && bugs:
+**Main**
+Inews-connect is an service that gets rundowns data from Avid Inews, caches them, and updates MS-SQL database. 
+Inews-connect designed to serve the Inews rundowns data to NA client - GFX applications for CG operators at broadcast control rooms.
+This design provides isolated runtime of inews-connect and NA client - Inews-connect updates DB, NA client monitors the changes. 
+
+It uses cache module to store the current snapshot of inews rundowns, and updates DB only if there was change between cache and fetched fresh data.
+
+**Startup Diagram**
+
+![Startup Image](./Docs&&Database/workflows/App-start.pdf)
+
+**Known-limitations && bugs:**
 
 - In Inews, if you delete the item star "*", and jumps to other story before inews clears the item preview box, the ftp api wont be updated. 
 This is pure Inews bug..
@@ -12,7 +23,7 @@ Possible optimizations:
 It will increase hdd load when users opens plugin, but reduce memory usage of server.
 - Avoid to write non-item stories to db 
 
-Releases:
+**LOGS:**
 
 1.6.6
 

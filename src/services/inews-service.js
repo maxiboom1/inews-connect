@@ -9,7 +9,6 @@ async function startMainProcess() {
     console.log('Starting Inews-connect 1.6.6 ...');
     await sqlService.initialize();
     await rundownIterator();
-
 }
 
 async function rundownIterator() {
