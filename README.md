@@ -9,7 +9,7 @@ It uses cache module to store the current snapshot of inews rundowns, and update
 
 **Startup Diagram**
 
-![Startup Image](./Docs&&Database/workflows/App-start.pdf)
+[View Startup Image PDF](./Docs&&Database/workflows/App-start.pdf)
 
 **Known-limitations && bugs:**
 
