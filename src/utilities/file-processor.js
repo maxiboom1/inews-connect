@@ -83,6 +83,7 @@ function createPluginPanel(document) {
     previewButton.textContent  = 'Preview';
     previewButton.id = 'preview';
     previewButton.setAttribute("data-preview-host", appConfig.previewServer);
+    previewButton.setAttribute("data-preview-port", appConfig.previewPort);
     previewButton.classList.add('pluginPanelBtn'); // Add the class to the save button
 
     // Create drag btn

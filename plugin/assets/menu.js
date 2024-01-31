@@ -160,7 +160,6 @@ function extractTagContent(xmlString, tagName) {
 }
 
 async function fetchData(url, method, msg) {
-    
     try {
         const response = await fetch(url, {
             method,
@@ -180,6 +179,7 @@ async function fetchData(url, method, msg) {
         console.error(`Error while fetching data at URL: ${url}`, error);
     }
 }
+
 function print(msg){console.log(msg)}
 
 function showPopup(message, delay=undefined) {

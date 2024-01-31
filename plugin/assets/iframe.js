@@ -108,3 +108,16 @@ document.getElementById('drag').addEventListener('click', ()=>{
 document.querySelector("#navigateBack").addEventListener('click', ()=>{
     window.parent.hideIframe();
 });
+
+document.getElementById('preview').addEventListener('click', async ()=>{
+    const values = __NA_GetScripts();
+    console.log(values)
+    const previewHost = document.getElementById("preview").getAttribute("data-preview-host");
+    const previewPort = document.getElementById("preview").getAttribute("data-preview-port");
+    
+    // Good option is sending "post", but preview should then handle the cors 
+    //window.parent.fetchData(`http://${previewHost}:${previewPort}`,"POST",JSON.stringify(values));
+    
+    // Falashmura way - send the data as query param
+    await fetch(`http://${previewHost}:${previewPort}?${values}`,{method:'GET'});
+});
