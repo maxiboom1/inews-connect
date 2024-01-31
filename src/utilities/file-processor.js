@@ -3,6 +3,7 @@ import path from "path";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { JSDOM } from 'jsdom';
+import appConfig from './app-config.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -77,6 +78,13 @@ function createPluginPanel(document) {
     saveButton.id = 'save';
     saveButton.classList.add('pluginPanelBtn'); // Add the class to the save button
 
+    //Create preview btn
+    const previewButton = document.createElement('button');
+    previewButton.textContent  = 'Preview';
+    previewButton.id = 'preview';
+    previewButton.setAttribute("data-preview-host", appConfig.previewServer);
+    previewButton.classList.add('pluginPanelBtn'); // Add the class to the save button
+
     // Create drag btn
     const dragButton = document.createElement('button');
     dragButton.textContent  = 'Drag';
@@ -92,7 +100,9 @@ function createPluginPanel(document) {
     // Append buttons to the "pluginPanel" div
     pluginPanelDiv.appendChild(backButton);
     pluginPanelDiv.appendChild(saveButton);
+    pluginPanelDiv.appendChild(previewButton);
     pluginPanelDiv.appendChild(dragButton);
+    //pluginPanelDiv.appendChild(previewButton);
 
     return pluginPanelDiv;
 }

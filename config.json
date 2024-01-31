@@ -9,6 +9,7 @@
     },
     "pullInterval":500,
     "ftpSiteFormat": "3nsml",
+    "previewServer": "192.168.1.53",
     "sqlServerHost" :"WINDOWS-11C0I62\\SQLEXPRESS",
     "sqlServerUser":"test",
     "sqlServerPassword":"test",
