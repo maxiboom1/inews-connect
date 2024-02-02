@@ -25,7 +25,6 @@ router.get('/get-item-data/:uid', async (req, res) => {
   res.json(itemData);
 });
 
-
 // Post http://serverAddr:4001/api/set-item
 router.post('/set-item', async (req, res) => {
   try {

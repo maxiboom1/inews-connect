@@ -66,6 +66,14 @@ function htmlWrapper(htmlContent,templateUid, productionUid) {
 }
 
 function createPluginPanel(document) {
+    //Create preview btn
+    const previewButton = document.createElement('button');
+    previewButton.textContent  = 'Preview';
+    previewButton.id = 'preview';
+    previewButton.setAttribute("data-preview-host", appConfig.previewServer);
+    previewButton.setAttribute("data-preview-port", appConfig.previewPort);
+    previewButton.classList.add('pluginPanelBtn'); // Add the class to the save button
+    
     // Create back btn
     const backButton = document.createElement('button');
     backButton.textContent  = 'Back';
@@ -77,14 +85,6 @@ function createPluginPanel(document) {
     saveButton.textContent  = 'Save';
     saveButton.id = 'save';
     saveButton.classList.add('pluginPanelBtn'); // Add the class to the save button
-
-    //Create preview btn
-    const previewButton = document.createElement('button');
-    previewButton.textContent  = 'Preview';
-    previewButton.id = 'preview';
-    previewButton.setAttribute("data-preview-host", appConfig.previewServer);
-    previewButton.setAttribute("data-preview-port", appConfig.previewPort);
-    previewButton.classList.add('pluginPanelBtn'); // Add the class to the save button
 
     // Create drag btn
     const dragButton = document.createElement('button');
@@ -98,11 +98,19 @@ function createPluginPanel(document) {
     pluginPanelDiv.id = 'pluginPanel';
     pluginPanelDiv.classList.add('pluginPanel'); // Add the class to the pluginPanel div
 
+    // Create make copy btn
+    const makeCopyButton = document.createElement('button');
+    makeCopyButton.textContent  = 'Make copy';
+    makeCopyButton.id = 'makeCopy';
+    makeCopyButton.classList.add('pluginPanelBtn'); // Add the class to the save button
+
     // Append buttons to the "pluginPanel" div
     pluginPanelDiv.appendChild(backButton);
     pluginPanelDiv.appendChild(saveButton);
-    pluginPanelDiv.appendChild(previewButton);
     pluginPanelDiv.appendChild(dragButton);
+    pluginPanelDiv.appendChild(makeCopyButton);
+    pluginPanelDiv.appendChild(previewButton);
+
     //pluginPanelDiv.appendChild(previewButton);
 
     return pluginPanelDiv;

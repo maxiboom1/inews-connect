@@ -95,10 +95,14 @@ function hideSaveButton(){document.getElementById("save").style.display = 'none'
 function showDragButton(){document.getElementById("drag").style.display = 'block'; hideSaveButton();}
 function hideDragButton(){document.getElementById("drag").style.display = 'none';}
 function hideBackButton(){document.getElementById("navigateBack").style.display = 'none';}
+function hideMakeCopyButton(){document.getElementById("makeCopy").style.display = 'none';}
+function showMakeCopyButton(){document.getElementById("makeCopy").style.display = 'block';}
 
 const originUrl = window.location.origin;
 document.getElementById("drag").style.display = 'none';
 document.getElementById("save").addEventListener('click', clickOnSave);
+document.getElementById("makeCopy").addEventListener('click', clickOnSave);
+
 document.getElementById('drag').addEventListener('dragstart', drag);
 document.getElementById('drag').addEventListener('dragend', drop);
 document.getElementById('drag').addEventListener('click', ()=>{
@@ -109,15 +113,15 @@ document.querySelector("#navigateBack").addEventListener('click', ()=>{
     window.parent.hideIframe();
 });
 
+// Preview server interaction
 document.getElementById('preview').addEventListener('click', async ()=>{
     const values = __NA_GetScripts();
-    console.log(values)
     const previewHost = document.getElementById("preview").getAttribute("data-preview-host");
     const previewPort = document.getElementById("preview").getAttribute("data-preview-port");
-    
-    // Good option is sending "post", but preview should then handle the cors 
-    //window.parent.fetchData(`http://${previewHost}:${previewPort}`,"POST",JSON.stringify(values));
-    
-    // Falashmura way - send the data as query param
+    // Send values to preview server
     await fetch(`http://${previewHost}:${previewPort}?${values}`,{method:'GET'});
 });
+
+function makeCopy(){
+
+}
