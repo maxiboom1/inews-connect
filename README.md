@@ -1,6 +1,6 @@
 Inews-connect gateway to third party application, with HTML5 GFX plugin.
 
-**Main**
+**Main**22
 Inews-connect is an service that gets rundowns data from Avid Inews, caches them, and updates MS-SQL database. 
 Inews-connect designed to serve the Inews rundowns data to NA client - GFX applications for CG operators at broadcast control rooms.
 This design provides isolated runtime of inews-connect and NA client - Inews-connect updates DB, NA client monitors the changes. 
