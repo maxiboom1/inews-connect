@@ -2,7 +2,9 @@ class InewsCache {
     
     constructor() {
         this.productions = {}; //{name: uid,name2:uid2, ... other productions...}
-        this.templates = {}; // {templateName:{uid:uid, production:production,icon:iconData}, otherTemplateName:{...}, ...}
+        // OLD
+        //this.templates = {}; // {templateName:{uid:uid, production:production,icon:iconData}, otherTemplateName:{...}, ...}
+        this.templates = {}; // {templateUid: {templateName, production, icon}, ...}
         this.stories = {}; //{'rundownName': {'storyIdentifier': {storyProps...} } }; ==> see example at page footer
         this.rundownsList = {}; // {rundownName:{uid,production}, otherRundownName:{...}, ...}
     }
@@ -22,14 +24,22 @@ class InewsCache {
             this.productions[name] = uid;
           }
     }
+    // OLD
+    // async setTemplates(templates){ // Expect: [{ uid, name, production, icon},{...}]
+    //     this.templates = {};
+    //     templates.forEach(t => {
+    //         this.templates[t.name] = {uid:t.uid, production: t.production, icon:t.icon};
+    //     });
+    // }
 
-    async setTemplates(templates){ // Expect: [{ uid, name, production, icon},{...}]
+    // NEW
+    async setTemplates(templates) {
         this.templates = {};
         templates.forEach(t => {
-            this.templates[t.name] = {uid:t.uid, production: t.production, icon:t.icon};
+            this.templates[t.uid] = { name: t.name, production: t.production, icon: t.icon };
         });
     }
-
+    
     // ********************* PRODUCTIONS FUNCTIONS ********************** //
     async getProductions(){
 
@@ -46,19 +56,35 @@ class InewsCache {
 
     // ********************* TEMPLATES FUNCTIONS ********************** //
 
+    // OLD
+    // async getTemplatesByProduction(productionUid) {
+    //     const filteredTemplates = [];
+      
+    //     for (const [templateName, templateData] of Object.entries(this.templates)) {
+    //       if (templateData.production === productionUid) {
+    //         const { uid, production, icon } = templateData;
+    //         const templateObject = { uid, production, icon, name: templateName };
+    //         filteredTemplates.push(templateObject);
+    //       }
+    //     }
+      
+    //     return filteredTemplates;
+    // }
+
+    // NEW
     async getTemplatesByProduction(productionUid) {
         const filteredTemplates = [];
-      
-        for (const [templateName, templateData] of Object.entries(this.templates)) {
-          if (templateData.production === productionUid) {
-            const { uid, production, icon } = templateData;
-            const templateObject = { uid, production, icon, name: templateName };
-            filteredTemplates.push(templateObject);
-          }
+    
+        for (const [uid, templateData] of Object.entries(this.templates)) {
+            if (templateData.production === productionUid) {
+                const { name, production, icon } = templateData;
+                const templateObject = { uid, name, production, icon };
+                filteredTemplates.push(templateObject);
+            }
         }
-      
+    
         return filteredTemplates;
-    }
+    }    
 
     // ********************* STORY FUNCTIONS ********************** //
 
