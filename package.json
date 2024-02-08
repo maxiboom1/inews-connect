@@ -1,6 +1,6 @@
 {
   "name": "inews-connect",
-  "version": "1.6.6",
+  "version": "1.6.7",
   "description": "Connects to an Avid iNews server over FTP. Provide GFX plugin",
   "license": "MIT",
   "author": {

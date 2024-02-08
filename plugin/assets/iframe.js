@@ -119,7 +119,7 @@ document.getElementById('preview').addEventListener('click', async ()=>{
     const productionId = document.body.getAttribute('data-production');
     const previewHost = document.getElementById("preview").getAttribute("data-preview-host");
     const previewPort = document.getElementById("preview").getAttribute("data-preview-port");
-    // Send values to preview server
+    // Send prodId and scripts to preview server
     await fetch(`http://${previewHost}:${previewPort}?#${productionId},${scripts}`,{method:'GET'});
 });
 
