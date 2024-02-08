@@ -115,11 +115,12 @@ document.querySelector("#navigateBack").addEventListener('click', ()=>{
 
 // Preview server interaction
 document.getElementById('preview').addEventListener('click', async ()=>{
-    const values = __NA_GetScripts();
+    const scripts = __NA_GetScripts();
+    const productionId = document.body.getAttribute('data-production');
     const previewHost = document.getElementById("preview").getAttribute("data-preview-host");
     const previewPort = document.getElementById("preview").getAttribute("data-preview-port");
     // Send values to preview server
-    await fetch(`http://${previewHost}:${previewPort}?${values}`,{method:'GET'});
+    await fetch(`http://${previewHost}:${previewPort}?#${productionId},${scripts}`,{method:'GET'});
 });
 
 function makeCopy(){
