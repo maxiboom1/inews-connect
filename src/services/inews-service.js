@@ -6,7 +6,7 @@ import inewsCache from "../1-dal/inews-cache.js";
 import xmlParser from "../utilities/xml-parser.js";
 
 async function startMainProcess() { 
-    console.log('Starting Inews-connect 1.6.7 ...');
+    console.log('Starting Inews-connect 1.6.8 ...');
     await sqlService.initialize();
     await rundownIterator();
 }

@@ -120,7 +120,7 @@ document.getElementById('preview').addEventListener('click', async ()=>{
     const previewHost = document.getElementById("preview").getAttribute("data-preview-host");
     const previewPort = document.getElementById("preview").getAttribute("data-preview-port");
     // Send templateId and scripts to preview server
-    await fetch(`http://${previewHost}:${previewPort}?#${templateId},${scripts}`,{method:'GET'});
+    await fetch(`http://${previewHost}:${previewPort}?${templateId},${scripts}`,{method:'GET'});
 });
 
 function makeCopy(){
