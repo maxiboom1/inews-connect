@@ -100,7 +100,7 @@ class SqlService {
 
     async getAndStoreTemplates() {
         try {
-            const sql = `SELECT uid,source,name,production,icon FROM ngn_templates`;
+            const sql = `SELECT uid,source,name,production,icon FROM ngn_templates WHERE enabled = 1`;
             
             //{ uid, source, name, production,icon}
             const templates = await db.execute(sql);

@@ -24,6 +24,12 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 - Avoid to write non-item stories to db 
 
 **LOGS:**
+1.6.9
+
+- Ignore not enabled templates
+- onChange listener with debounce for preview server
+- Removed un-necessary "make-copy".
+- Added "reset prw"  button.
 
 1.6.6
 

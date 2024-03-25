@@ -68,7 +68,7 @@ function htmlWrapper(htmlContent,templateUid, productionUid) {
 function createPluginPanel(document) {
     //Create preview btn
     const previewButton = document.createElement('button');
-    previewButton.textContent  = 'Preview';
+    previewButton.textContent  = 'Reset Prw';
     previewButton.id = 'preview';
     previewButton.setAttribute("data-preview-host", appConfig.previewServer);
     previewButton.setAttribute("data-preview-port", appConfig.previewPort);
@@ -98,20 +98,11 @@ function createPluginPanel(document) {
     pluginPanelDiv.id = 'pluginPanel';
     pluginPanelDiv.classList.add('pluginPanel'); // Add the class to the pluginPanel div
 
-    // Create make copy btn
-    const makeCopyButton = document.createElement('button');
-    makeCopyButton.textContent  = 'Make copy';
-    makeCopyButton.id = 'makeCopy';
-    makeCopyButton.classList.add('pluginPanelBtn'); // Add the class to the save button
-
     // Append buttons to the "pluginPanel" div
     pluginPanelDiv.appendChild(backButton);
     pluginPanelDiv.appendChild(saveButton);
     pluginPanelDiv.appendChild(dragButton);
-    pluginPanelDiv.appendChild(makeCopyButton);
     pluginPanelDiv.appendChild(previewButton);
-
-    //pluginPanelDiv.appendChild(previewButton);
 
     return pluginPanelDiv;
 }

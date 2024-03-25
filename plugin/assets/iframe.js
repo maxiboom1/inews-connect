@@ -95,13 +95,11 @@ function hideSaveButton(){document.getElementById("save").style.display = 'none'
 function showDragButton(){document.getElementById("drag").style.display = 'block'; hideSaveButton();}
 function hideDragButton(){document.getElementById("drag").style.display = 'none';}
 function hideBackButton(){document.getElementById("navigateBack").style.display = 'none';}
-function hideMakeCopyButton(){document.getElementById("makeCopy").style.display = 'none';}
-function showMakeCopyButton(){document.getElementById("makeCopy").style.display = 'block';}
+
 
 const originUrl = window.location.origin;
 document.getElementById("drag").style.display = 'none';
 document.getElementById("save").addEventListener('click', clickOnSave);
-document.getElementById("makeCopy").addEventListener('click', clickOnSave);
 
 document.getElementById('drag').addEventListener('dragstart', drag);
 document.getElementById('drag').addEventListener('dragend', drop);
@@ -115,14 +113,56 @@ document.querySelector("#navigateBack").addEventListener('click', ()=>{
 
 // Preview server interaction
 document.getElementById('preview').addEventListener('click', async ()=>{
+    //const scripts = __NA_GetScripts();
+    //const templateId = document.body.getAttribute('data-template');
+    const previewHost = document.getElementById("preview").getAttribute("data-preview-host");
+    const previewPort = document.getElementById("preview").getAttribute("data-preview-port");
+    // Send templateId and scripts to preview server
+    //await fetch(`http://${previewHost}:${previewPort}?${templateId},${scripts}`,{method:'GET'});
+    await fetch(`http://${previewHost}:${previewPort}?reset`,{method:'GET'});
+});
+
+
+// ========================================= DEBOUNCER ========================================= \\
+const debounce = (func, wait) => {
+    let timeout;
+  
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+  
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+};
+
+// Create debounced functions outside of the event listeners
+const debouncedInput = debounce(async function(text) {
+    console.log(text);
     const scripts = __NA_GetScripts();
     const templateId = document.body.getAttribute('data-template');
     const previewHost = document.getElementById("preview").getAttribute("data-preview-host");
     const previewPort = document.getElementById("preview").getAttribute("data-preview-port");
     // Send templateId and scripts to preview server
     await fetch(`http://${previewHost}:${previewPort}?${templateId},${scripts}`,{method:'GET'});
+}, 500);
+
+document.body.addEventListener('input', function(event) {
+    const target = event.target;
+    // Check if the event target is an input or textarea
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        // Call the debounced function
+        debouncedInput(`Input changed: ${target.value}`);
+    }
 });
 
-function makeCopy(){
-
-}
+document.body.addEventListener('change', function(event) {
+    const target = event.target;
+    // Check if the event target is a select element, a checkbox, or a radio button
+    if (target.tagName === 'SELECT' || (target.tagName === 'INPUT' && (target.type === 'checkbox' || target.type === 'radio'))) {
+        // Call the debounced function
+        debouncedInput(`Input changed: ${target.value}`);
+    }
+});

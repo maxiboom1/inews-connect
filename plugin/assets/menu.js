@@ -91,7 +91,6 @@ function renderTemplate(templateId){
     const iframe = document.getElementById('contentIframe');
     iframe.src = url; // Set the source of the iframe to the URL  
     iframe.onload = function() {
-        iframe.contentWindow.hideMakeCopyButton();    
         iframe.style.display = 'block'; // Show the iframe
     };
 }
@@ -105,10 +104,6 @@ async function renderItem(templateId,gfxItem, itemID){
         iframe.src = url; // Set the source of the iframe to the URL  
         
         iframe.onload = function() {
-            // Hide "save" btn in iframe 
-            
-            iframe.contentWindow.hideSaveButton();        
-            iframe.contentWindow.hideBackButton();
     
             // Set item values in template
             iframe.contentWindow.__NA_SetValues(itemData); 
