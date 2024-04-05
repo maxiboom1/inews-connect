@@ -66,9 +66,9 @@ function createMosMessage(){
 const slugName = () => {
     // Find the first input element of type "text"
     const firstTextInput = document.querySelector('input[type="text"]');
-
+    const staticHeader = document.body.getAttribute('data-template-name');
     if (firstTextInput) {
-        return firstTextInput.value;
+        return staticHeader + firstTextInput.value;
     } else {
         return "No text input found.";
     }

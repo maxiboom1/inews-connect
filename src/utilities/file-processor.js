@@ -25,7 +25,7 @@ async function processAndWriteFiles(templates) {
 
     for (const template of templates) {
         const { uid, source, name, production } = template;
-        const injectedHtml = htmlWrapper(source,uid, production);
+        const injectedHtml = htmlWrapper(source,uid, production,name);
         const filePath = path.join(templatesFolder, `${uid}.html`);
         await fsPromises.writeFile(filePath, injectedHtml, 'utf-8');
         delete template.source;
@@ -35,7 +35,8 @@ async function processAndWriteFiles(templates) {
     return templates;
 }
 
-function htmlWrapper(htmlContent,templateUid, productionUid) {
+function htmlWrapper(htmlContent,templateUid, productionUid, templateName) {
+    
     const dom = new JSDOM(htmlContent);
     const document = dom.window.document;
     const scriptFileName = "../assets/iframe.js";
@@ -60,7 +61,14 @@ function htmlWrapper(htmlContent,templateUid, productionUid) {
     document.body.appendChild(scriptTag);
     document.head.appendChild(styleTag);
     document.body.setAttribute('data-template', templateUid);  
-    document.body.setAttribute('data-production', productionUid);    
+    document.body.setAttribute('data-production', productionUid);   
+
+    // Add static category name in item name
+    if(appConfig.addItemCategoryName){
+        document.body.setAttribute('data-template-name', templateName.replace("%S%",""));     
+    } else {
+        document.body.setAttribute('data-template-name', "");     
+    }
   
     return dom.serialize();
 }

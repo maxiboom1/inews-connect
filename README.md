@@ -1,6 +1,6 @@
 Inews-connect gateway to third party application, with HTML5 GFX plugin.
 
-**Main**22
+**Main**
 Inews-connect is an service that gets rundowns data from Avid Inews, caches them, and updates MS-SQL database. 
 Inews-connect designed to serve the Inews rundowns data to NA client - GFX applications for CG operators at broadcast control rooms.
 This design provides isolated runtime of inews-connect and NA client - Inews-connect updates DB, NA client monitors the changes. 
@@ -24,6 +24,10 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 - Avoid to write non-item stories to db 
 
 **LOGS:**
+1.7.0
+
+- Added static header to item name (can be seated in addItemCategoryName config)
+
 1.6.9
 
 - Ignore not enabled templates
@@ -170,3 +174,8 @@ GET: localhost:3000/api/watcher
 GET: localhost:3000/api/services/get-dir/path-to-folder
 
 
+---
+apostrof
+template name on item
+on delete, ignore it
+edit item name in html
