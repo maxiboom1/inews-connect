@@ -76,7 +76,7 @@ function htmlWrapper(htmlContent,templateUid, productionUid, templateName) {
 function createPluginPanel(document) {
     //Create preview btn
     const previewButton = document.createElement('button');
-    previewButton.textContent  = 'Reset Prw';
+    previewButton.textContent  = 'Reset';
     previewButton.id = 'preview';
     previewButton.setAttribute("data-preview-host", appConfig.previewServer);
     previewButton.setAttribute("data-preview-port", appConfig.previewPort);
@@ -111,6 +111,20 @@ function createPluginPanel(document) {
     pluginPanelDiv.appendChild(saveButton);
     pluginPanelDiv.appendChild(dragButton);
     pluginPanelDiv.appendChild(previewButton);
+
+    // Create label
+    const nameLabel = document.createElement('label');
+    nameLabel.textContent = 'Name';
+    nameLabel.setAttribute('for', 'nameInput'); // This should match the id of the input it labels
+    
+    // Create input field
+    const nameInput = document.createElement('input');
+    nameInput.id = 'nameInput';
+    nameInput.name = 'name'; // 'name' attribute for form submission
+
+    // Append label and input to the "pluginPanel" div
+    pluginPanelDiv.appendChild(nameLabel);
+    pluginPanelDiv.appendChild(nameInput);
 
     return pluginPanelDiv;
 }

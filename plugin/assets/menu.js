@@ -66,7 +66,7 @@ async function mosMsgFromHost(event) {
     if (message.indexOf('<ncsItem>') !== -1){
         const templateId = extractTagContent(message, "gfxTemplate");
         const gfxItem = extractTagContent(message, "gfxItem");
-        const itemID = extractTagContent(message, "itemID")
+        const itemID = extractTagContent(message, "itemID");
         renderItem(templateId, gfxItem,itemID);
     }
     
@@ -97,7 +97,9 @@ function renderTemplate(templateId){
 
 // User loaded exists item in inews
 async function renderItem(templateId,gfxItem, itemID){
-    const itemData = await fetchData(`${originUrl}/api/get-item-data/${gfxItem}`, "GET");
+    const itemObj = await fetchData(`${originUrl}/api/get-item-data/${gfxItem}`, "GET");
+    const itemData = itemObj.data;
+    const itemName = itemObj.name;
     if(itemData !== "N/A"){
         let url = `${originUrl}/templates/${templateId}.html`;
         const iframe = document.getElementById('contentIframe');
@@ -111,6 +113,7 @@ async function renderItem(templateId,gfxItem, itemID){
             // Set item values
             iframe.contentWindow.setGfxItem(gfxItem); // Set gfxItemId in iframe head as "data-gfxitem"
             iframe.contentWindow.setItemID(itemID); // Set itemID in iframe head as "data-itemID"
+            iframe.contentWindow.nameInputUpdate(itemName);
             // Show iframe
             iframe.style.display = 'block'; // Show the iframe
             

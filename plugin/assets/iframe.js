@@ -19,7 +19,8 @@ function getItemData(){
         const productionId = document.body.getAttribute('data-production');
 
         return values = {
-            name: slugName(),
+            //name: slugName(),
+            name:document.getElementById("nameInput").value,
             data: _NA_Values,
             scripts: _NA_Scripts,
             templateId: templateId,
@@ -48,7 +49,7 @@ function createMosMessage(){
         <ncsItem>
             <item>
                 <itemID>${itemID}</itemID>
-                <itemSlug>${slugName()}</itemSlug>
+                <itemSlug>${document.getElementById("nameInput").value}</itemSlug>
                 <objID></objID>
                 <mosID>iNEWSMOS1</mosID>
                 <mosItemBrowserProgID>alex</mosItemBrowserProgID>
@@ -65,7 +66,7 @@ function createMosMessage(){
 
 const slugName = () => {
     // Find the first input element of type "text"
-    const firstTextInput = document.querySelector('input[type="text"]');
+    const firstTextInput = document.querySelector('.toolbox-content input[type="text"]');
     const staticHeader = document.body.getAttribute('data-template-name');
     if (firstTextInput) {
         return staticHeader + firstTextInput.value;
@@ -111,6 +112,20 @@ document.querySelector("#navigateBack").addEventListener('click', ()=>{
     window.parent.hideIframe();
 });
 
+
+function nameInputUpdate(name = undefined){
+    if(name === undefined){
+        document.getElementById("nameInput").value = slugName();
+    }else{
+        document.getElementById("nameInput").value = name;
+    }   
+}
+
+function handleKeyUp(event){
+    if (event.target.id === 'nameInput') {return;}
+    nameInputUpdate();
+}
+window.addEventListener('keyup', handleKeyUp);
 // Preview server interaction
 document.getElementById('preview').addEventListener('click', async ()=>{
     //const scripts = __NA_GetScripts();
@@ -166,3 +181,6 @@ document.body.addEventListener('change', function(event) {
         debouncedInput(`Input changed: ${target.value}`);
     }
 });
+
+
+

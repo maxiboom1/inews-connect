@@ -414,13 +414,17 @@ class SqlService {
         };
     
         const sqlQuery = `
-            SELECT data FROM ngn_inews_items WHERE uid = @uid;
+            SELECT data,name FROM ngn_inews_items WHERE uid = @uid;
         `;
     
         try {
             const result = await db.execute(sqlQuery, values);
             if(result.rowsAffected[0] === 0) return "N/A";
-            return result.recordset[0].data; // We return it to front page and its stored in mos obj as gfxItem
+            // We return it to front page and its stored in mos obj as gfxItem
+            return {
+                data:result.recordset[0].data,
+                name:result.recordset[0].name
+            } 
         } catch (error) {
             console.error('Error on fetching item data:', error);
             return null;

@@ -31,9 +31,13 @@ button{
     flex-direction: row-reverse;
     background-color: #4c5054;
     width: 100%;
-    direction: rtl;  
+    direction: rtl; 
+    align-items: center; 
 }
-  
+.pluginPanel label{
+   margin-right: 3px; 
+}
+
 /* Style for the pluginPanelBtn buttons */
 .pluginPanelBtn {
     margin: -3px;
