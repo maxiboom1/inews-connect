@@ -24,6 +24,12 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 - Avoid to write non-item stories to db 
 
 **LOGS:**
+1.7.3
+
+- Wrapping NA_setValue in try catch, to avoid crushing in some minor cases (my scripts conflicting with template embedded scripts) 
+
+Maybe the better way is to inject my script file before template embedded scripts..
+
 1.7.2
 
 - Fix for single quote data input

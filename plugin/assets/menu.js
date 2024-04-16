@@ -108,9 +108,13 @@ async function renderItem(templateId,gfxItem, itemID){
         
         iframe.onload = function() {
     
-            // Set item values in template
-            iframe.contentWindow.__NA_SetValues(itemData); 
-            
+            try {
+                // Set item values in template
+                iframe.contentWindow.__NA_SetValues(itemData);   
+            } catch (error) {
+                console.log("Failed to complete __NA_SetValues", error);
+            }
+
             // Set item values
             iframe.contentWindow.setGfxItem(gfxItem); // Set gfxItemId in iframe head as "data-gfxitem"
             iframe.contentWindow.setItemID(itemID); // Set itemID in iframe head as "data-itemID"
