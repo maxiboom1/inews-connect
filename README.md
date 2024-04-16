@@ -24,6 +24,10 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 - Avoid to write non-item stories to db 
 
 **LOGS:**
+1.7.2
+
+- Fix for single quote data input
+
 1.7.1
 - Added input field that updates onKeyup, and when user hit "save" actually its value will be stored as name. 
 When user open item, sql service will return this name, so we will see it. On any change, it will be automatically returned to static header+ first input field. So, the only thing that i have to add here, is some lock btn to disable name change, in case the name is custom and user still want to edit some gfx data on item

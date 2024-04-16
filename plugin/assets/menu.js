@@ -98,8 +98,9 @@ function renderTemplate(templateId){
 // User loaded exists item in inews
 async function renderItem(templateId,gfxItem, itemID){
     const itemObj = await fetchData(`${originUrl}/api/get-item-data/${gfxItem}`, "GET");
-    const itemData = itemObj.data;
+    const itemData = itemObj.data.replace(/\\'/g, '%27'); // Fix " ' " single quote bug
     const itemName = itemObj.name;
+
     if(itemData !== "N/A"){
         let url = `${originUrl}/templates/${templateId}.html`;
         const iframe = document.getElementById('contentIframe');

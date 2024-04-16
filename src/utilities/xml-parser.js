@@ -35,7 +35,7 @@ function parseAttachments(attachments) {
             item = jObj.AttachmentContent.mos;
         }
 
-
+        
         // Create a new object with only the specified properties
         obj[item.gfxItem] = {
           gfxTemplate: item.gfxTemplate,
@@ -43,12 +43,12 @@ function parseAttachments(attachments) {
           itemSlug: item.itemSlug,
           ord: item.itemID
         };
+        
       }
     }
 
     return obj;
 }
-
 
 
 export default {parseXmlString, parseXmlForReorder,parseAttachments};
