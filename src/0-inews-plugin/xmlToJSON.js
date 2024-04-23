@@ -1,6 +1,7 @@
 import htmlparser2 from "htmlparser2";
 
 export default (nsml) => {
+    
     const rootNodes = [];
     const nodeStack = [];
     let currentNode;
@@ -38,7 +39,7 @@ export default (nsml) => {
         { decodeEntities: true, xmlMode: true }
     );
 
-    parser.write(nsml);
+    parser.write( nsml);
     parser.end();
     return rootNodes;
 }

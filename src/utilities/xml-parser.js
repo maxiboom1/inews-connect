@@ -24,7 +24,6 @@ function parseAttachments(attachments) {
       if (attachments[a].includes("<gfxProduction>")) {
         const parser = new XMLParser();
         let jObj = parser.parse(attachments[a]);
-        //const item = jObj.AttachmentContent.mos.ncsItem.item;
 
         let item;
         if (jObj.AttachmentContent.mos.ncsItem) {
@@ -41,7 +40,8 @@ function parseAttachments(attachments) {
           gfxTemplate: item.gfxTemplate,
           gfxProduction: item.gfxProduction,
           itemSlug: item.itemSlug,
-          ord: item.itemID
+          //ord: item.itemID
+          ord: a
         };
         
       }

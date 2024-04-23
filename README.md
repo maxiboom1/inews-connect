@@ -24,6 +24,12 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 - Avoid to write non-item stories to db 
 
 **LOGS:**
+
+1.7.5
+
+- Fixed item reorder (implemented counter in xmlToJson.js in inews library, and in my parser).
+
+
 1.7.4
 
 - Added stor method in inews library (in both inewsClient.js and inewsConnectionClient.js).

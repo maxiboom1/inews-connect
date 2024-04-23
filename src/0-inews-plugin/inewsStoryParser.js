@@ -3,7 +3,6 @@ import unescape from "unescape";
 import xmlToJSON from "./xmlToJSON.js";
 
 export default async (nsml) => {
-	//console.log(nsml);
 	let story = {
 		fields: {},
 		meta: {},
@@ -12,12 +11,12 @@ export default async (nsml) => {
 	};
 
 	const nsmlNodes = xmlToJSON(nsml);
+	
 	traverseNodes(nsmlNodes);
-	console.log(story.attachments)
-
 	return story;
 
 	function traverseNodes(nodes) {
+		let count = 0; // Implemented by Alex to fix attachments order (but it overwrites attachment id).
 		for(let node of nodes) {
 			switch(node.name) {
 				case 'wgroup':
@@ -61,8 +60,9 @@ export default async (nsml) => {
 					break;
 				case 'attachment':
 					try {
-						console.log(node)
-						story.attachments[camelcase(node.attributes['id'])] = unescape(stringifyNodes(node.children));
+						//story.attachments[camelcase(node.attributes['id'])] = unescape(stringifyNodes(node.children));
+						story.attachments[count] = unescape(stringifyNodes(node.children)); // Implemented by Alex to fix ord bug.
+						count++;					
 					}
 					catch(error) {}
 					break;

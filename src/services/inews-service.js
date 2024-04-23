@@ -6,7 +6,7 @@ import inewsCache from "../1-dal/inews-cache.js";
 import xmlParser from "../utilities/xml-parser.js";
 
 async function startMainProcess() { 
-    console.log('Starting Inews-connect 1.7.4 ...');
+    console.log('Starting Inews-connect 1.7.5 ...');
     await sqlService.initialize();
     await rundownIterator();
 }
@@ -139,12 +139,6 @@ async function deleteDif(rundownStr,listItems) {
 async function getStoryAttachments(rundownStr, fileName){
     const storyPromise = conn.story(rundownStr, fileName);
     const story = await storyPromise;
-    //console.log(story.fields.title);
-    //console.log(story);
-    if(story.fields.title === "ggg"){
-        story.fields.title = story.fields.title + " MOD";
-        updateStory(story.id, story, rundownStr);
-    }
     return xmlParser.parseAttachments(story.attachments); //return {gfxItem: { gfxTemplate, gfxProduction, itemSlug, ord }}
 }
 
@@ -156,7 +150,7 @@ conn.on('connections', connections => {
     console.log(connections + ' FTP connections active');
 });
 
-
+// To use: updateStory(story.id, story, rundownStr);
 async function updateStory(storyId,modifiedStory,rundownStr) {
     const storyData = "<storyid>"+storyId; // Example story data in NSML format
     console.log("triggered mod...", rundownStr);
