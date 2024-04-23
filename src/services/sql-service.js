@@ -419,7 +419,7 @@ class SqlService {
     
         try {
             const result = await db.execute(sqlQuery, values);
-            if(result.rowsAffected[0] === 0) return "N/A";
+            if(result.rowsAffected[0] === 0) return {data:"N/A"};
             // We return it to front page and its stored in mos obj as gfxItem
             return {
                 data:result.recordset[0].data,
@@ -469,22 +469,22 @@ class SqlService {
     
 // ********************* LAST UPDATE && ORD LAST UPDATE FUNCTIONS ********************** //
     
-async rundownLastUpdate(rundownStr){
-        const rundownMeta = await inewsCache.getRundownList(rundownStr);
-        try {
-            const values = {
-                uid: rundownMeta.uid,
-                lastupdate: createTick()
-            }
-            const sqlQuery = `
-                UPDATE ngn_inews_rundowns
-                SET lastupdate = @lastupdate
-                WHERE uid = @uid;
-            `;
-            await db.execute(sqlQuery, values);
-        } catch (error) {
-            console.error('Error rundownLastUpdate:', error);
-        }     
+    async rundownLastUpdate(rundownStr){
+            const rundownMeta = await inewsCache.getRundownList(rundownStr);
+            try {
+                const values = {
+                    uid: rundownMeta.uid,
+                    lastupdate: createTick()
+                }
+                const sqlQuery = `
+                    UPDATE ngn_inews_rundowns
+                    SET lastupdate = @lastupdate
+                    WHERE uid = @uid;
+                `;
+                await db.execute(sqlQuery, values);
+            } catch (error) {
+                console.error('Error rundownLastUpdate:', error);
+            }     
     }
 
     

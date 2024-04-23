@@ -9,7 +9,7 @@ class ItemsHashmap {
         this.cacheFilePath = path.join(path.resolve(), 'unlinkedItemsCache.json');        
         this.loadUnlinkedFromCache();
         //setInterval(() => this.updateCacheFile(), 10 * 60 * 1000); // Update cache every 10 minutes
-        setInterval(() => this.updateCacheFile(), 5000); 
+        setInterval(() => this.updateCacheFile(), 60000); 
     }
 
     loadUnlinkedFromCache() {
