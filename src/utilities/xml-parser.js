@@ -1,4 +1,5 @@
 import {XMLParser} from "fast-xml-parser";
+import itemsHash from "../1-dal/items-hashmap.js";
 
 function parseXmlString(XMLdata) {
     const parser = new XMLParser();
@@ -34,7 +35,8 @@ function parseAttachments(attachments) {
             item = jObj.AttachmentContent.mos;
         }
 
-        
+        console.log(itemsHash.isUsed(item.gfxItem)); // WORK HERE TO CREATE DUPLICATED ITEMS
+
         // Create a new object with only the specified properties
         obj[item.gfxItem] = {
           gfxTemplate: item.gfxTemplate,

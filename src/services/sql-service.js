@@ -181,30 +181,7 @@ class SqlService {
         }
     }
 
-    async reorderDbStory(rundownStr,story,ord){
-        const values = {
-            ord: ord,
-            locator: story.locator,
-            identifier: story.identifier,
-            ordupdate: createTick(),
-        };
-        
-        const sqlQuery = `
-            UPDATE ngn_inews_stories
-            SET ord = @ord, ordupdate = @ordupdate, locator = @locator
-            WHERE identifier = @identifier;
-        `;
-        try {
-            await db.execute(sqlQuery, values);
-            await this.rundownLastUpdate(rundownStr);
-            console.log(`Reorder story in ${rundownStr}: ${story.storyName}`);
-        } catch (error) {
-            console.error('Error executing query:', error);
-        }
-
-    }
-
-    async modifyDbStory(rundownStr,story){//Story: {fileType,fileName,identifier,locator,storyName,modified,flags,attachments{gfxitem{props}}}
+    async modifyDbStory(rundownStr,story){ //Story: {fileType,fileName,identifier,locator,storyName,modified,flags,attachments{gfxitem{props}}}
         const values = {
             identifier:story.identifier, // Filter param from sql ("WHERE ")
             name:story.storyName,
@@ -232,6 +209,29 @@ class SqlService {
 
         } catch (error) {
             console.error('Error executing query:', error);  
+        }
+
+    }
+
+    async reorderDbStory(rundownStr,story,ord){
+        const values = {
+            ord: ord,
+            locator: story.locator,
+            identifier: story.identifier,
+            ordupdate: createTick(),
+        };
+        
+        const sqlQuery = `
+            UPDATE ngn_inews_stories
+            SET ord = @ord, ordupdate = @ordupdate, locator = @locator
+            WHERE identifier = @identifier;
+        `;
+        try {
+            await db.execute(sqlQuery, values);
+            await this.rundownLastUpdate(rundownStr);
+            console.log(`Reorder story in ${rundownStr}: ${story.storyName}`);
+        } catch (error) {
+            console.error('Error executing query:', error);
         }
 
     }
