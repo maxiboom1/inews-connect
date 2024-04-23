@@ -120,7 +120,7 @@ class InewsConnectionClient extends EventEmitter {
 	get host() {
 		return (this.hasOwnProperty('_ftpConnConfig') && typeof this._ftpConnConfig === 'object') ? this._ftpConnConfig.host : undefined;
 	}
-
+ 
 	connect(forceDisconnect = false) {
 		const delay = (ms) => {
 			return new Promise((resolve) => {
@@ -132,13 +132,13 @@ class InewsConnectionClient extends EventEmitter {
 		// NEW
 		const sendSiteFormatCommand = () => {
 			return new Promise((resolve, reject) => {
-				console.log(appConfig.ftpSiteFormat);
-			  this._ftpConn.site(`FORMAT=${appConfig.ftpSiteFormat}`, (error, response) => { 
-				if (error) {
-				  reject(error);
-				} else {
-				  resolve(response);
-				}
+				console.log("Site format set to: ", appConfig.ftpSiteFormat);
+			  	this._ftpConn.site(`FORMAT=${appConfig.ftpSiteFormat}`, (error, response) => { 
+					if (error) {
+					reject(error);
+					} else {
+					resolve(response);
+					}
 			  });
 			});
 		  };
@@ -373,11 +373,31 @@ class InewsConnectionClient extends EventEmitter {
 		}
 	}
 
+	stor(command, data) {
+		return new Promise((resolve, reject) => {
+			this.connect().then(() => {
+				
+				const dataBuffer = Buffer.from(data, 'utf8');
+	
+				this._ftpConn.put(dataBuffer, "", (error) => {
+					console.log(data );
+					if (error) {
+						reject(error);
+					} else {
+						resolve(`STOR successful for ${'a'}`);
+					}
+				});
+			}).catch(error => {
+				reject(error);
+			});
+		});
+	}
+	
 	canStartNextJob(directory) {
 		// In directory already, directory is requested, or not started
 		return (this.running === 0 || (((this._currentDir === directory && typeof this._requestedDir !== 'string') || this._requestedDir === directory || (typeof this._currentDir !== 'string' && typeof this._requestedDir !== 'string')) && this.status === 'connected' && this.running < this.config.maxRunning));
 	}
-
+	  
 	_cwd(requestedDir) {
 		if(requestedDir === this._currentDir) { // Already in dir
 			return new Promise((resolve, reject) => {

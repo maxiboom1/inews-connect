@@ -3,6 +3,7 @@ import unescape from "unescape";
 import xmlToJSON from "./xmlToJSON.js";
 
 export default async (nsml) => {
+	//console.log(nsml);
 	let story = {
 		fields: {},
 		meta: {},
@@ -12,6 +13,8 @@ export default async (nsml) => {
 
 	const nsmlNodes = xmlToJSON(nsml);
 	traverseNodes(nsmlNodes);
+	console.log(story.attachments)
+
 	return story;
 
 	function traverseNodes(nodes) {
@@ -58,6 +61,7 @@ export default async (nsml) => {
 					break;
 				case 'attachment':
 					try {
+						console.log(node)
 						story.attachments[camelcase(node.attributes['id'])] = unescape(stringifyNodes(node.children));
 					}
 					catch(error) {}

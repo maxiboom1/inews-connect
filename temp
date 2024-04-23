@@ -1,0 +1,276 @@
+<nsml version="-//iNEWS//DTD NSML 2.0//EN">
+<head>
+<meta rate=180>
+<formname>STORYFORM</formname>
+<storyid>0522da9e:0003f275:66250d39</storyid>
+</head>
+<story>
+<fields>
+<f id=page-number></f>
+<f id=presenter></f>
+<f id=title>test</f>
+<f id=v-cam></f>
+<f id=v-shot></f>
+<f id=v-format></f>
+<f id=v-graphics></f>
+<f id=audio-time>0</f>
+<f id=runs-time>0</f>
+<f id=total-time>0</f>
+<f id=back-time></f>
+<f id=status></f>
+<f id=endorse-by></f>
+<f id=modify-date>1713704249</f>
+<f id=modify-by>avid</f>
+<f id=v-edby></f>
+<f id=v-writer></f>
+<f id=video-id></f>
+<f id=item-channel></f>
+<f id=event-status></f>
+<f id=v-tapenumber></f>
+<f id=v-timecode></f>
+<f id=air-date></f>
+<f id=air-end></f>
+<f id=air-duration></f>
+</fields>
+<body>
+<p><a idref=0></p>
+<p><a idref=1></p>
+<p><a idref=2><pi></pi></p>
+</body>
+<aeset>
+<ae id=0>
+<ap>]] S3.0 M 0 [[</ap>
+<mc>
+<ap>othername ]] 1 YNYAM 0 [[ אצבע - fin-1</ap>
+</mc>
+</ae>
+<ae id=1>
+<ap>]] S3.0 M 0 [[</ap>
+<mc>
+<ap>othername ]] 2 YNYAM 0 [[ אצבע - fin-2</ap>
+</mc>
+</ae>
+<ae id=2>
+<ap>]] S3.0 M 0 [[</ap>
+<mc>
+<ap>othername ]] 3 YNYAM 0 [[ אצבע - fin-3</ap>
+</mc>
+</ae>
+</aeset>
+</story>
+<aeset-atts>
+<attachment id=1>
+<![CDATA[<AttachmentContent><mos>
+                <ncsItem>
+                        <item>
+                                <itemID>1</itemID>
+                                <itemSlug>אצבע - fin-1</itemSlug>
+                                <objID></objID>
+                                <mosID>iNEWSMOS1</mosID>
+                                <mosItemBrowserProgID>alex</mosItemBrowserProgID>
+                                <mosItemEditorProgID>alexE</mosItemEditorProgID>
+                                <mosAbstract></mosAbstract>
+                                <group>1</group>
+                                <gfxItem>30153</gfxItem>
+                                <gfxTemplate>10003</gfxTemplate>
+                                <gfxProduction>2</gfxProduction>
+                        </item>
+                </ncsItem>
+        </mos></AttachmentContent>]]></attachment>
+<attachment id=2>
+<![CDATA[<AttachmentContent><mos>
+                <ncsItem>
+                        <item>
+                                <itemID>2</itemID>
+                                <itemSlug>אצבע - fin-2</itemSlug>
+                                <objID></objID>
+                                <mosID>iNEWSMOS1</mosID>
+                                <mosItemBrowserProgID>alex</mosItemBrowserProgID>
+                                <mosItemEditorProgID>alexE</mosItemEditorProgID>
+                                <mosAbstract></mosAbstract>
+                                <group>1</group>
+                                <gfxItem>30154</gfxItem>
+                                <gfxTemplate>10003</gfxTemplate>
+                                <gfxProduction>2</gfxProduction>
+                        </item>
+                </ncsItem>
+        </mos></AttachmentContent>]]></attachment>
+<attachment id=3>
+<![CDATA[<AttachmentContent><mos>
+                <ncsItem>
+                        <item>
+                                <itemID>3</itemID>
+                                <itemSlug>אצבע - fin-3</itemSlug>
+                                <objID></objID>
+                                <mosID>iNEWSMOS1</mosID>
+                                <mosItemBrowserProgID>alex</mosItemBrowserProgID>
+                                <mosItemEditorProgID>alexE</mosItemEditorProgID>
+                                <mosAbstract></mosAbstract>
+                                <group>1</group>
+                                <gfxItem>30155</gfxItem>
+                                <gfxTemplate>10003</gfxTemplate>
+                                <gfxProduction>2</gfxProduction>
+                        </item>
+                </ncsItem>
+        </mos></AttachmentContent>]]></attachment>
+</aeset-atts>
+
+
+<nsml version="-//iNEWS//DTD NSML 2.0//EN">
+<head>
+<meta rate=180>
+<formname>STORYFORM</formname>
+<storyid>0422daa0:0003f276:66250d09</storyid>
+</head>
+<story>
+<fields>
+<f id=page-number></f>
+<f id=presenter></f>
+<f id=title>123</f>
+<f id=v-cam></f>
+<f id=v-shot></f>
+<f id=v-format></f>
+<f id=v-graphics></f>
+<f id=audio-time>0</f>
+<f id=runs-time>0</f>
+<f id=total-time>0</f>
+<f id=back-time></f>
+<f id=status></f>
+<f id=endorse-by></f>
+<f id=modify-date>1713704201</f>
+<f id=modify-by>avid</f>
+<f id=v-edby></f>
+<f id=v-writer></f>
+<f id=video-id></f>
+<f id=item-channel></f>
+<f id=event-status></f>
+<f id=v-tapenumber></f>
+<f id=v-timecode></f>
+<f id=air-date></f>
+<f id=air-end></f>
+<f id=air-duration></f>
+</fields>
+<body>
+<p><pi></pi></p>
+</body>
+</story>
+
+Registering new story to show.alex.rundown2: 123
+<nsml version="-//iNEWS//DTD NSML 2.0//EN">
+<head>
+<meta rate=180>
+<formname>STORYFORM</formname>
+<storyid>0522da9e:0003f27b:66250ff9</storyid>
+</head>
+<story>
+<fields>
+<f id=page-number></f>
+<f id=presenter></f>
+<f id=title>test</f>
+<f id=v-cam></f>
+<f id=v-shot></f>
+<f id=v-format></f>
+<f id=v-graphics></f>
+<f id=audio-time>0</f>
+<f id=runs-time>0</f>
+<f id=total-time>0</f>
+<f id=back-time></f>
+<f id=status></f>
+<f id=endorse-by></f>
+<f id=modify-date>1713704953</f>
+<f id=modify-by>avid</f>
+<f id=v-edby></f>
+<f id=v-writer></f>
+<f id=video-id></f>
+<f id=item-channel></f>
+<f id=event-status></f>
+<f id=v-tapenumber></f>
+<f id=v-timecode></f>
+<f id=air-date></f>
+<f id=air-end></f>
+<f id=air-duration></f>
+</fields>
+<body>
+<p><a idref=3></p>
+<p><a idref=0></p>
+<p><a idref=1></p>
+<p></p>
+<p></p>
+</body>
+<aeset>
+<ae id=3>
+<ap>]] S3.0 M 0 [[</ap>
+<mc>
+<ap>othername ]] 4 YNYAM 0 [[ אצבע - fin-3</ap>
+</mc>
+</ae>
+<ae id=0>
+<ap>]] S3.0 M 0 [[</ap>
+<mc>
+<ap>othername ]] 1 YNYAM 0 [[ אצבע - fin-1</ap>
+</mc>
+</ae>
+<ae id=1>
+<ap>]] S3.0 M 0 [[</ap>
+<mc>
+<ap>othername ]] 2 YNYAM 0 [[ אצבע - fin-2</ap>
+</mc>
+</ae>
+</aeset>
+</story>
+<aeset-atts>
+<attachment id=4>
+<![CDATA[<AttachmentContent><mos>
+                <ncsItem>
+                        <item>
+                                <itemID>4</itemID>
+                                <itemSlug>אצבע - fin-3</itemSlug>
+                                <objID></objID>
+                                <mosID>iNEWSMOS1</mosID>
+                                <mosItemBrowserProgID>alex</mosItemBrowserProgID>
+                                <mosItemEditorProgID>alexE</mosItemEditorProgID>
+                                <mosAbstract></mosAbstract>
+                                <group>1</group>
+                                <gfxItem>30155</gfxItem>
+                                <gfxTemplate>10003</gfxTemplate>
+                                <gfxProduction>2</gfxProduction>
+                        </item>
+                </ncsItem>
+        </mos></AttachmentContent>]]></attachment>
+<attachment id=1>
+<![CDATA[<AttachmentContent><mos>
+                <ncsItem>
+                        <item>
+                                <itemID>1</itemID>
+                                <itemSlug>אצבע - fin-1</itemSlug>
+                                <objID></objID>
+                                <mosID>iNEWSMOS1</mosID>
+                                <mosItemBrowserProgID>alex</mosItemBrowserProgID>
+                                <mosItemEditorProgID>alexE</mosItemEditorProgID>
+                                <mosAbstract></mosAbstract>
+                                <group>1</group>
+                                <gfxItem>30153</gfxItem>
+                                <gfxTemplate>10003</gfxTemplate>
+                                <gfxProduction>2</gfxProduction>
+                        </item>
+                </ncsItem>
+        </mos></AttachmentContent>]]></attachment>
+<attachment id=2>
+<![CDATA[<AttachmentContent><mos>
+                <ncsItem>
+                        <item>
+                                <itemID>2</itemID>
+                                <itemSlug>אצבע - fin-2</itemSlug>
+                                <objID></objID>
+                                <mosID>iNEWSMOS1</mosID>
+                                <mosItemBrowserProgID>alex</mosItemBrowserProgID>
+                                <mosItemEditorProgID>alexE</mosItemEditorProgID>
+                                <mosAbstract></mosAbstract>
+                                <group>1</group>
+                                <gfxItem>30154</gfxItem>
+                                <gfxTemplate>10003</gfxTemplate>
+                                <gfxProduction>2</gfxProduction>
+                        </item>
+                </ncsItem>
+        </mos></AttachmentContent>]]></attachment>
+</aeset-atts>

@@ -57,7 +57,7 @@ function createTemplateHtml(template){
 
 async function mosMsgFromHost(event) {
     var message = event.data;
-    console.log(message);
+    console.log("raw", message);
     if (event.origin != getNewsroomOrigin()) { 
         return; 
     }

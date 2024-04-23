@@ -108,6 +108,19 @@ class InewsClient extends EventEmitter {
 		}
 	}
 	
+	stor(command, data, directory) {
+		const requestPath = ['stor', directory, command];
+		if (this._pendingRequestConnectionClients.has(requestPath)) {
+			return this._pendingRequestConnectionClients.get(requestPath).stor(command, data);
+		} else {
+			const connectionClient = this._optimalConnectionClient(directory);
+			this._pendingRequestConnectionClients.set(requestPath, connectionClient);
+			return connectionClient.stor(command, data).finally(() => {
+				this._pendingRequestConnectionClients.delete(requestPath);
+			});
+		}
+	}
+
 	_optimalConnectionClient(directory) {
 		/*
 		Sort by number of jobs running decreasing

@@ -139,6 +139,12 @@ async function deleteDif(rundownStr,listItems) {
 async function getStoryAttachments(rundownStr, fileName){
     const storyPromise = conn.story(rundownStr, fileName);
     const story = await storyPromise;
+    //console.log(story.fields.title);
+    //console.log(story);
+    if(story.fields.title === "ggg"){
+        story.fields.title = story.fields.title + " MOD";
+        updateStory(story.id, story, rundownStr);
+    }
     return xmlParser.parseAttachments(story.attachments); //return {gfxItem: { gfxTemplate, gfxProduction, itemSlug, ord }}
 }
 
@@ -151,6 +157,18 @@ conn.on('connections', connections => {
 });
 
 
+async function updateStory(storyId,modifiedStory,rundownStr) {
+    const storyData = "<storyid>"+storyId; // Example story data in NSML format
+    console.log("triggered mod...", rundownStr);
+    try {
+      const response = await conn.stor(modifiedStory, storyData, rundownStr);
+      console.log(response);
+    } catch (error) {
+      console.error("Error updating story:", error);
+    }
+}
+
+  
 export default {
     startMainProcess
 };
