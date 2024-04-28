@@ -49,7 +49,7 @@ function createMosMessage(){
         <ncsItem>
             <item>
                 <itemID>${itemID}</itemID>
-                <itemSlug>${document.getElementById("nameInput").value}</itemSlug>
+                <itemSlug>${document.getElementById("nameInput").value.replace(/'/g, "")}</itemSlug>
                 <objID></objID>
                 <mosID>iNEWSMOS1</mosID>
                 <mosItemBrowserProgID>alex</mosItemBrowserProgID>

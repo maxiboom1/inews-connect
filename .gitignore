@@ -2,3 +2,5 @@ node_modules/
 plugin/templates/
 dist/
 config.json
+unlinkedItemsCache.json
+config.backup

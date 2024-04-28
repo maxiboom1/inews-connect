@@ -6,7 +6,7 @@ import inewsCache from "../1-dal/inews-cache.js";
 import xmlParser from "../utilities/xml-parser.js";
 
 async function startMainProcess() { 
-    console.log('Starting Inews-connect 1.7.5 ...');
+    console.log('Starting Inews-connect 1.7.6 ...');
     await sqlService.initialize();
     await rundownIterator();
 }
@@ -139,7 +139,7 @@ async function deleteDif(rundownStr,listItems) {
 async function getStoryAttachments(rundownStr, fileName){
     const storyPromise = conn.story(rundownStr, fileName);
     const story = await storyPromise;
-    return xmlParser.parseAttachments(story.attachments); //return {gfxItem: { gfxTemplate, gfxProduction, itemSlug, ord }}
+    return xmlParser.parseAttachments(story); //return {gfxItem: { gfxTemplate, gfxProduction, itemSlug, ord }}
 }
 
 function isEmpty(obj) {

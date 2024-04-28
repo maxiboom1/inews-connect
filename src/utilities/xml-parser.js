@@ -19,8 +19,9 @@ function parseXmlForReorder(XMLdata) {
   return item;
 }
 
-function parseAttachments(attachments) {
-    const obj = {};
+function parseAttachments(story) {
+  const attachments = story.attachments;
+  const obj = {};
     for (const a in attachments) {
       if (attachments[a].includes("<gfxProduction>")) {
         const parser = new XMLParser();
@@ -34,9 +35,15 @@ function parseAttachments(attachments) {
             // Type 2 XML
             item = jObj.AttachmentContent.mos;
         }
-
-        console.log(itemsHash.isUsed(item.gfxItem)); // WORK HERE TO CREATE DUPLICATED ITEMS
-
+        
+        // FOUND DUPLICATED ITEM!
+        if(itemsHash.isUsed(item.gfxItem)){
+          // If im here, that means that we found {item} that already exists.
+          //1. we need to create new copy of it 
+          //2. we need to edit this inews story item and replace gfxItem (fetch NSML story first)
+          console.log(story);
+        }
+         
         // Create a new object with only the specified properties
         obj[item.gfxItem] = {
           gfxTemplate: item.gfxTemplate,
