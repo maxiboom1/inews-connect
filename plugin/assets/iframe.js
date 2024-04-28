@@ -64,17 +64,6 @@ function createMosMessage(){
     </mos>`;
 }
 
-const slugName = () => {
-    // Find the first input element of type "text"
-    const firstTextInput = document.querySelector('.toolbox-content input[type="text"]');
-    const staticHeader = document.body.getAttribute('data-template-name');
-    if (firstTextInput) {
-        return staticHeader + firstTextInput.value;
-    } else {
-        return "No text input found.";
-    }
-}
-
 function setGfxItem(gfxItem){
     document.body.setAttribute("data-gfxItem",gfxItem);
 }
@@ -112,28 +101,10 @@ document.querySelector("#navigateBack").addEventListener('click', ()=>{
     window.parent.hideIframe();
 });
 
-
-function nameInputUpdate(name = undefined){
-    if(name === undefined){
-        document.getElementById("nameInput").value = slugName();
-    }else{
-        document.getElementById("nameInput").value = name;
-    }   
-}
-
-function handleKeyUp(event){
-    if (event.target.id === 'nameInput') {return;}
-    nameInputUpdate();
-}
-window.addEventListener('keyup', handleKeyUp);
-// Preview server interaction
+// ========================================= Preview server ========================================= \\
 document.getElementById('preview').addEventListener('click', async ()=>{
-    //const scripts = __NA_GetScripts();
-    //const templateId = document.body.getAttribute('data-template');
     const previewHost = document.getElementById("preview").getAttribute("data-preview-host");
     const previewPort = document.getElementById("preview").getAttribute("data-preview-port");
-    // Send templateId and scripts to preview server
-    //await fetch(`http://${previewHost}:${previewPort}?${templateId},${scripts}`,{method:'GET'});
     await fetch(`http://${previewHost}:${previewPort}?reset`,{method:'GET'});
 });
 
@@ -183,4 +154,44 @@ document.body.addEventListener('change', function(event) {
 });
 
 
+// ========================================= Item name based on input (old) ========================================= \\
 
+const slugName = () => {
+    // Find the first input element of type "text"
+    const firstTextInput = document.querySelector('.toolbox-content input[type="text"]');
+    const staticHeader = document.body.getAttribute('data-template-name');
+    if (firstTextInput) {
+        return staticHeader + firstTextInput.value;
+    } else {
+        return "No text input found.";
+    }
+}
+
+function nameInputUpdate(name = undefined){
+    if(name === undefined){
+        document.getElementById("nameInput").value = slugName();
+    }else{
+        document.getElementById("nameInput").value = name;
+    }   
+}
+
+function handleKeyUp(event){
+    if (event.target.id === 'nameInput') {return;}
+    nameInputUpdate();
+}
+window.addEventListener('keyup', handleKeyUp);
+
+
+// ========================================= Communication with child (template) js ========================================= \\
+
+document.addEventListener('messageFromItem', function(e) {
+    console.log("Received:", e.detail.name);
+});
+
+
+// In template usage example:
+// function updateName() { 
+//     var stripeText1 = document.getElementById('stripeText1').value;
+//     var event = new CustomEvent('UpdateNameEvent', { detail: { name: stripeText1 } });
+//     document.dispatchEvent(event);
+// }
