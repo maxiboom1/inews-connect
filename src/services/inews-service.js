@@ -4,6 +4,7 @@ import hebDecoder from "../utilities/hebrew-decoder.js";
 import sqlService from "./sql-service.js";
 import inewsCache from "../1-dal/inews-cache.js";
 import xmlParser from "../utilities/xml-parser.js";
+import itemHash from "../1-dal/items-hashmap.js";
 
 async function startMainProcess() { 
     console.log('Starting Inews-connect 1.7.6 ...');
@@ -47,7 +48,9 @@ async function rundownProcessor(rundownStr) {
                         listItem.attachments = storyAttachments; //return {gfxItem: { gfxTemplate, gfxProduction, itemSlug, ord }}
                         // Set enabled
                         if(isEmpty(storyAttachments)){listItem.enabled = 0} else {listItem.enabled = 1}
-
+                        checkForDuplicatedItems(rundownStr,listItem);
+                        // console.log(Object.keys(storyAttachments));
+                        
                         // Save story and attachment to db 
                         const assertedStoryUid = await sqlService.addDbStory(rundownStr,listItem,index);
                         listItem.uid = assertedStoryUid;
@@ -162,6 +165,15 @@ async function updateStory(storyId,modifiedStory,rundownStr) {
     }
 }
 
+function checkForDuplicatedItems(rundownStr, story){
+    const attachmentsIdArr = Object.keys(story.attachments);
+    attachmentsIdArr.forEach(async (itemId)=>{
+        if(itemHash.isUsed(itemId)){
+            console.log(await sqlService.getFullItem(itemId));
+            // Now we need to create new copy entry of item
+        }
+    });
+}
   
 export default {
     startMainProcess

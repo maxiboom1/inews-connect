@@ -41,7 +41,7 @@ function parseAttachments(story) {
           // If im here, that means that we found {item} that already exists.
           //1. we need to create new copy of it 
           //2. we need to edit this inews story item and replace gfxItem (fetch NSML story first)
-          console.log(story);
+          //console.log(story);
         }
          
         // Create a new object with only the specified properties
