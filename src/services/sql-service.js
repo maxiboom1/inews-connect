@@ -431,26 +431,6 @@ class SqlService {
         }
     }
 
-    async getFullItem(itemUid){
-        const values = {
-            uid:itemUid
-        };
-    
-        const sqlQuery = `
-            SELECT * FROM ngn_inews_items WHERE uid = @uid;
-        `;
-    
-        try {
-            const result = await db.execute(sqlQuery, values);
-            if(result.rowsAffected[0] === 0) return {data:"N/A"};
-            
-            return result.recordset[0];
- 
-        } catch (error) {
-            console.error('Error on fetching item data:', error);
-            return null;
-        }
-    }
     // This func is triggered from a web page, when the user clicks "save" 
     async updateItemFromFront(item) { // Expect: {name, data, scripts, templateId, productionId, gfxItem}
         const values = {
@@ -486,7 +466,50 @@ class SqlService {
             // Since the function is void, we don't return anything, but you might want to handle the error appropriately
         }
     }
+    
+// ********************* LAST UPDATE && ORD LAST UPDATE FUNCTIONS ********************** //
+    
+    async rundownLastUpdate(rundownStr){
+            const rundownMeta = await inewsCache.getRundownList(rundownStr);
+            try {
+                const values = {
+                    uid: rundownMeta.uid,
+                    lastupdate: createTick()
+                }
+                const sqlQuery = `
+                    UPDATE ngn_inews_rundowns
+                    SET lastupdate = @lastupdate
+                    WHERE uid = @uid;
+                `;
+                await db.execute(sqlQuery, values);
+            } catch (error) {
+                console.error('Error rundownLastUpdate:', error);
+            }     
+    }
 
+// ********************* DUPLICATE ITEMS FUNCTIONS ********************** //
+
+    async getFullItem(itemUid){
+        const values = {
+            uid:itemUid
+        };
+    
+        const sqlQuery = `
+            SELECT * FROM ngn_inews_items WHERE uid = @uid;
+        `;
+    
+        try {
+            const result = await db.execute(sqlQuery, values);
+            if(result.rowsAffected[0] === 0) return {data:"N/A"};
+            
+            return result.recordset[0];
+ 
+        } catch (error) {
+            console.error('Error on fetching item data:', error);
+            return null;
+        }
+    }
+    
     async storeDuplicatedItem(item) { // Expect: {name, data, scripts, templateId,productionId}
         const values = {
             name: item.name,
@@ -517,28 +540,6 @@ class SqlService {
             return null;
         }
     }
-    
-// ********************* LAST UPDATE && ORD LAST UPDATE FUNCTIONS ********************** //
-    
-    async rundownLastUpdate(rundownStr){
-            const rundownMeta = await inewsCache.getRundownList(rundownStr);
-            try {
-                const values = {
-                    uid: rundownMeta.uid,
-                    lastupdate: createTick()
-                }
-                const sqlQuery = `
-                    UPDATE ngn_inews_rundowns
-                    SET lastupdate = @lastupdate
-                    WHERE uid = @uid;
-                `;
-                await db.execute(sqlQuery, values);
-            } catch (error) {
-                console.error('Error rundownLastUpdate:', error);
-            }     
-    }
-
-    
 }    
 
 const sqlService = new SqlService();
