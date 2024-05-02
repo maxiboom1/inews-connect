@@ -510,36 +510,6 @@ class SqlService {
         }
     }
     
-    async storeDuplicatedItem(item) { // Expect: {name, data, scripts, templateId,productionId}
-        const values = {
-            name: item.name,
-            lastupdate: createTick(),
-            production: item.productionId,
-            rundown: "",
-            story: "",
-            ord: "",
-            ordupdate: createTick(),
-            template: item.templateId,
-            data: item.data,
-            scripts: item.scripts,
-            enabled: 1,
-            tag: "",
-        };
-        
-        const sqlQuery = `
-            INSERT INTO ngn_inews_items (name, lastupdate, production, rundown, story, ord, ordupdate, template, data, scripts, enabled, tag)
-            OUTPUT INSERTED.uid
-            VALUES (@name, @lastupdate, @production, @rundown, @story, @ord, @ordupdate,@template, @data, @scripts, @enabled, @tag);`;
-    
-        try {
-            const result = await db.execute(sqlQuery, values);
-            //itemsHash.addUnlinked(result.recordset[0].uid);
-            return result.recordset[0].uid; // We return it to front page and its stored in mos obj as gfxItem
-        } catch (error) {
-            console.error('Error on storing GFX item:', error);
-            return null;
-        }
-    }
 }    
 
 const sqlService = new SqlService();

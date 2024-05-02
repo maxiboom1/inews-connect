@@ -48,7 +48,7 @@ async function rundownProcessor(rundownStr) {
                         listItem.attachments = storyAttachments; //return {gfxItem: { gfxTemplate, gfxProduction, itemSlug, ord }}
                         // Set enabled
                         if(isEmpty(storyAttachments)){listItem.enabled = 0} else {listItem.enabled = 1}
-                        checkForDuplicatedItems(rundownStr,listItem);
+                        //checkForDuplicatedItems(rundownStr,listItem);
                         // console.log(Object.keys(storyAttachments));
                         
                         // Save story and attachment to db 
@@ -71,6 +71,7 @@ async function rundownProcessor(rundownStr) {
                             const storyAttachments = await getStoryAttachments(rundownStr, listItem.fileName);
                             // Set enabled
                             if(isEmpty(storyAttachments)){listItem.enabled = 0} else {listItem.enabled = 1}
+                            //checkForDuplicatedItems(rundownStr,listItem);
                             listItem.attachments =storyAttachments; //return {gfxItem: { gfxTemplate, gfxProduction, itemSlug, ord }}
                             await sqlService.modifyDbStory(rundownStr,listItem);
                             await inewsCache.modifyStory(rundownStr,listItem);
@@ -149,32 +150,48 @@ function isEmpty(obj) {
     return Object.keys(obj).length === 0;
 }
 
-conn.on('connections', connections => {
-    console.log(connections + ' FTP connections active');
-});
-
 // To use: updateStory(story.id, story, rundownStr);
 async function updateStory(storyId,modifiedStory,rundownStr) {
     const storyData = "<storyid>"+storyId; // Example story data in NSML format
     console.log("triggered mod...", rundownStr);
     try {
-      const response = await conn.stor(modifiedStory, storyData, rundownStr);
+      const response = await conn.stor(storyData,modifiedStory, rundownStr);
       console.log(response);
     } catch (error) {
       console.error("Error updating story:", error);
     }
 }
 
-function checkForDuplicatedItems(rundownStr, story){
+async function checkForDuplicatedItems(rundownStr, story){
     const attachmentsIdArr = Object.keys(story.attachments);
     attachmentsIdArr.forEach(async (itemId)=>{
         if(itemHash.isUsed(itemId)){
-            console.log(await sqlService.getFullItem(itemId));
-            // Now we need to create new copy entry of item
+            
+            // Fetch duplicated item 
+            const originItem = await sqlService.getFullItem(itemId);
+            originItem.templateId = originItem.template;
+            originItem.productionId = originItem.production;
+            
+            // Store copy and get new uid
+            const assertedUid = await sqlService.storeNewItem(originItem);
+
+            console.log(assertedUid);
+
+            conn.storyNsml(rundownStr, story.fileName)
+        			    .then(story => {
+        					const updatedStory = story.replace(`<gfxItem>${itemId}</gfxItem>`,`<gfxItem>${assertedUid}</gfxItem>`);
+                            updateStory(story.fileName,updatedStory,rundownStr);
+        				})
+        				.catch(error => {
+        					console.error("ERROR", error);
+        				});
         }
     });
 }
-  
+
+conn.on('connections', connections => {
+    console.log(connections + ' FTP connections active');
+});
 export default {
     startMainProcess
 };
