@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>iNEWS HTML Plugin (handler)</title>
+</head>
+<body>
+    <script>
+        console.log("[inews handler] domain -> ", document.domain);
+
+        var searchParams = null;
+
+        var userID = null;
+        var runContext = null;
+
+        var port2;
+        window.addEventListener('message', initPort);
+
+        function loadSearchParams() {
+            console.log('[inews handler] document.location.search -> ', document.location.search);
+            var qs = document.location.search.split("+").join(" ");
+
+            searchParams = {};
+            var regex = /[?&]?([^=]+)=([^&]*)/g;
+            while (tokens = regex.exec(qs)) {
+                searchParams[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
+            }
+
+            console.log('[inews handler] ' + searchParams);
+        }
+
+        function getUserId() {
+            if (searchParams == null) {
+                loadSearchParams();
+            }
+            return searchParams['userID'];
+        }
+
+        // Setup the transfered port
+        function initPort(event) {
+            console.log("[inews handler] Setup the transfered port");
+            port2 = event.ports[0];
+            port2.onmessage = onMessageFromPlugin;
+        }
+
+        function onMessageFromPlugin(event) {
+            var msg = event.data;
+            var parser = new DOMParser();
+            var xmlDoc = parser.parseFromString(msg,"text/xml");
+            if (xmlDoc.getElementsByTagName("ncsReqAppInfo").length > 0) {
+                console.log("[inews handler] got <ncsReqAppInfo/>; send <ncsAppInfo/> to iframe");
+                sendMsgToPlugin(getNcsAppInfo());
+
+                return;
+            } else if (xmlDoc.getElementsByTagName("ncsItem").length > 0) {
+                console.log("[inews handler] got <ncsItem> -> " + msg);
+                ncsItemData = msg;
+                ncsItemData = unwrapFromNcsItem(ncsItemData);
+                window.nativeSendNcsItemToHost(ncsItemData);
+
+                return;
+            }
+
+            console.log("[inews handler] got unhandled message from plugin -> " + msg);
+        }
+
+        function sendMsgToPlugin(msg) {
+            console.log("[inews handler] post message to iframe");
+            if (port2 != null) {
+                if (Boolean(msg)) {
+                    port2.postMessage(msg);
+                } else {
+                    console.log("[inews handler] empty message, skiped");
+                }
+            } else {
+                console.log("[inews handler] try to post message to iframe, but port2 is null");
+            }
+        }
+    </script>
+
+    <script>
+        function getNcsAppInfo() {
+            return '<mos>\
+<ncsAppInfo>\
+        <ncsInformation>\
+            <userID>' + getUserId() + '</userID>\
+        </ncsInformation>\
+    </ncsAppInfo>\
+</mos>';
+        }
+
+        function wrapIntoNcsAppInfo(mosObj) {
+            if (mosObj.length == 0) {
+                return mosObj;
+            }
+
+            var parser = new DOMParser();
+            var xmlDoc = parser.parseFromString(mosObj,"text/xml");
+
+            if (xmlDoc.getElementsByTagName("ncsAppInfo").length > 0) {
+                // no need to wrap
+                return mosObj;
+            }
+
+            var mosNode = xmlDoc.getElementsByTagName("mos")[0];
+            var ncsAppInfoNode = xmlDoc.createElement("ncsAppInfo");
+            
+            var ncsInformationNode = xmlDoc.createElement("ncsInformation");
+            var runContextNode = xmlDoc.createElement("runContext");
+            runContextNode.innerHTML = runContext;
+            ncsInformationNode.appendChild(runContextNode);
+            ncsAppInfoNode.appendChild(ncsInformationNode);
+
+            if (xmlDoc.getElementsByTagName("ncsItem").length > 0) {
+                // no need to wrap
+                var ncsItemNode = xmlDoc.getElementsByTagName("ncsItem")[0];
+                ncsAppInfoNode.appendChild(ncsItemNode);
+            }
+
+            mosNode.appendChild(ncsAppInfoNode);
+
+            return new XMLSerializer().serializeToString(xmlDoc.documentElement);
+        }
+
+        function uppendNcsAppInfo(mosObj) {
+            if (mosObj.length == 0) {
+                return mosObj;
+            }
+
+            var ncsAppInfoStr = "<ncsAppInfo><ncsInformation><runContext/></ncsInformation></ncsAppInfo>";
+
+            var parser = new DOMParser();
+            var xmlDoc = parser.parseFromString(mosObj,"text/xml");
+            var ncsAppInfo = parser.parseFromString(ncsAppInfoStr,"text/xml");
+
+            var runContextNode = ncsAppInfo.getElementsByTagName("runContext")[0];
+            runContextNode.innerHTML = runContext;
+
+            xmlDoc.getElementsByTagName("mos")[0].appendChild(ncsAppInfo.getElementsByTagName("ncsAppInfo")[0]);
+
+            return new XMLSerializer().serializeToString(xmlDoc.documentElement);
+        }
+
+        function wrapIntoNcsItem(mosObj) {
+            if (mosObj.length == 0) {
+                return mosObj;
+            }
+
+            var parser = new DOMParser();
+            var xmlDoc = parser.parseFromString(mosObj,"text/xml");
+
+            if (xmlDoc.getElementsByTagName("ncsItem").length > 0) {
+                // no need to wrap
+                return mosObj;
+            }
+
+            var mosNode = xmlDoc.getElementsByTagName("mos")[0];
+            var ncsItemNode = xmlDoc.createElement("ncsItem");
+            var itemNode = xmlDoc.createElement("item");
+            ncsItemNode.appendChild(itemNode);
+
+            while (mosNode.childNodes.length > 0) {
+                itemNode.appendChild(mosNode.childNodes[0]);
+            }
+
+            mosNode.appendChild(ncsItemNode);
+
+            return new XMLSerializer().serializeToString(xmlDoc.documentElement);
+        }
+
+        function unwrapFromNcsItem(mosObj) {
+            if (mosObj.length == 0) {
+                return mosObj;
+            }
+
+            var parser = new DOMParser();
+            var xmlDoc = parser.parseFromString(mosObj,"text/xml");
+
+            if (xmlDoc.getElementsByTagName("ncsItem").length == 0) {
+                // no need to unwrap
+                return mosObj;
+            }
+
+            var mosNode = xmlDoc.getElementsByTagName("mos")[0];
+            var ncsItemNode = xmlDoc.getElementsByTagName("ncsItem")[0];
+            var itemNode = xmlDoc.getElementsByTagName("item")[0];
+
+            while (itemNode.childNodes.length > 0) {
+                mosNode.appendChild(itemNode.childNodes[0]);
+            }
+
+            mosNode.removeChild(ncsItemNode);
+
+            return new XMLSerializer().serializeToString(xmlDoc.documentElement);
+        }
+
+        function ncsItemMessageHandler(params) {
+            if (params == null) {
+                console.log("[inews handler] ncsItemMessageHandler called [params = null]");
+                return;
+            }
+
+            if (params['runContext'] != null) {
+                runContext = params['runContext'];
+            }
+
+            var mosToSend = params['itemData'];
+            if (Boolean(mosToSend)) {
+                mosToSend = wrapIntoNcsItem(mosToSend);
+            }
+
+            // TODO: decide how to work with ncsAppInfo and finish it
+            // if (Boolean(mosToSend)) {
+            //     mosToSend = wrapIntoNcsItem(mosToSend);
+            // } else {
+            //     mosToSend = "<mos/>";
+            // }
+            // mosToSend = uppendNcsAppInfo(mosToSend);
+            // mosToSend = wrapIntoNcsAppInfo(mosToSend);
+            
+            console.log("[inews handler] will send to plugin -> " + mosToSend);
+            sendMsgToPlugin(mosToSend);
+
+        }
+
+        function ncsItemRequestMessageHandler(params) {
+            console.log("[inews handler] ncsItemRequestMessageHandler called");
+
+            var mosToSend = "<mos><ncsItemRequest/></mos>";
+            sendMsgToPlugin(mosToSend);
+            // will send result asynchronously in onMessageFromPlugin()
+        }
+    </script>
+</body>
+</html>
