@@ -3,6 +3,7 @@ import unescape from "unescape";
 import xmlToJSON from "./xmlToJSON.js";
 
 export default async (nsml) => {
+	//console.log(nsml)
 	let story = {
 		fields: {},
 		meta: {},
