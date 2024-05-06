@@ -25,6 +25,11 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 **LOGS:**
 
+1.7.8
+
+- Implemented page number column handling
+
+
 1.7.5
 
 - Fixed item reorder (implemented counter in xmlToJson.js in inews library, and in my parser).

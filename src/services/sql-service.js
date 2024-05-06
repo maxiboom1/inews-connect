@@ -135,7 +135,7 @@ class SqlService {
 
 // ****************************** STORY FUNCTIONS ****************************** //
 
-    async addDbStory(rundownStr, story, order){ //Story: {fileType,fileName,identifier,locator,storyName,modified,flags,attachments{gfxitem{props}}}
+    async addDbStory(rundownStr, story, order){ //Story: {fileType,fileName,identifier,locator,storyName,modified,flags,pageNumber,attachments{gfxitem{props}}}
         const rundownMeta = await inewsCache.getRundownList(rundownStr);
         const values = {
             name: story.storyName,
@@ -148,12 +148,13 @@ class SqlService {
             floating: story.flags.floated,
             tag: "",
             identifier: story.identifier,
-            locator:story.locator
+            locator:story.locator,
+            number:story.pageNumber
         }
         const sqlQuery = `
-            INSERT INTO ngn_inews_stories (name, lastupdate, rundown, production, ord, ordupdate, enabled, floating, tag, identifier, locator)
+            INSERT INTO ngn_inews_stories (name, lastupdate, rundown, production, ord, ordupdate, enabled, floating, tag, identifier, locator,number)
             OUTPUT inserted.uid
-            VALUES (@name, @lastupdate, @rundown, @production, @ord, @ordupdate, @enabled, @floating, @tag, @identifier, @locator);`;            
+            VALUES (@name, @lastupdate, @rundown, @production, @ord, @ordupdate, @enabled, @floating, @tag, @identifier, @locator, @number);`;            
         try {
             const result = await db.execute(sqlQuery, values);
             const assertedStoryUid = result.recordset[0].uid;
@@ -188,12 +189,13 @@ class SqlService {
             lastupdate: createTick(),
             locator: story.locator,
             enabled: story.enabled,
-            floating: story.flags.floated
+            floating: story.flags.floated,
+            number:story.pageNumber
 
         };
         const sqlQuery = `
             UPDATE ngn_inews_stories
-            SET name = @name, lastupdate = @lastupdate, locator = @locator, enabled = @enabled, floating = @floating
+            SET name = @name, lastupdate = @lastupdate, locator = @locator, enabled = @enabled, floating = @floating, number=@number
             WHERE identifier = @identifier;
         `;
         

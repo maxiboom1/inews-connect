@@ -7,7 +7,7 @@ import xmlParser from "../utilities/xml-parser.js";
 import itemHash from "../1-dal/items-hashmap.js";
 
 async function startMainProcess() { 
-    console.log('Starting Inews-connect 1.7.6 ...');
+    console.log('Starting Inews-connect 1.7.8 ...');
     await sqlService.initialize();
     await rundownIterator();
 }
@@ -37,21 +37,17 @@ async function rundownProcessor(rundownStr) {
         const storyPromises = listItems
             .filter(listItem => listItem.fileType === 'STORY')
             .map(async (listItem, index) => {
-                
                 try {
                     const isStoryExists = await inewsCache.isStoryExists(rundownStr,listItem.identifier);
                     listItem.storyName = hebDecoder(listItem.storyName);
                     
                     // Create new story
                     if(!isStoryExists){
-                        const storyAttachments = await getStoryAttachments(rundownStr, listItem.fileName);
-                        listItem.attachments = storyAttachments; //return {gfxItem: { gfxTemplate, gfxProduction, itemSlug, ord }}
+                        const story = await getStory(rundownStr, listItem.fileName);
+                        listItem.attachments = xmlParser.parseAttachments(story); //return {gfxItem: { gfxTemplate, gfxProduction, itemSlug, ord }}
+                        listItem.pageNumber = story.fields.pageNumber;
                         // Set enabled
-                        if(isEmpty(storyAttachments)){listItem.enabled = 0} else {listItem.enabled = 1}
-                        //checkForDuplicatedItems(rundownStr,listItem);
-                        // console.log(Object.keys(storyAttachments));
-                        
-                        // Save story and attachment to db 
+                        if(isEmpty(listItem.attachments)){listItem.enabled = 0} else {listItem.enabled = 1}
                         const assertedStoryUid = await sqlService.addDbStory(rundownStr,listItem,index);
                         listItem.uid = assertedStoryUid;
                         // Save to cache
@@ -68,11 +64,13 @@ async function rundownProcessor(rundownStr) {
                         
                         // Modify story
                         }else if(action === "modify"){
-                            const storyAttachments = await getStoryAttachments(rundownStr, listItem.fileName);
+                            
+                            const story = await getStory(rundownStr, listItem.fileName);
+                            listItem.attachments = xmlParser.parseAttachments(story); //return {gfxItem: { gfxTemplate, gfxProduction, itemSlug, ord }}
+                            listItem.pageNumber = story.fields.pageNumber;                            
+                            
                             // Set enabled
-                            if(isEmpty(storyAttachments)){listItem.enabled = 0} else {listItem.enabled = 1}
-                            //checkForDuplicatedItems(rundownStr,listItem);
-                            listItem.attachments =storyAttachments; //return {gfxItem: { gfxTemplate, gfxProduction, itemSlug, ord }}
+                            if(isEmpty(listItem.attachments)){listItem.enabled = 0} else {listItem.enabled = 1}
                             await sqlService.modifyDbStory(rundownStr,listItem);
                             await inewsCache.modifyStory(rundownStr,listItem);
                         }
@@ -133,17 +131,10 @@ async function deleteDif(rundownStr,listItems) {
     });
 }
 
-/**
- * Retrieves story attachments and parses them.
- * 
- * @param {string} rundownStr - The rundown string.
- * @param {string} fileName - The file name.
- * @returns {Promise<{gfxItem: {gfxTemplate: number, gfxProduction: number, itemSlug: string, ord: number}}>} 
- */
-async function getStoryAttachments(rundownStr, fileName){
+async function getStory(rundownStr, fileName){
     const storyPromise = conn.story(rundownStr, fileName);
     const story = await storyPromise;
-    return xmlParser.parseAttachments(story); //return {gfxItem: { gfxTemplate, gfxProduction, itemSlug, ord }}
+    return story;
 }
 
 function isEmpty(obj) {

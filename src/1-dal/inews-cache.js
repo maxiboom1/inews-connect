@@ -114,7 +114,8 @@ class InewsCache {
             attachments: story.attachments,
             ord: ord,
             uid:story.uid,
-            enabled:story.enabled
+            enabled:story.enabled,
+            pageNumber:story.pageNumber
         };
     }
 
@@ -128,6 +129,7 @@ class InewsCache {
         this.stories[rundownStr][story.identifier].locator = story.locator;
         this.stories[rundownStr][story.identifier].flags = story.flags;
         this.stories[rundownStr][story.identifier].attachments = story.attachments;
+        this.stories[rundownStr][story.identifier].pageNumber = story.pageNumber;
     }
 
     async deleteStory(rundownStr, identifier) {
