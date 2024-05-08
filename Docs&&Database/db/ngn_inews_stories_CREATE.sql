@@ -1,3 +1,12 @@
+USE [NewsArts]
+GO
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
 CREATE TABLE [dbo].[ngn_inews_stories](
 	[uid] [bigint] IDENTITY(1,1) NOT NULL,
 	[enabled] [bit] NOT NULL,
