@@ -66,7 +66,7 @@ async function mosMsgFromHost(event) {
     // User opened item 
     if (message.indexOf('<ncsItem>') !== -1){
         blocked = true;
-        setTimeout(()=>{blocked = true;},100);
+        setTimeout(()=>{blocked = false;},100);
         const templateId = extractTagContent(message, "gfxTemplate");
         const gfxItem = extractTagContent(message, "gfxItem");
         const itemID = extractTagContent(message, "itemID");
