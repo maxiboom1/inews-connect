@@ -188,17 +188,7 @@ document.addEventListener('messageFromItem', function(e) {
     console.log("Received:", e.detail.name);
 });
 
-const focusInput = () => {
-    // Find the first input element of type "text"
-    const firstTextInput = document.querySelector('.toolbox-content input[type="text"]');
-    console.log('Before focus', firstTextInput);
-    firstTextInput.focus();
-    console.log('After focus', firstTextInput);
-}
 
-document.addEventListener('DOMContentLoaded', (event) => {
-    focusInput();
-});
 // In template usage example:
 // function updateName() { 
 //     var stripeText1 = document.getElementById('stripeText1').value;

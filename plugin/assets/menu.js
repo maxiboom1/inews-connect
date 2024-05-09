@@ -1,6 +1,7 @@
 const originUrl = window.location.origin;
 document.getElementById('productionSelector').addEventListener('change', getTemplates);
 var iframe = document.getElementById('contentIframe');
+var blocked = false;
 /*
 iframe.onload = function() {
     iframe.contentWindow.test();
@@ -56,6 +57,7 @@ function createTemplateHtml(template){
 // ******************************************* Comm with inews wrapper logics *******************************************
 
 async function mosMsgFromHost(event) {
+    if(blocked) return;
     var message = event.data;
     if (event.origin != getNewsroomOrigin()) { 
         return; 
@@ -63,6 +65,8 @@ async function mosMsgFromHost(event) {
     
     // User opened item 
     if (message.indexOf('<ncsItem>') !== -1){
+        blocked = true;
+        setTimeout(()=>{blocked = true;},100);
         const templateId = extractTagContent(message, "gfxTemplate");
         const gfxItem = extractTagContent(message, "gfxItem");
         const itemID = extractTagContent(message, "itemID");
@@ -91,6 +95,7 @@ function renderTemplate(templateId){
     iframe.src = url; // Set the source of the iframe to the URL  
     iframe.onload = function() {
         iframe.style.display = 'block'; // Show the iframe
+        iframe.contentWindow.selectFirstTextField();
     };
 }
 
@@ -120,6 +125,7 @@ async function renderItem(templateId,gfxItem, itemID){
             iframe.contentWindow.nameInputUpdate(itemName);
             // Show iframe
             iframe.style.display = 'block'; // Show the iframe
+            iframe.contentWindow.selectFirstTextField();
             
         };
     } else {
