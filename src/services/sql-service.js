@@ -149,7 +149,7 @@ class SqlService {
             tag: "",
             identifier: story.identifier,
             locator:story.locator,
-            number:story.pageNumber,
+            number:story.pageNumber || "",
             properties:""
         }
         const sqlQuery = `
@@ -191,7 +191,7 @@ class SqlService {
             locator: story.locator,
             enabled: story.enabled,
             floating: story.flags.floated,
-            number:story.pageNumber
+            number:story.pageNumber || ""
 
         };
         const sqlQuery = `
