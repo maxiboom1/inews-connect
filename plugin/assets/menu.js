@@ -2,11 +2,6 @@ const originUrl = window.location.origin;
 document.getElementById('productionSelector').addEventListener('change', getTemplates);
 var iframe = document.getElementById('contentIframe');
 var blocked = false;
-/*
-iframe.onload = function() {
-    iframe.contentWindow.test();
-};
-*/
 
 // ******************************************* Menu functions *******************************************
 async function getProductions() {
@@ -66,7 +61,7 @@ async function mosMsgFromHost(event) {
     // User opened item 
     if (message.indexOf('<ncsItem>') !== -1){
         blocked = true;
-        setTimeout(()=>{blocked = false;},100);
+        setTimeout(()=>{blocked = false;},50);
         const templateId = extractTagContent(message, "gfxTemplate");
         const gfxItem = extractTagContent(message, "gfxItem");
         const itemID = extractTagContent(message, "itemID");
@@ -122,7 +117,7 @@ async function renderItem(templateId,gfxItem, itemID){
             // Set item values
             iframe.contentWindow.setGfxItem(gfxItem); // Set gfxItemId in iframe head as "data-gfxitem"
             iframe.contentWindow.setItemID(itemID); // Set itemID in iframe head as "data-itemID"
-            iframe.contentWindow.nameInputUpdate(itemName);
+            iframe.contentWindow.nameInputUpdate(itemName,true);
             // Show iframe
             iframe.style.display = 'block'; // Show the iframe
             iframe.contentWindow.selectFirstTextField();

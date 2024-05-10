@@ -19,7 +19,6 @@ function getItemData(){
         const productionId = document.body.getAttribute('data-production');
 
         return values = {
-            //name: slugName(),
             name:document.getElementById("nameInput").value,
             data: _NA_Values,
             scripts: _NA_Scripts,
@@ -132,7 +131,7 @@ const debouncedInput = debounce(async function(text) {
     const previewHost = document.getElementById("preview").getAttribute("data-preview-host");
     const previewPort = document.getElementById("preview").getAttribute("data-preview-port");
     // Send templateId and scripts to preview server
-    await fetch(`http://${previewHost}:${previewPort}?${templateId},${scripts}`,{method:'GET'});
+    //await fetch(`http://${previewHost}:${previewPort}?${templateId},${scripts}`,{method:'GET'});
 }, 500);
 
 document.body.addEventListener('input', function(event) {
@@ -153,45 +152,17 @@ document.body.addEventListener('change', function(event) {
     }
 });
 
+// ======================== Item name based on input (triggered from template func updateName()), or from renderItem onload ================== \\
 
-// ========================================= Item name based on input (old) ========================================= \\
-
-const slugName = () => {
-    // Find the first input element of type "text"
-    const firstTextInput = document.querySelector('.toolbox-content input[type="text"]');
-    const staticHeader = document.body.getAttribute('data-template-name');
-    if (firstTextInput) {
-        return staticHeader + firstTextInput.value;
-    } else {
-        return "No text input found.";
-    }
-}
-
-function nameInputUpdate(name = undefined){
-    if(name === undefined){
-        document.getElementById("nameInput").value = slugName();
-    }else{
+// Onload, we showing the name that we receive from renderItem, 
+//and its return name with template name, so we use includedTemplateName bool to handle this case
+function nameInputUpdate(name, includedTemplateName = false){ 
+    if(includedTemplateName){
         document.getElementById("nameInput").value = name;
-    }   
+        return;
+    }
+    const staticHeader = document.body.getAttribute('data-template-name');
+    document.getElementById("nameInput").value = staticHeader + name;    
 }
 
-function handleKeyUp(event){
-    if (event.target.id === 'nameInput') {return;}
-    nameInputUpdate();
-}
-window.addEventListener('keyup', handleKeyUp);
-
-
-// ========================================= Communication with child (template) js ========================================= \\
-
-document.addEventListener('messageFromItem', function(e) {
-    console.log("Received:", e.detail.name);
-});
-
-
-// In template usage example:
-// function updateName() { 
-//     var stripeText1 = document.getElementById('stripeText1').value;
-//     var event = new CustomEvent('UpdateNameEvent', { detail: { name: stripeText1 } });
-//     document.dispatchEvent(event);
-// }
+document.addEventListener('UpdateNameEvent', function(event) {nameInputUpdate(event.detail.name);}); 

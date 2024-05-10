@@ -25,6 +25,13 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 **LOGS:**
 
+1.7.9
+
+- Cleared from unused build tools installations
+- Implemented block mechanism to filter same 2 messages from inews (50 ms block)
+- Implemented UpdateNameEvent listener to trigger header name update from template updateName() event dispatch. Now, the problem with "what is the right input field for item name?" is solved - i just got trigger from template.
+- Focus on item load is partially solved.
+
 1.7.8
 
 - Implemented page number column handling
