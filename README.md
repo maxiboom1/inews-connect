@@ -25,6 +25,10 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 **LOGS:**
 
+1.8.0
+
+- Modal with predefined items links added.
+
 1.7.9
 
 - Cleared from unused build tools installations
