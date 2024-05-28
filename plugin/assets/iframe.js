@@ -162,7 +162,13 @@ function nameInputUpdate(name, includedTemplateName = false){
         return;
     }
     const staticHeader = document.body.getAttribute('data-template-name');
-    document.getElementById("nameInput").value = staticHeader + name;    
+    let result = staticHeader + name;
+    
+    if(result.length>40){
+        result = result.substring(0,37) + "...";
+    }
+
+    document.getElementById("nameInput").value = result;    
 }
 
 document.addEventListener('UpdateNameEvent', function(event) {nameInputUpdate(event.detail.name);}); 

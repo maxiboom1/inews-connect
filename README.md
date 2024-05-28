@@ -24,6 +24,9 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 - Avoid to write non-item stories to db 
 
 **LOGS:**
+1.8.1
+
+- Limit for 40 chars at item name
 
 1.8.0
 
