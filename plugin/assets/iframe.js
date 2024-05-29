@@ -165,7 +165,7 @@ function nameInputUpdate(name, includedTemplateName = false){
     let result = staticHeader + name;
     
     if(result.length>40){
-        result = result.substring(0,37) + "...";
+        result = result.substring(0,40);
     }
 
     document.getElementById("nameInput").value = result;    
