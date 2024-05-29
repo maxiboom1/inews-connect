@@ -134,23 +134,23 @@ const debouncedInput = debounce(async function(text) {
     //await fetch(`http://${previewHost}:${previewPort}?${templateId},${scripts}`,{method:'GET'});
 }, 500);
 
-document.body.addEventListener('input', function(event) {
-    const target = event.target;
-    // Check if the event target is an input or textarea
-    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
-        // Call the debounced function
-        debouncedInput(`Input changed: ${target.value}`);
-    }
-});
+// document.body.addEventListener('input', function(event) {
+//     const target = event.target;
+//     // Check if the event target is an input or textarea
+//     if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+//         // Call the debounced function
+//         debouncedInput(`Input changed: ${target.value}`);
+//     }
+// });
 
-document.body.addEventListener('change', function(event) {
-    const target = event.target;
-    // Check if the event target is a select element, a checkbox, or a radio button
-    if (target.tagName === 'SELECT' || (target.tagName === 'INPUT' && (target.type === 'checkbox' || target.type === 'radio'))) {
-        // Call the debounced function
-        debouncedInput(`Input changed: ${target.value}`);
-    }
-});
+// document.body.addEventListener('change', function(event) {
+//     const target = event.target;
+//     // Check if the event target is a select element, a checkbox, or a radio button
+//     if (target.tagName === 'SELECT' || (target.tagName === 'INPUT' && (target.type === 'checkbox' || target.type === 'radio'))) {
+//         // Call the debounced function
+//         debouncedInput(`Input changed: ${target.value}`);
+//     }
+// });
 
 // ======================== Item name based on input (triggered from template func updateName()), or from renderItem onload ================== \\
 

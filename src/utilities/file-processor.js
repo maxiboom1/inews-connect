@@ -149,7 +149,7 @@ function createPluginPanel(document) {
     modalButton.setAttribute('data-bs-target', '#exampleModal');
 
     // Append modal trigger button to the "pluginPanel" div
-    pluginPanelDiv.appendChild(modalButton);
+    //pluginPanelDiv.appendChild(modalButton);
 
     return pluginPanelDiv;
 }
