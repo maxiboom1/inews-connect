@@ -1,0 +1,27 @@
+	{
+    "conn": {
+        "host": "10.17.2.120",
+        "user": "segev",
+        "password": "12345",
+        "maxConnections": 10
+    },
+    "rundowns": {
+
+
+		"SHOW.19:30.ARCHIVE.2024.MAR.28.RUNDOWN": {
+            "production": 2,
+            "uid": ""
+        }
+	
+
+    },
+    "pullInterval": 200,
+    "ftpSiteFormat": "2nsml",
+	"previewServer": "127.0.0.1",
+    "previewPort":5432,
+    "sqlServerHost": "DOR\\SQLEXPRESS",
+    "sqlServerUser": "inewsconnect",
+    "sqlServerPassword": "123456",
+    "sqlServerDatabase": "newsarts",
+    "addItemCategoryName":true
+} 
