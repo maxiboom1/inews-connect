@@ -107,6 +107,13 @@ document.getElementById('preview').addEventListener('click', async ()=>{
     await fetch(`http://${previewHost}:${previewPort}?reset`,{method:'GET'});
 });
 
+document.addEventListener('input', async ()=>{
+    const values = __NA_GetScripts();
+    const previewHost = document.getElementById("preview").getAttribute("data-preview-host");
+    const previewPort = document.getElementById("preview").getAttribute("data-preview-port");
+
+    await fetch(`http://${previewHost}:${previewPort}?${values}`,{method:'GET'});
+});
 
 // ========================================= DEBOUNCER ========================================= \\
 const debounce = (func, wait) => {
