@@ -130,11 +130,12 @@ const debouncedInput = debounce(async function(text) {
     const previewHost = document.getElementById("preview").getAttribute("data-preview-host");
     const previewPort = document.getElementById("preview").getAttribute("data-preview-port");
     // Send templateId and scripts to preview server
-    //await fetch(`http://${previewHost}:${previewPort}?${templateId},${scripts}`,{method:'GET'});
+    await fetch(`http://${previewHost}:${previewPort}?${templateId},${scripts}`,{method:'GET'});
 }, 500);
 
 document.body.addEventListener('input', function(event) {
     const target = event.target;
+    console.log("x")
     // Check if the event target is an input or textarea
     if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
         // Call the debounced function
@@ -143,6 +144,7 @@ document.body.addEventListener('input', function(event) {
 });
 
 document.body.addEventListener('change', function(event) {
+    console.log("x")
     const target = event.target;
     // Check if the event target is a select element, a checkbox, or a radio button
     if (target.tagName === 'SELECT' || (target.tagName === 'INPUT' && (target.type === 'checkbox' || target.type === 'radio'))) {
