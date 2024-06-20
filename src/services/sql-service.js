@@ -395,7 +395,6 @@ class SqlService {
             enabled: 1,
             tag: "",
         };
-        
         const sqlQuery = `
             INSERT INTO ngn_inews_items (name, lastupdate, production, rundown, story, ord, ordupdate, template, data, scripts, enabled, tag)
             OUTPUT INSERTED.uid

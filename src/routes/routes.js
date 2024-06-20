@@ -27,7 +27,7 @@ router.get('/get-item-data/:uid', async (req, res) => {
 // Post http://serverAddr:4001/api/set-item
 router.post('/set-item', async (req, res) => {
   try {
-    
+      
       const item = req.body;
       const templateUid = await sqlService.storeNewItem(item);
       res.json(templateUid);
