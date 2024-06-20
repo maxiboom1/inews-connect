@@ -25,7 +25,7 @@ async function processAndWriteFiles(templates) {
 
     for (const template of templates) {
         const { uid, source, name, production } = template;
-        const injectedHtml = htmlWrapper(source, uid, production, name);
+        const injectedHtml = htmlWrapper(source,uid, production,name);
         const filePath = path.join(templatesFolder, `${uid}.html`);
         await fsPromises.writeFile(filePath, injectedHtml, 'utf-8');
         delete template.source;
@@ -35,23 +35,12 @@ async function processAndWriteFiles(templates) {
     return templates;
 }
 
-function htmlWrapper(htmlContent, templateUid, productionUid, templateName) {
+function htmlWrapper(htmlContent,templateUid, productionUid, templateName) {
     
     const dom = new JSDOM(htmlContent);
     const document = dom.window.document;
-
-    // Add local Bootstrap CSS
-    const bootstrapCssLink = document.createElement('link');
-    bootstrapCssLink.rel = 'stylesheet';
-    bootstrapCssLink.href = '../assets/dist/css/bootstrap.min.css';
-    document.head.appendChild(bootstrapCssLink);
-
-    // Add local Bootstrap JS
-    const bootstrapJsScript = document.createElement('script');
-    bootstrapJsScript.src = '../assets/dist/js/bootstrap.bundle.min.js';
-    document.body.appendChild(bootstrapJsScript);
-
     const scriptFileName = "../assets/iframe.js";
+
     const scriptTag = document.createElement('script');
     scriptTag.src = scriptFileName;
 
@@ -61,15 +50,12 @@ function htmlWrapper(htmlContent, templateUid, productionUid, templateName) {
     styleTag.href = "../assets/iframe.css";
 
     const pluginPanelDiv = createPluginPanel(document);
-    const modalDiv = createModal(document);
     const toolboxContentDiv = document.querySelector('.toolbox-title');
 
     if (toolboxContentDiv) {
         toolboxContentDiv.appendChild(pluginPanelDiv);
-        toolboxContentDiv.appendChild(modalDiv);
     } else {
         document.body.appendChild(pluginPanelDiv);
-        document.body.appendChild(modalDiv);
     }
 
     document.body.appendChild(scriptTag);
@@ -78,8 +64,8 @@ function htmlWrapper(htmlContent, templateUid, productionUid, templateName) {
     document.body.setAttribute('data-production', productionUid);   
 
     // Add static category name in item name
-    if (appConfig.addItemCategoryName) {
-        document.body.setAttribute('data-template-name', templateName.replace("%S%", ""));     
+    if(appConfig.addItemCategoryName){
+        document.body.setAttribute('data-template-name', templateName.replace("%S%",""));     
     } else {
         document.body.setAttribute('data-template-name', "");     
     }
@@ -140,44 +126,7 @@ function createPluginPanel(document) {
     pluginPanelDiv.appendChild(nameLabel);
     pluginPanelDiv.appendChild(nameInput);
 
-    // Create modal trigger button
-    const modalButton = document.createElement('button');
-    modalButton.textContent = 'Open Modal';
-    modalButton.id = 'openModal';
-    modalButton.classList.add('pluginPanelBtn');
-    modalButton.setAttribute('data-bs-toggle', 'modal');
-    modalButton.setAttribute('data-bs-target', '#exampleModal');
-
-    // Append modal trigger button to the "pluginPanel" div
-    //pluginPanelDiv.appendChild(modalButton);
-
     return pluginPanelDiv;
-}
-
-function createModal(document) {
-    const modalDiv = document.createElement('div');
-    modalDiv.classList.add('modal', 'fade');
-    modalDiv.id = 'exampleModal';
-    modalDiv.tabIndex = -1;
-    modalDiv.setAttribute('aria-labelledby', 'exampleModalLabel');
-    modalDiv.setAttribute('aria-hidden', 'true');
-
-    modalDiv.innerHTML = `
-        <div class="modal-dialog modal-sm">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Quick items</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    ...
-                </div>
-            
-            </div>
-        </div>
-    `;
-
-    return modalDiv;
 }
 
 export default processAndWriteFiles;
