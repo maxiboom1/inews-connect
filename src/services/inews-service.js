@@ -7,7 +7,7 @@ import xmlParser from "../utilities/xml-parser.js";
 import itemHash from "../1-dal/items-hashmap.js";
 
 async function startMainProcess() { 
-    console.log('Starting Inews-connect 1.8.11 ...');
+    console.log('Starting Inews-connect 1.8.2 ...');
     await sqlService.initialize();
     await rundownIterator();
 }

@@ -24,6 +24,12 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 - Avoid to write non-item stories to db 
 
 **LOGS:**
+
+1.8.2
+
+- Payload size limit increased to 50 MB.
+- Bootstrap removed from iframe (and also unused modal).
+
 1.8.1
 
 - Limit for 40 chars at item name
