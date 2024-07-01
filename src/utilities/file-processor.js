@@ -57,7 +57,7 @@ function htmlWrapper(htmlContent,templateUid, productionUid, templateName) {
     } else {
         document.body.appendChild(pluginPanelDiv);
     }
-
+    document.body.appendChild(createLinkPopup(document));
     document.body.appendChild(scriptTag);
     document.head.appendChild(styleTag);
     document.body.setAttribute('data-template', templateUid);  
@@ -74,33 +74,25 @@ function htmlWrapper(htmlContent,templateUid, productionUid, templateName) {
 }
 
 function createPluginPanel(document) {
-    //Create preview btn
-    const previewButton = document.createElement('button');
-    previewButton.textContent  = 'Reset';
-    previewButton.id = 'preview';
+    
+    // Back button
+    const backButton = createButton(document,"button","Back","navigateBack","pluginPanelBtn");
+    
+    // Save button
+    const saveButton = createButton(document,"button","Save","save","pluginPanelBtn");
+    
+    //Create Reset btn
+    const previewButton = createButton(document,"button","Reset Preview","preview","pluginPanelBtn");
     previewButton.setAttribute("data-preview-host", appConfig.previewServer);
     previewButton.setAttribute("data-preview-port", appConfig.previewPort);
-    previewButton.classList.add('pluginPanelBtn'); // Add the class to the save button
-    
-    // Create back btn
-    const backButton = document.createElement('button');
-    backButton.textContent  = 'Back';
-    backButton.id = 'navigateBack';
-    backButton.classList.add('pluginPanelBtn'); // Add the class to the back button
-
-    // Create save btn
-    const saveButton = document.createElement('button');
-    saveButton.textContent  = 'Save';
-    saveButton.id = 'save';
-    saveButton.classList.add('pluginPanelBtn'); // Add the class to the save button
 
     // Create drag btn
-    const dragButton = document.createElement('button');
-    dragButton.textContent  = 'Drag';
-    dragButton.id = 'drag';
-    dragButton.draggable = true; // Set the draggable attribute
-    dragButton.classList.add('pluginPanelBtn'); // Add the class to the save button
-
+    const dragButton = createButton(document,"button","Drag","drag","pluginPanelBtn");
+    dragButton.draggable = true;
+    
+    // Create Link btn
+    const linkButton = createButton(document,"button","Link","linkButton","pluginPanelBtn");
+    
     // Create div with id "pluginPanel"
     const pluginPanelDiv = document.createElement('div');
     pluginPanelDiv.id = 'pluginPanel';
@@ -111,7 +103,7 @@ function createPluginPanel(document) {
     pluginPanelDiv.appendChild(saveButton);
     pluginPanelDiv.appendChild(dragButton);
     pluginPanelDiv.appendChild(previewButton);
-
+    pluginPanelDiv.appendChild(linkButton);
     // Create label
     const nameLabel = document.createElement('label');
     nameLabel.textContent = 'Name';
@@ -127,6 +119,32 @@ function createPluginPanel(document) {
     pluginPanelDiv.appendChild(nameInput);
 
     return pluginPanelDiv;
+}
+
+function createButton(document,element,text,id,classList){
+    const button = document.createElement(element);
+    button.textContent  = text;
+    button.id = id;
+    button.classList.add(classList); 
+    return button;
+}
+
+function createLinkPopup(document){
+    const popupDiv = document.createElement('div');
+    popupDiv.id = 'pluginPopover';
+    popupDiv.classList.add('pluginPopover');
+    const links = appConfig.templatesLinks;
+    
+    links.forEach(template => {
+        const button = document.createElement('button');
+        button.id = template.templateId;
+        button.classList.add('linksButton');
+        button.textContent = template.templateName;
+        button.addEventListener('click', () => handleLinksButtonsClick(template.templateId)); // Add event listener
+        popupDiv.appendChild(button);
+    });
+
+    return popupDiv;
 }
 
 export default processAndWriteFiles;

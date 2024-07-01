@@ -25,6 +25,16 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 **LOGS:**
 
+1.8.3
+
+- Added link button with links to popular templates 
+- Data is fetched from config.json:
+    "templatesLinks":[
+        {"templateName":"אצבע","templateId":10003},
+        {"templateName":"סופר אישיות","templateId":10004},
+        {"templateName":"2סופר אישיות","templateId":60032}
+    ]
+    
 1.8.2
 
 - Payload size limit increased to 50 MB.

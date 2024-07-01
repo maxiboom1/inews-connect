@@ -92,8 +92,8 @@ document.getElementById("save").addEventListener('click', clickOnSave);
 
 document.getElementById('drag').addEventListener('dragstart', drag);
 document.getElementById('drag').addEventListener('dragend', drop);
-document.getElementById('drag').addEventListener('click', ()=>{
-    navigator.clipboard.writeText(createMosMessage());
+document.getElementById('drag').addEventListener('click', async ()=>{
+    await navigator.clipboard.writeText(createMosMessage());
     hideDragButton();
 });
 document.querySelector("#navigateBack").addEventListener('click', ()=>{
@@ -124,7 +124,6 @@ const debounce = (func, wait) => {
 
 // Create debounced functions outside of the event listeners
 const debouncedInput = debounce(async function(text) {
-    console.log(text);
     const scripts = __NA_GetScripts();
     const templateId = document.body.getAttribute('data-template');
     const previewHost = document.getElementById("preview").getAttribute("data-preview-host");
@@ -135,7 +134,6 @@ const debouncedInput = debounce(async function(text) {
 
 document.body.addEventListener('input', function(event) {
     const target = event.target;
-    console.log("x")
     // Check if the event target is an input or textarea
     if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
         // Call the debounced function
@@ -173,3 +171,39 @@ function nameInputUpdate(name, includedTemplateName = false){
 }
 
 document.addEventListener('UpdateNameEvent', function(event) {nameInputUpdate(event.detail.name);}); 
+
+// Link button
+
+document.addEventListener('DOMContentLoaded', () => {
+    const linkButton = document.getElementById('linkButton');
+    const popover = document.getElementById('pluginPopover');
+    
+    linkButton.addEventListener('mouseover', (e) => {
+        const rect = linkButton.getBoundingClientRect();
+        popover.style.top = `${rect.bottom + window.scrollY}px`;
+        popover.style.left = `${rect.left + window.scrollX}px`;
+        popover.style.display = 'block';
+      });
+    
+    linkButton.addEventListener('mouseout', () => {
+    popover.style.display = 'none';
+    });
+
+    popover.addEventListener('mouseover', () => {
+    popover.style.display = 'block';
+    });
+
+    popover.addEventListener('mouseout', () => {
+    popover.style.display = 'none';
+    });
+
+    var linkButtons = document.getElementsByClassName("linksButton");
+    for (var i = 0; i < linkButtons.length; i++) {
+        linkButtons[i].addEventListener('click', handleLinksButtonsClick, false);
+    }
+})
+
+function handleLinksButtonsClick(){
+    //console.log('click', this.id);
+    window.parent.renderTemplate(this.id);
+}
