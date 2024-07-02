@@ -91,7 +91,7 @@ function createPluginPanel(document) {
     dragButton.draggable = true;
     
     // Create Link btn
-    const linkButton = createButton(document,"button","Link","linkButton","pluginPanelBtn");
+    const linkButton = createButton(document,"button","Favorites","linkButton","pluginPanelBtn");
     
     // Create div with id "pluginPanel"
     const pluginPanelDiv = document.createElement('div');
