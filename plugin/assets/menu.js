@@ -84,14 +84,37 @@ async function mosMsgFromHost(event) {
 // ******************************************* Iframe logic  *******************************************
 
 // User open template new template in plugin menu
-function renderTemplate(templateId){
+function renderTemplate(templateId) {
     let url = `${originUrl}/templates/${templateId}.html`;
+    const spinner = document.getElementById('full-screen-spinner');
     const iframe = document.getElementById('contentIframe');
-    iframe.src = url; // Set the source of the iframe to the URL  
+    
+    spinner.style.visibility = "visible";
+    
+    let iframeLoaded = false;
+    let minTimeElapsed = false;
+    
+    // Function to check if both conditions are met
+    function checkAndHideSpinner() {
+        if (iframeLoaded && minTimeElapsed) {
+            iframe.style.display = 'block';
+            iframe.contentWindow.selectFirstTextField();
+            spinner.style.visibility = "hidden";
+        }
+    }
+    
+    // Set iframe source and onload handler
+    iframe.src = url;  
     iframe.onload = function() {
-        iframe.style.display = 'block'; // Show the iframe
-        iframe.contentWindow.selectFirstTextField();
+        iframeLoaded = true;
+        checkAndHideSpinner();
     };
+    
+    // Set timeout for minimum spinner display time
+    setTimeout(() => {
+        minTimeElapsed = true;
+        checkAndHideSpinner();
+    }, 500);
 }
 
 // User loaded exists item in inews

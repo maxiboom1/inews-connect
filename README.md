@@ -25,6 +25,11 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 **LOGS:**
 
+1.8.5
+
+- Implemented bootstrap spinner with fixed show time (500). 
+Timeout can be adjusted in renderTemplate function.
+
 1.8.4
 
 - Renamed the new function to "Favorites"
