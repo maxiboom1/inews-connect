@@ -172,8 +172,7 @@ function nameInputUpdate(name, includedTemplateName = false){
 
 document.addEventListener('UpdateNameEvent', function(event) {nameInputUpdate(event.detail.name);}); 
 
-// Link button
-
+// ======================== Favorites ========================
 document.addEventListener('DOMContentLoaded', () => {
     const linkButton = document.getElementById('linkButton');
     const popover = document.getElementById('pluginPopover');
@@ -197,13 +196,28 @@ document.addEventListener('DOMContentLoaded', () => {
     popover.style.display = 'none';
     });
 
-    var linkButtons = document.getElementsByClassName("linksButton");
-    for (var i = 0; i < linkButtons.length; i++) {
-        linkButtons[i].addEventListener('click', handleLinksButtonsClick, false);
-    }
+    var favoritesButtons = document.querySelectorAll(".linksButton");
+    const buttonData = {};
+    favoritesButtons.forEach(button => {
+        const id = button.id;
+        const key = button.getAttribute("data-key");
+        buttonData[key] = id;
+        button.addEventListener('click', handleLinksButtonsClick, false);
+    });
+
+    // Handle key handler to change to favorite
+    document.addEventListener("keydown", (event) => {
+        // Check if the focused element is an input field
+        if (document.activeElement.tagName.toLowerCase() !== 'input') {
+            const keyPressed = event.key.toLowerCase();
+            if (buttonData[keyPressed]) {
+                window.parent.renderTemplate(buttonData[keyPressed]);
+            }
+        }
+    });
+
 })
 
 function handleLinksButtonsClick(){
-    //console.log('click', this.id);
     window.parent.renderTemplate(this.id);
 }

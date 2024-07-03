@@ -57,7 +57,7 @@ function htmlWrapper(htmlContent,templateUid, productionUid, templateName) {
     } else {
         document.body.appendChild(pluginPanelDiv);
     }
-    document.body.appendChild(createLinkPopup(document));
+    document.body.appendChild(createFavoritesDiv(document));
     document.body.appendChild(scriptTag);
     document.head.appendChild(styleTag);
     document.body.setAttribute('data-template', templateUid);  
@@ -129,18 +129,18 @@ function createButton(document,element,text,id,classList){
     return button;
 }
 
-function createLinkPopup(document){
+function createFavoritesDiv(document){
     const popupDiv = document.createElement('div');
     popupDiv.id = 'pluginPopover';
     popupDiv.classList.add('pluginPopover');
-    const links = appConfig.templatesLinks;
+    const favorites = appConfig.favorites;
     
-    links.forEach(template => {
+    favorites.forEach(favorite => {
         const button = document.createElement('button');
-        button.id = template.templateId;
+        button.id = favorite.id;
         button.classList.add('linksButton');
-        button.textContent = template.templateName;
-        button.addEventListener('click', () => handleLinksButtonsClick(template.templateId)); // Add event listener
+        button.textContent = favorite.name;
+        button.setAttribute("data-key",favorite.key);
         popupDiv.appendChild(button);
     });
 

@@ -25,6 +25,25 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 **LOGS:**
 
+1.8.4
+
+- Renamed the new function to "Favorites"
+- Implemented keyboard key-trigger (skips all "input fields).
+- New config.json struct for favorites:
+  ``  "favorites":[
+        {"name":"אצבע","id":10003, "key": "1"},
+        {"name":"סופר אישיות","id":10004, "key": "2"},
+        {"name":"2סופר אישיות","id":60032, "key": "3"}
+    ]``
+
+- Data is fetched from config.json:
+    "templatesLinks":[
+        {"templateName":"אצבע","templateId":10003},
+        {"templateName":"סופר אישיות","templateId":10004},
+        {"templateName":"2סופר אישיות","templateId":60032}
+    ]
+    
+
 1.8.3
 
 - Added link button with links to popular templates 
