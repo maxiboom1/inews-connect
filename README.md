@@ -25,6 +25,26 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 **LOGS:**
 
+1.8.6
+
+- Implemented favorites modifier key - for key combination
+- Implemented comment field in config.json - for custom user data
+
+The new structure is:
+
+```
+    "favorites":[
+        {"name":"אצבע","id":10003, "key": "1"},
+        {"name":"סופר אישיות","id":10004, "key": "2"},
+        {"name":"2סופר אישיות","id":60032, "key": "x"}
+    ],
+    "favoritesModifier":"alt",
+    "comment": [
+        "possible modifiers: alt, ctrl, shift",
+        "other comment for user use.."
+    ]
+```
+
 1.8.5
 
 - Implemented bootstrap spinner with fixed show time (500). 

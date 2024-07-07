@@ -207,13 +207,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Handle key handler to change to favorite
     document.addEventListener("keydown", (event) => {
-        // Check if the focused element is an input field
-        if (document.activeElement.tagName.toLowerCase() !== 'input') {
-            const keyPressed = event.key.toLowerCase();
-            if (buttonData[keyPressed]) {
+        const modifier = document.getElementById("pluginPopover").getAttribute("data-modifier"); // Return string "alt"/"ctrl"/"shift"
+        const keyPressed = event.key.toLowerCase();
+        
+        // Check if the appropriate modifier key is pressed
+        const isModifierPressed = 
+            (modifier === 'ctrl' && event.ctrlKey) ||
+            (modifier === 'alt' && event.altKey) ||
+            (modifier === 'shift' && event.shiftKey);
+        
+            if (buttonData[keyPressed]&& isModifierPressed) {
                 window.parent.renderTemplate(buttonData[keyPressed]);
             }
-        }
+    
     });
 
 })

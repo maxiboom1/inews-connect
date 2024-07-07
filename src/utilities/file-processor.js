@@ -132,9 +132,9 @@ function createButton(document,element,text,id,classList){
 function createFavoritesDiv(document){
     const popupDiv = document.createElement('div');
     popupDiv.id = 'pluginPopover';
+    popupDiv.setAttribute("data-modifier", appConfig.favoritesModifier);
     popupDiv.classList.add('pluginPopover');
     const favorites = appConfig.favorites;
-    
     favorites.forEach(favorite => {
         const button = document.createElement('button');
         button.id = favorite.id;
