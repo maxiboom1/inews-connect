@@ -88,7 +88,7 @@ class SqlService {
     
     async getAndStoreProductions() {
         try {
-            const sql = `SELECT uid, name FROM ngn_productions`;
+            const sql = `SELECT uid, name,properties FROM ngn_productions`;
             const productions = await db.execute(sql);
             await inewsCache.setProductions(productions);
             console.log(`Loaded productions from SQL`);

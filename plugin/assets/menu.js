@@ -7,6 +7,7 @@ var blocked = false;
 async function getProductions() {
     const url = `${originUrl}/api/productions`; 
     const productions = await fetchData(url, 'GET',null);
+    console.log(productions)
     const productionSelector = document.getElementById('productionSelector');
     productions.forEach(function(production) {
         var option = document.createElement('option');

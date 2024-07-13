@@ -1,7 +1,7 @@
 class InewsCache {
     
     constructor() {
-        this.productions = {}; //{name: uid,name2:uid2, ... other productions...}
+        this.productions = {}; //{name: {uid:uid, scenes:[]},name2:uid2, ... other productions...}
         // OLD
         //this.templates = {}; // {templateName:{uid:uid, production:production,icon:iconData}, otherTemplateName:{...}, ...}
         this.templates = {}; // {templateUid: {templateName, production, icon}, ...}
@@ -17,11 +17,26 @@ class InewsCache {
         this.rundownsList[rundownStr] = {uid,production}
     }
 
-    async setProductions(productions){ // Expect [{ uid: '20006', name: 'TEST' }, {...}]
+    async setProductions(productions){ // Expect [{ uid: '20006', name: 'TEST', properties: obj... }, {...}]
         this.productions = {};
         for (let i = 0; i < productions.length; i++) {
-            const {name, uid} ={...productions[i]};
-            this.productions[name] = uid;
+            const {name, uid, properties} ={...productions[i]};
+            
+            // This part takes production "properties" data, and simplifies it to needed obj:
+            // scenes: [{name: "Scene Name",folders: [{name: "Folder Name",itemUids: [ /* Array of item UIDs */ ]},// ... more folders]},// ... more scenes]
+            const decodedStr = decodeURIComponent(properties);
+            const productionData = JSON.parse(decodedStr);
+            const scenes = productionData.Scenes.map(scene => {
+                return {
+                    name: scene.Name,
+                    folders: scene.Folders.map(folder => ({
+                        name: folder.Name,
+                        itemUids: folder.ItemUids
+                    }))
+                };
+            });
+            this.productions[name] = {uid, scenes};
+            
           }
     }
     // OLD
@@ -46,12 +61,23 @@ class InewsCache {
         return this.productions;
     }
 
-    async getProductionsArr(){
+    async getProductionsArr() {
         let arr = [];
-        for(const [name, uid] of Object.entries(this.productions)){
-            arr.push({name,uid});
+        for (const [name, data] of Object.entries(this.productions)) {
+            let production = {
+                name: name,
+                uid: data.uid,
+                scenes: data.scenes.map(scene => ({
+                    name: scene.name,
+                    folders: scene.folders.map(folder => ({
+                        name: folder.name,
+                        itemUids: folder.itemUids
+                    }))
+                }))
+            };
+            arr.push(production);
         }
-        return arr; 
+        return arr;
     }
 
     // ********************* TEMPLATES FUNCTIONS ********************** //
