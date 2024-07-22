@@ -22,6 +22,7 @@ async function getTemplates() {
     if (productionUid === "") return;
     const url = `${originUrl}/api/templates/${productionUid}`;
     const templates = await fetchData(url, 'GET', null);
+    console.log(templates);
     const templatesContainer = document.getElementById('templatesContainer');
     templatesContainer.innerHTML = '';
 
