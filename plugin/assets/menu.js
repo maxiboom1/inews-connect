@@ -29,32 +29,30 @@ async function getTemplates() {
     // Get chosen production data object
     const production = productionsData.find(p => p.uid === productionUid);
     
-    // Create accordionItem for each production scene
-    production.scenes.forEach(scene => {
-        const sceneAccordion = createAccordionItem(scene.name, scene.folders, templates);
+    // Create accordionItem for each production scene with unique IDs
+    production.scenes.forEach((scene, sceneCounter) => {
+        const sceneAccordion = createAccordionItem(scene.name, scene.folders, templates, sceneCounter);
         templatesContainer.appendChild(sceneAccordion);
     });
 }
 
-function createAccordionItem(sceneName, folders, templates) {
+function createAccordionItem(sceneName, folders, templates, sceneCounter) {
     const sceneAccordion = document.createElement('div');
     sceneAccordion.className = 'accordion-item';
     
-    // Clean up sceneName for use in IDs
-    const cleanSceneName = sceneName.replace(/[^a-zA-Z0-9]/g, '');
-
+    const sceneId = `scene-${sceneCounter}`;
     const sceneAccordionItem = `
     <h2 class="accordion-header">
       <button class="accordion-button" type="button" 
         data-bs-toggle="collapse" 
-        data-bs-target="#${cleanSceneName}" 
-        aria-expanded="false" aria-controls="${cleanSceneName}">
+        data-bs-target="#${sceneId}" 
+        aria-expanded="false" aria-controls="${sceneId}">
         ${sceneName}
       </button>
     </h2>
-    <div id="${cleanSceneName}" class="accordion-collapse collapse" data-bs-parent="#scenesAccordion">
+    <div id="${sceneId}" class="accordion-collapse collapse" data-bs-parent="#scenesAccordion">
       <div class="accordion-body">
-        <div class="accordion" id="folders-${cleanSceneName}">
+        <div class="accordion" id="folders-${sceneId}">
           <!-- Folders accordion will be injected here -->
         </div>
       </div>
@@ -62,43 +60,40 @@ function createAccordionItem(sceneName, folders, templates) {
     `;
     sceneAccordion.innerHTML = sceneAccordionItem;
 
-    // Inject folder accordions
-    const folderAccordionContainer = sceneAccordion.querySelector(`#folders-${cleanSceneName}`);
-    folders.forEach(folder => {
-        const folderAccordion = createFolderAccordionItem(folder.name, templates, cleanSceneName);
+    // Inject folder accordions with unique IDs
+    const folderAccordionContainer = sceneAccordion.querySelector(`#folders-${sceneId}`);
+    folders.forEach((folder, folderCounter) => {
+        const folderAccordion = createFolderAccordionItem(folder.name, templates, sceneId, folderCounter);
         folderAccordionContainer.appendChild(folderAccordion);
     });
 
     return sceneAccordion;
 }
 
-function createFolderAccordionItem(folderName, templates, cleanSceneName) {
+function createFolderAccordionItem(folderName, templates, sceneId, folderCounter) {
     const folderAccordion = document.createElement('div');
     folderAccordion.className = 'accordion-item';
     
-    // Clean up folder name for use in IDs, and include the scene name to ensure uniqueness
-    const cleanFolderName = `${cleanSceneName}-${folderName.replace(/[^a-zA-Z0-9]/g, '')}`;
-
+    const folderId = `${sceneId}-folder-${folderCounter}`;
     const folderAccordionItem = `
     <h2 class="accordion-header">
       <button class="accordion-button collapsed" type="button" 
         data-bs-toggle="collapse" 
-        data-bs-target="#${cleanFolderName}" 
-        aria-expanded="false" aria-controls="${cleanFolderName}">
+        data-bs-target="#${folderId}" 
+        aria-expanded="false" aria-controls="${folderId}">
         ${folderName}
       </button>
     </h2>
-    <div id="${cleanFolderName}" class="accordion-collapse collapse" data-bs-parent="#folders-${cleanSceneName}">
+    <div id="${folderId}" class="accordion-collapse collapse" data-bs-parent="#folders-${sceneId}">
       <div class="accordion-body">
         Templates will be injected here
       </div>
-    </div>
-    `;
+    </div>`;
+    
     folderAccordion.innerHTML = folderAccordionItem;
 
     return folderAccordion;
 }
-
 
 function createTemplateHtml(template){
     const container = document.createElement('div'); // Create a temporary container
