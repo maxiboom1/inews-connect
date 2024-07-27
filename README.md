@@ -31,8 +31,8 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 Style parameters are overrides bootstrap defaults, they are fully cusmozible - there is 2 separated configs for scenesAccordion and foldersAccordion (menu.css)
 Logic:
 
-Data Initialization:
-
+    Data Initialization:
+```
 Initialize productionsData array to store fetched data.
 Fetching Productions:
 
@@ -48,7 +48,7 @@ createFolderAccordionItem(): For each folder in a scene, create a folder accordi
 Injecting Templates:
 
 createTemplateHtml(): Create and inject HTML for each template within the folder accordion items.
-
+```
 - Minor style improvements.
 - Added logger - all prints going thru logger func, that adds timestamp.
 
