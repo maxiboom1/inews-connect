@@ -5,6 +5,7 @@ import inewsCache from "../1-dal/inews-cache.js";
 import itemsService from "./items-service.js";
 import itemsHash from "../1-dal/items-hashmap.js";
 import createTick from "../utilities/time-tick.js";
+import logger from "../utilities/logger.js";
 
 class SqlService {
 
@@ -32,7 +33,7 @@ class SqlService {
         try {
             const sql = `DELETE FROM ngn_inews_stories`;
             await db.execute(sql);
-            console.log(`ngn_inews_stories cleared....`);
+            logger(`ngn_inews_stories cleared....`);
         } catch (error) {
             console.error('Error deleting stories from SQL:', error);
             throw error;
@@ -73,12 +74,12 @@ class SqlService {
             if (selectResult.recordset.length > 0) {
                 // If record exists, update it
                 await db.execute(updateQuery, values);
-                console.log(`Registering existing rundown to active watch: ${rundownStr}`);
+                logger(`Registering existing rundown to active watch: ${rundownStr}`);
                 return selectResult.recordset[0].uid; // Return existing UID
             } else {
                 // If record does not exist, insert a new one and return the new UID
                 const insertResult = await db.execute(insertQuery, values);
-                console.log(`Registering new rundown to active watch: ${rundownStr}`);
+                logger(`Registering new rundown to active watch: ${rundownStr}`);
                 return insertResult.recordset[0].uid; // Return new UID
             }
         } catch (error) {
@@ -91,7 +92,7 @@ class SqlService {
             const sql = `SELECT uid, name,properties FROM ngn_productions`;
             const productions = await db.execute(sql);
             await inewsCache.setProductions(productions);
-            console.log(`Loaded productions from SQL`);
+            logger(`Loaded productions from SQL`);
         } catch (error) {
             console.error('Error loading productions from SQL:', error);
             throw error;
@@ -108,7 +109,7 @@ class SqlService {
             //{ uid, name, production , icon}
             const templatesWithoutHtml = await processAndWriteFiles(templates);
             await inewsCache.setTemplates(templatesWithoutHtml);
-            console.log(`Loaded templates from SQL`);
+            logger(`Loaded templates from SQL`);
         } catch (error) {
             console.error('Error loading templates from SQL:', error);
             throw error;
@@ -126,7 +127,7 @@ class SqlService {
                 const sql = "UPDATE ngn_inews_rundowns SET enabled=0 WHERE uid = @uid";
                 await db.execute(sql,values);
             }
-            console.log(`Noticed ${unwatchedRundowns.length} unwatched rundowns in db.`);
+            logger(`Noticed ${unwatchedRundowns.length} unwatched rundowns in db.`);
         } catch (error) {
             console.error('Error deleting stories from SQL:', error);
             throw error;
@@ -176,7 +177,7 @@ class SqlService {
             }
 
             await this.rundownLastUpdate(rundownStr);
-            console.log(`Registering new story to ${rundownStr}: ${story.storyName}`); 
+            logger(`Registering new story to ${rundownStr}: ${story.storyName}`); 
             return assertedStoryUid;
         } catch (error) {
             console.error('Error executing query:', error); 
@@ -208,7 +209,7 @@ class SqlService {
             if(Object.keys(story.attachments).length !== 0 || await inewsCache.hasAttachments(rundownStr,story.identifier)){ 
                 await itemsService.compareItems(rundownStr,story); // Process attachments
             }
-            console.log(`Story modified in ${rundownStr}: ${story.storyName}`);
+            logger(`Story modified in ${rundownStr}: ${story.storyName}`);
 
         } catch (error) {
             console.error('Error executing query:', error);  
@@ -232,7 +233,7 @@ class SqlService {
         try {
             await db.execute(sqlQuery, values);
             await this.rundownLastUpdate(rundownStr);
-            console.log(`Reorder story in ${rundownStr}: ${story.storyName}`);
+            logger(`Reorder story in ${rundownStr}: ${story.storyName}`);
         } catch (error) {
             console.error('Error executing query:', error);
         }
@@ -258,7 +259,7 @@ class SqlService {
                 }
                 
             }
-            console.log(`Story with identifier ${identifier} deleted from ${rundownStr}`);
+            logger(`Story with identifier ${identifier} deleted from ${rundownStr}`);
     
         } catch (error) {
             console.error(`Error deleting ${uid} story:`, error);
@@ -286,9 +287,9 @@ class SqlService {
             const result =await db.execute(sqlQuery, values);
             // ADD HERE STORY UPDATE
             if(result.rowsAffected[0] > 0){
-                console.log("Registered new GFX item ");
+                logger("Registered new GFX item ");
             } else {
-                console.log(`WARNING! GFX ${item.itemId} [${item.ord}] in ${rundownStr}, story num ${item.ord} doesn't exists in DB`);
+                logger(`WARNING! GFX ${item.itemId} [${item.ord}] in ${rundownStr}, story num ${item.ord} doesn't exists in DB`);
             }
 
         } catch (error) {
@@ -312,7 +313,7 @@ class SqlService {
         try {
             const result =await db.execute(sqlQuery, values);
             if(result.rowsAffected[0] > 0){
-                console.log("Item Reordered event registered");
+                logger("Item Reordered event registered");
             }
 
         } catch (error) {
@@ -337,9 +338,9 @@ class SqlService {
             const result =await db.execute(sqlQuery, values);
             // ADD HERE STORY UPDATE
             if(result.rowsAffected[0] > 0){
-                console.log("Registered new GFX item ");
+                logger("Registered new GFX item ");
             } else {
-                console.log(`WARNING! GFX ${item.itemId} [${item.ord}] in ${rundownStr}, story num ${item.ord} doesn't exists in DB`);
+                logger(`WARNING! GFX ${item.itemId} [${item.ord}] in ${rundownStr}, story num ${item.ord} doesn't exists in DB`);
             }
 
         } catch (error) {
@@ -360,9 +361,9 @@ class SqlService {
             try {
                 const result =await db.execute(sqlQuery, values);
                 if(result.rowsAffected[0] > 0){
-                    console.log(`Delete GFX item ${item.itemId} in ${rundownStr}, story num ${item.storyId}`);
+                    logger(`Delete GFX item ${item.itemId} in ${rundownStr}, story num ${item.storyId}`);
                 } else {
-                    console.log(`WARNING! GFX ${item.itemId} [${item.ord}] in ${rundownStr}, story num ${item.ord} doesn't exists in DB`);
+                    logger(`WARNING! GFX ${item.itemId} [${item.ord}] in ${rundownStr}, story num ${item.ord} doesn't exists in DB`);
                 }
     
             } catch (error) {
@@ -370,7 +371,7 @@ class SqlService {
                 return null;
             }
         } else{
-            console.log("[Skip deleting item] - Deleted item is in use in other stories.");
+            logger("[Skip deleting item] - Deleted item is in use in other stories.");
         }
 
     } 
@@ -462,7 +463,7 @@ class SqlService {
         try {
             // Execute the update query with the provided values
             await db.execute(sqlQuery, values);
-            console.log(`Item ${item.gfxItem} updated from the plugin`);
+            logger(`Item ${item.gfxItem} updated from the plugin`);
         } catch (error) {
             console.error('Error on updating GFX item:', error);
             // Since the function is void, we don't return anything, but you might want to handle the error appropriately

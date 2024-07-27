@@ -1,6 +1,7 @@
 import inewsCache from "../1-dal/inews-cache.js";
 import itemsHash from "../1-dal/items-hashmap.js";
 import sqlService from "./sql-service.js";
+import logger from "../utilities/logger.js";
 
 
 /**
@@ -38,7 +39,7 @@ async function compareItems(rundownStr, story) {
                 ord:storyProp.ord
             });
 
-            console.log(`New item registered in ${rundownStr}, story ${story.storyName}`)
+            logger(`New item registered in ${rundownStr}, story ${story.storyName}`)
         
         // Reorder item event
         } else if(storyProp.ord !== cachedItems[storyGfxItem].ord){
@@ -48,7 +49,7 @@ async function compareItems(rundownStr, story) {
                 storyId:storyId, 
                 ord:storyProp.ord
             });
-            console.log(`Item reordered in ${rundownStr}, story ${story.storyName}`);     
+            logger(`Item reordered in ${rundownStr}, story ${story.storyName}`);     
         
         // Modify item event
         } else if(storyProp.itemSlug !== cachedItems[storyGfxItem].itemSlug){
@@ -58,7 +59,7 @@ async function compareItems(rundownStr, story) {
                 storyId:storyId, 
                 itemSlug: storyProp.itemSlug
             });
-            console.log(`Item ${storyProp.itemSlug} modified in ${rundownStr}, story ${story.storyName}`); 
+            logger(`Item ${storyProp.itemSlug} modified in ${rundownStr}, story ${story.storyName}`); 
         }
         
     } 

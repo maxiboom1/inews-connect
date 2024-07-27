@@ -5,9 +5,10 @@ import sqlService from "./sql-service.js";
 import inewsCache from "../1-dal/inews-cache.js";
 import xmlParser from "../utilities/xml-parser.js";
 import itemHash from "../1-dal/items-hashmap.js";
+import logger from "../utilities/logger.js";
 
 async function startMainProcess() { 
-    console.log('Starting Inews-connect 1.8.6 ...');
+    logger('Starting Inews-connect 1.8.6 ...');
     await sqlService.initialize();
     await rundownIterator();
 }
@@ -141,13 +142,15 @@ function isEmpty(obj) {
     return Object.keys(obj).length === 0;
 }
 
+
+//******* Those 2 func is to find duplicated, create niw uniq sql item, then modify the item id on INEWS story (Not implemented yet) ********/
 // To use: updateStory(story.id, story, rundownStr);
 async function updateStory(storyId,modifiedStory,rundownStr) {
     const storyData = "<storyid>"+storyId; // Example story data in NSML format
-    console.log("triggered mod...", rundownStr);
+    logger(`triggered mod... ${rundownStr}`);
     try {
       const response = await conn.stor(storyData,modifiedStory, rundownStr);
-      console.log(response);
+      logger(response);
     } catch (error) {
       console.error("Error updating story:", error);
     }
@@ -166,7 +169,7 @@ async function checkForDuplicatedItems(rundownStr, story){
             // Store copy and get new uid
             const assertedUid = await sqlService.storeNewItem(originItem);
 
-            console.log(assertedUid);
+            logger(assertedUid);
 
             conn.storyNsml(rundownStr, story.fileName)
         			    .then(story => {
@@ -181,7 +184,7 @@ async function checkForDuplicatedItems(rundownStr, story){
 }
 
 conn.on('connections', connections => {
-    console.log(connections + ' FTP connections active');
+    logger(`${connections} FTP connections active`);
 });
 export default {
     startMainProcess

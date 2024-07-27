@@ -4,7 +4,7 @@ import express from "express";
 import cors from "cors";
 import getServerIP from "./src/utilities/host-ip.js";
 import bodyParser from 'body-parser';
-
+import logger from "./src/utilities/logger.js";
 const app = express(); 
 
 app.use(cors({origin: '*'}));
@@ -21,8 +21,8 @@ app.use(express.static('plugin'));
 const port = 3000;
 app.listen(port, () => {
     const host = getServerIP();
-    console.log(`Server service running on port ${port}`);
-    console.log(`Plugin url: http://${host}:${port}/index.html`)
+    logger(`Server service running on port ${port}`);
+    logger(`Plugin url: http://${host}:${port}/index.html`)
     
     inewsService.startMainProcess();
 });

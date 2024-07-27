@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { JSDOM } from 'jsdom';
 import appConfig from './app-config.js';
+import logger from "../utilities/logger.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -29,7 +30,7 @@ async function processAndWriteFiles(templates) {
         const filePath = path.join(templatesFolder, `${uid}.html`);
         await fsPromises.writeFile(filePath, injectedHtml, 'utf-8');
         delete template.source;
-        console.log(`Loaded ${name} template`);
+        logger(`Loaded ${name} template`);
     }
 
     return templates;

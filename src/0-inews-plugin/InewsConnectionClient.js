@@ -5,6 +5,7 @@ import JobsQueue from "./JobsQueue.js";
 import parseNsml from "./inewsStoryParser.js";
 import NestedMap from "./NestedMap.js";
 import appConfig from "../utilities/app-config.js";
+import logger from "../utilities/logger.js";
 
 Promise.config({
 	cancellation: true
@@ -132,7 +133,7 @@ class InewsConnectionClient extends EventEmitter {
 		// NEW
 		const sendSiteFormatCommand = () => {
 			return new Promise((resolve, reject) => {
-				console.log("Site format set to: ", appConfig.ftpSiteFormat);
+				logger(`Site format set to: ${appConfig.ftpSiteFormat}`);
 			  	this._ftpConn.site(`FORMAT=${appConfig.ftpSiteFormat}`, (error, response) => { 
 					if (error) {
 					reject(error);
@@ -380,7 +381,7 @@ class InewsConnectionClient extends EventEmitter {
 				const dataBuffer = Buffer.from(data, 'utf8');
 	
 				this._ftpConn.put(dataBuffer, "", (error) => {
-					console.log(data );
+					logger(data );
 					if (error) {
 						reject(error);
 					} else {

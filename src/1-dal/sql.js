@@ -1,5 +1,6 @@
 import sql from "mssql";
 import appConfig from "../utilities/app-config.js";
+import logger from "../utilities/logger.js";
 
 const config = {
   user: appConfig.sqlServerUser,
@@ -15,7 +16,7 @@ const config = {
 const poolPromise = new sql.ConnectionPool(config)
   .connect()
   .then((pool) => {
-    console.log('Connected to SQL Server');
+    logger('Connected to SQL Server');
     return pool;
   })
   .catch((err) => {
