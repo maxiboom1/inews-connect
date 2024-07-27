@@ -37,9 +37,10 @@ async function getTemplates() {
 }
 
 function createAccordionItem(sceneName, folders, templates, sceneCounter) {
+
     const sceneAccordion = document.createElement('div');
     sceneAccordion.className = 'accordion-item';
-    
+    sceneAccordion.className = 'dark';
     const sceneId = `scene-${sceneCounter}`;
     const sceneAccordionItem = `
     <h2 class="accordion-header">
@@ -63,16 +64,18 @@ function createAccordionItem(sceneName, folders, templates, sceneCounter) {
     // Inject folder accordions with unique IDs
     const folderAccordionContainer = sceneAccordion.querySelector(`#folders-${sceneId}`);
     folders.forEach((folder, folderCounter) => {
-        const folderAccordion = createFolderAccordionItem(folder.name, templates, sceneId, folderCounter);
+        const folderAccordion = createFolderAccordionItem(folder.name, templates, sceneId, folderCounter, folder);
         folderAccordionContainer.appendChild(folderAccordion);
     });
 
     return sceneAccordion;
 }
 
-function createFolderAccordionItem(folderName, templates, sceneId, folderCounter) {
+function createFolderAccordionItem(folderName, templates, sceneId, folderCounter, folder) {
     const folderAccordion = document.createElement('div');
     folderAccordion.className = 'accordion-item';
+    folderAccordion.className = 'dark';
+
     
     const folderId = `${sceneId}-folder-${folderCounter}`;
     const folderAccordionItem = `
@@ -85,12 +88,23 @@ function createFolderAccordionItem(folderName, templates, sceneId, folderCounter
       </button>
     </h2>
     <div id="${folderId}" class="accordion-collapse collapse" data-bs-parent="#folders-${sceneId}">
-      <div class="accordion-body">
-        Templates will be injected here
+      <div class="accordion-body row mb-3 justify-content-left">
+        <!-- Templates will be injected here -->
       </div>
     </div>`;
     
     folderAccordion.innerHTML = folderAccordionItem;
+
+    // Filter and inject templates based on folder.itemUids
+    const templatesContainer = folderAccordion.querySelector('.accordion-body');
+    folder.itemUids.forEach(itemUid => {
+        const template = templates.find(template => template.uid === itemUid.toString());
+        if (template) {
+            const templateElement = createTemplateHtml(template);
+            templateElement.addEventListener('click', () => renderTemplate(templateElement.id));
+            templatesContainer.appendChild(templateElement);
+        }
+    });
 
     return folderAccordion;
 }
