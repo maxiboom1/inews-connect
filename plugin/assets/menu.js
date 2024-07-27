@@ -51,9 +51,9 @@ function createAccordionItem(sceneName, folders, templates, sceneCounter) {
         ${sceneName}
       </button>
     </h2>
-    <div id="${sceneId}" class="accordion-collapse collapse" data-bs-parent="#scenesAccordion">
+    <div id="${sceneId}" class="accordion-collapse collapse" >
       <div class="accordion-body">
-        <div class="accordion" id="folders-${sceneId}">
+        <div class="accordion foldersAccordion" id="folders-${sceneId}">
           <!-- Folders accordion will be injected here -->
         </div>
       </div>
@@ -87,7 +87,7 @@ function createFolderAccordionItem(folderName, templates, sceneId, folderCounter
         ${folderName}
       </button>
     </h2>
-    <div id="${folderId}" class="accordion-collapse collapse" data-bs-parent="#folders-${sceneId}">
+    <div id="${folderId}" class="accordion-collapse collapse">
       <div class="accordion-body row mb-3 justify-content-left">
         <!-- Templates will be injected here -->
       </div>

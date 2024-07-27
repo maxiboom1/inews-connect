@@ -8,7 +8,7 @@ import itemHash from "../1-dal/items-hashmap.js";
 import logger from "../utilities/logger.js";
 
 async function startMainProcess() { 
-    logger('Starting Inews-connect 1.8.6 ...');
+    logger('Starting Inews-connect 1.8.7 ...');
     await sqlService.initialize();
     await rundownIterator();
 }

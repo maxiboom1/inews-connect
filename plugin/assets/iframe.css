@@ -41,12 +41,12 @@ button{
 /* Style for the pluginPanelBtn buttons */
 .pluginPanelBtn {
     margin: -3px;
-    padding: 3px 16px;
-    background-color: #3498db;
-    color: #fff;
+    padding: 5px 16px;
+    background-color: #1777b7;
+    color: #ffffff;
     border: none;
     cursor: pointer;
-    margin-right: 20px;
+    margin-right: 16px;
     border-radius: 5%;
 }
 

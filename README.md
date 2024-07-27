@@ -25,6 +25,33 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 **LOGS:**
 
+1.8.7
+
+- Implemented bootstrap nested accordion that sorts templates in scenes and folders structure. 
+Style parameters are overrides bootstrap defaults, they are fully cusmozible - there is 2 separated configs for scenesAccordion and foldersAccordion (menu.css)
+Logic:
+
+Data Initialization:
+
+Initialize productionsData array to store fetched data.
+Fetching Productions:
+
+getProductions(): Fetch productions data from the API and populate the production selector dropdown.
+Fetching Templates:
+
+getTemplates(): On user selection, fetch templates for the chosen production.
+Create scene accordion items, each containing nested folder accordion items.
+Creating Accordion Items:
+
+createAccordionItem(): For each scene, create a scene accordion item with unique IDs.
+createFolderAccordionItem(): For each folder in a scene, create a folder accordion item with unique IDs, and inject the corresponding templates.
+Injecting Templates:
+
+createTemplateHtml(): Create and inject HTML for each template within the folder accordion items.
+
+- Minor style improvements.
+- Added logger - all prints going thru logger func, that adds timestamp.
+
 1.8.6
 
 - Implemented favorites modifier key - for key combination
