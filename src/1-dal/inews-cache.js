@@ -21,7 +21,6 @@ class InewsCache {
         this.productions = {};
         for (let i = 0; i < productions.length; i++) {
             const {name, uid, properties} ={...productions[i]};
-            
             // This part takes production "properties" data, and simplifies it to needed obj:
             // scenes: [{name: "Scene Name",folders: [{name: "Folder Name",itemUids: [ /* Array of item UIDs */ ]},// ... more folders]},// ... more scenes]
             const decodedStr = decodeURIComponent(properties);
