@@ -1,3 +1,5 @@
+import replaceAndNormalizeSpaces from "../utilities/normalize.js";
+
 class InewsCache {
     
     constructor() {
@@ -22,14 +24,18 @@ class InewsCache {
         for (let i = 0; i < productions.length; i++) {
             const {name, uid, properties} ={...productions[i]};
             // This part takes production "properties" data, and simplifies it to needed obj:
-            // scenes: [{name: "Scene Name",folders: [{name: "Folder Name",itemUids: [ /* Array of item UIDs */ ]},// ... more folders]},// ... more scenes]
+            // scenes: [{name: "Scene Name",folders: 
+            // [{name: "Folder Name",itemUids: 
+            //[ /* Array of item UIDs */ ]},color:color// ... more folders]},// ... more scenes]
             const decodedStr = decodeURIComponent(properties);
+            
             const productionData = JSON.parse(decodedStr);
             const scenes = productionData.Scenes.map(scene => {
                 return {
-                    name: scene.Name,
+                    name:replaceAndNormalizeSpaces(scene.Name),
+                    color:scene.Color,
                     folders: scene.Folders.map(folder => ({
-                        name: folder.Name,
+                        name: replaceAndNormalizeSpaces(folder.Name),
                         itemUids: folder.ItemUids
                     }))
                 };
@@ -68,6 +74,7 @@ class InewsCache {
                 uid: data.uid,
                 scenes: data.scenes.map(scene => ({
                     name: scene.name,
+                    color:scene.color,
                     folders: scene.folders.map(folder => ({
                         name: folder.name,
                         itemUids: folder.itemUids

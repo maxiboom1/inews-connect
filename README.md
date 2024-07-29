@@ -25,6 +25,12 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 **LOGS:**
 
+1.8.8
+
+- Implemented scenes and folder names normalizer
+- Implemented color code on scenes - based on scene.color from API.
+
+
 1.8.7
 
 - Implemented bootstrap nested accordion that sorts templates in scenes and folders structure. 

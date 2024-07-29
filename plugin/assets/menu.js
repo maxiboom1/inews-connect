@@ -31,20 +31,38 @@ async function getTemplates() {
     
     // Create accordionItem for each production scene with unique IDs
     production.scenes.forEach((scene, sceneCounter) => {
-        const sceneAccordion = createAccordionItem(scene.name, scene.folders, templates, sceneCounter);
+        const sceneAccordion = createAccordionItem(scene.name, scene.folders, templates, sceneCounter,scene.color);
         templatesContainer.appendChild(sceneAccordion);
     });
 }
 
-function createAccordionItem(sceneName, folders, templates, sceneCounter) {
-
+function createAccordionItem(sceneName, folders, templates, sceneCounter, sceneColor) {
+    console.log(sceneColor);
     const sceneAccordion = document.createElement('div');
     sceneAccordion.className = 'accordion-item';
     sceneAccordion.className = 'dark';
+
+    // Determine the background color class based on sceneColor
+    let colorClass = '';
+    switch(sceneColor) {
+        case 1:
+            colorClass = 'dark-red';
+            break;
+        case 2:
+            colorClass = 'dark-green';
+            break;
+        case 3:
+            colorClass = 'dark-blue';
+            break;
+        default:
+            colorClass = 'no-color';
+    }
+    //sceneAccordion.classList.add(colorClass);
+
     const sceneId = `scene-${sceneCounter}`;
     const sceneAccordionItem = `
     <h2 class="accordion-header">
-      <button class="accordion-button" type="button" 
+      <button class="accordion-button ${colorClass}" type="button" 
         data-bs-toggle="collapse" 
         data-bs-target="#${sceneId}" 
         aria-expanded="false" aria-controls="${sceneId}">
