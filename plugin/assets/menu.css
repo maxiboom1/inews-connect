@@ -99,6 +99,8 @@ hr{
 .no-color {
     background-color: transparent;
 }
+
+/* Colors of scenes - Dor you can adjust the red/green/blue color here */
 .dark-red {
     --bs-accordion-btn-bg:rgba(139, 0, 0, 0.296);
     --bs-accordion-active-bg:rgba(139, 0, 0, 0.296);;
