@@ -1,4 +1,4 @@
-import conn from "../1-dal/inews-ftp.js"
+import conn from "../1-dal/inews-ftp.js";
 import appConfig from "../utilities/app-config.js";
 import hebDecoder from "../utilities/hebrew-decoder.js";
 import sqlService from "./sql-service.js";
@@ -7,185 +7,167 @@ import xmlParser from "../utilities/xml-parser.js";
 import itemHash from "../1-dal/items-hashmap.js";
 import logger from "../utilities/logger.js";
 
-async function startMainProcess() { 
-    logger('Starting Inews-connect 1.8.8 ...');
-    await sqlService.initialize();
-    await rundownIterator();
-}
-
-async function rundownIterator() {
-    
-    //console.time("Debug: Rundown Iteration process time:");
-    const rundowns = await inewsCache.getRundownsArr(); 
-    for(const rundownStr of rundowns){
-        await rundownProcessor(rundownStr);
+class RundownProcessor {
+    constructor() {
+        this.setupConnectionListener();
     }
-    setTimeout(rundownIterator, appConfig.pullInterval);
-    //console.timeEnd("Debug: Rundown Iteration process time:"); 
-}
 
-/**
- * As we use more than 1 ftp connection, there is a need to handle parallelism in the code.
- * Implemented common method is iterable of promises storyPromises.
- * Types of story change that handled: story deleted, story added, story modified, story float, list order changed
- * In the end, we make sure that all jobs are finished with Promise.all(storyPromises)
- * @param {*} rundownStr - rundown string to process.
- */
-async function rundownProcessor(rundownStr) {
-    
-    try {
-        const listItems = await conn.list(rundownStr);
-        const storyPromises = listItems
+    async initialize() {
+        logger('Starting Inews-connect 1.9.0...');
+        await sqlService.initialize();
+        this.rundownIterator();
+    }
+
+    setupConnectionListener() {
+        conn.on('connections', connections => {
+            logger(`${connections} FTP connections active`);
+        });
+    }
+
+    async rundownIterator() {
+        const rundowns = await inewsCache.getRundownsArr();
+        for (const rundownStr of rundowns) {
+            await this.processRundown(rundownStr);
+        }
+        setTimeout(() => this.rundownIterator(), appConfig.pullInterval);
+    }
+
+    async processRundown(rundownStr) {
+        try {
+            const listItems = await conn.list(rundownStr);
+            const storyPromises = this.processStories(rundownStr, listItems);
+            await Promise.all(storyPromises);
+            await this.handleDeletedStories(rundownStr, listItems);
+        } catch (error) {
+            console.error("Error fetching and processing stories:", error);
+        }
+    }
+
+    processStories(rundownStr, listItems) {
+        return listItems
             .filter(listItem => listItem.fileType === 'STORY')
-            .map(async (listItem, index) => {
+            .map((listItem, index) => this.processStory(rundownStr, listItem, index));
+    }
+
+    async processStory(rundownStr, listItem, index) {
+        try {
+            const isStoryExists = await inewsCache.isStoryExists(rundownStr, listItem.identifier);
+            listItem.storyName = hebDecoder(listItem.storyName);
+
+            if (!isStoryExists) {
+                await this.handleNewStory(rundownStr, listItem, index);
+            } else {
+                await this.handleExistingStory(rundownStr, listItem, index);
+            }
+        } catch (error) {
+            console.error(`ERROR at Index ${index}:`, error);
+        }
+    }
+
+    async handleNewStory(rundownStr, listItem, index) {
+        const story = await this.getStory(rundownStr, listItem.fileName);
+        listItem.attachments = xmlParser.parseAttachments(story);
+        listItem.pageNumber = story.fields.pageNumber;
+        listItem.enabled = this.isEmpty(listItem.attachments) ? 0 : 1;
+        const assertedStoryUid = await sqlService.addDbStory(rundownStr, listItem, index);
+        listItem.uid = assertedStoryUid;
+        await inewsCache.saveStory(rundownStr, listItem, index);
+    }
+
+    async handleExistingStory(rundownStr, listItem, index) {
+        const action = await this.checkStory(rundownStr, listItem, index);
+
+        if (action === "reorder") {
+            await sqlService.reorderDbStory(rundownStr, listItem, index);
+            await inewsCache.reorderStory(rundownStr, listItem, index);
+        } else if (action === "modify") {
+            await this.modifyStory(rundownStr, listItem);
+        }
+    }
+
+    async modifyStory(rundownStr, listItem) {
+        const story = await this.getStory(rundownStr, listItem.fileName);
+        listItem.attachments = xmlParser.parseAttachments(story);
+        listItem.pageNumber = story.fields.pageNumber;
+        listItem.enabled = this.isEmpty(listItem.attachments) ? 0 : 1;
+        await sqlService.modifyDbStory(rundownStr, listItem);
+        await inewsCache.modifyStory(rundownStr, listItem);
+    }
+
+    async handleDeletedStories(rundownStr, listItems) {
+        if (listItems.length < await inewsCache.getRundownLength(rundownStr)) {
+            await this.deleteDif(rundownStr, listItems);
+        }
+    }
+
+    async checkStory(rundownStr, story, index) {
+        const cacheStory = await inewsCache.getStory(rundownStr, story.identifier);
+        if (index != cacheStory.ord) {
+            return "reorder";
+        }
+        if (story.locator != cacheStory.locator) {
+            return "modify";
+        }
+        return false;
+    }
+
+    async deleteDif(rundownStr, listItems) {
+        const inewsHashMap = {};
+        const cachedIdentifiers = await inewsCache.getRundownIdentifiersList(rundownStr);
+        for (const listItem of listItems) {
+            inewsHashMap[listItem.identifier] = 1;
+        }
+        const identifiersToDelete = cachedIdentifiers.filter(identifier => !inewsHashMap.hasOwnProperty(identifier));
+        for (const identifier of identifiersToDelete) {
+            await sqlService.deleteStory(rundownStr, identifier);
+            await inewsCache.deleteStory(rundownStr, identifier);
+        }
+    }
+
+    async getStory(rundownStr, fileName) {
+        return await conn.story(rundownStr, fileName);
+    }
+
+    isEmpty(obj) {
+        return Object.keys(obj).length === 0;
+    }
+
+    async updateStory(storyId, modifiedStory, rundownStr) {
+        const storyData = "<storyid>" + storyId;
+        logger(`triggered mod... ${rundownStr}`);
+        try {
+            const response = await conn.stor(storyData, modifiedStory, rundownStr);
+            logger(response);
+        } catch (error) {
+            console.error("Error updating story:", error);
+        }
+    }
+
+    async checkForDuplicatedItems(rundownStr, story) {
+        const attachmentsIdArr = Object.keys(story.attachments);
+        for (const itemId of attachmentsIdArr) {
+            if (itemHash.isUsed(itemId)) {
+                const originItem = await sqlService.getFullItem(itemId);
+                originItem.templateId = originItem.template;
+                originItem.productionId = originItem.production;
+                const assertedUid = await sqlService.storeNewItem(originItem);
+                logger(assertedUid);
+
                 try {
-                    const isStoryExists = await inewsCache.isStoryExists(rundownStr,listItem.identifier);
-                    listItem.storyName = hebDecoder(listItem.storyName);
-                    
-                    // Create new story
-                    if(!isStoryExists){
-                        const story = await getStory(rundownStr, listItem.fileName);
-                        listItem.attachments = xmlParser.parseAttachments(story); //return {gfxItem: { gfxTemplate, gfxProduction, itemSlug, ord }}
-                        listItem.pageNumber = story.fields.pageNumber;
-                        // Set enabled
-                        if(isEmpty(listItem.attachments)){listItem.enabled = 0} else {listItem.enabled = 1}
-                        const assertedStoryUid = await sqlService.addDbStory(rundownStr,listItem,index);
-                        listItem.uid = assertedStoryUid;
-                        // Save to cache
-                        await inewsCache.saveStory(rundownStr, listItem, index);  
-
-                    } else{
-                        
-                        const action = await checkStory(rundownStr,listItem,index); // Compare inews version with cached
-                        
-                        // Reorder story 
-                        if(action === "reorder"){
-                            await sqlService.reorderDbStory(rundownStr,listItem,index);
-                            await inewsCache.reorderStory(rundownStr,listItem,index);
-                        
-                        // Modify story
-                        }else if(action === "modify"){
-                            
-                            const story = await getStory(rundownStr, listItem.fileName);
-                            listItem.attachments = xmlParser.parseAttachments(story); //return {gfxItem: { gfxTemplate, gfxProduction, itemSlug, ord }}
-                            listItem.pageNumber = story.fields.pageNumber;                            
-                            
-                            // Set enabled
-                            if(isEmpty(listItem.attachments)){listItem.enabled = 0} else {listItem.enabled = 1}
-                            await sqlService.modifyDbStory(rundownStr,listItem);
-                            await inewsCache.modifyStory(rundownStr,listItem);
-                        }
-                    }
-                    
-                    
+                    const storyNsml = await conn.storyNsml(rundownStr, story.fileName);
+                    const updatedStory = storyNsml.replace(`<gfxItem>${itemId}</gfxItem>`, `<gfxItem>${assertedUid}</gfxItem>`);
+                    await this.updateStory(story.fileName, updatedStory, rundownStr);
                 } catch (error) {
-                    console.error(`ERROR at Index ${index}:`, error);
+                    console.error("ERROR", error);
                 }
-            });
-        
-        // Wait for all promises to settle
-        await Promise.all(storyPromises);
-
-        // Delete stories  
-        if(listItems.length < await inewsCache.getRundownLength(rundownStr)){
-            deleteDif(rundownStr,listItems);
+            }
         }
+    }
 
-    } catch (error) {
-        console.error("Error fetching and processing stories:", error);
+    async startMainProcess() {
+        await this.initialize();
     }
 }
 
-async function checkStory(rundownStr ,story, index) {
-    
-    const cacheStory = await inewsCache.getStory(rundownStr, story.identifier);
-    // Reorder
-    if(index != cacheStory.ord){
-        return "reorder";
-    };
-
-    // Modify
-    if(story.locator != cacheStory.locator){
-        return "modify"
-    };
-    
-    // No changes
-    return false;
-}
-
-async function deleteDif(rundownStr,listItems) {
-    
-    // Create hash for inews identifiers
-    const inewsHashMap = {};
-    // Get cached story identifiers
-    const cachedIdentifiers = await inewsCache.getRundownIdentifiersList(rundownStr);
-    // Store inews identifiers in hash
-    for(const listItem of listItems){
-        inewsHashMap[listItem.identifier] = 1;
-    }
-    // Filter identifiers that in cache but not in inews
-    const identifiersToDelete = cachedIdentifiers.filter(identifier => !inewsHashMap.hasOwnProperty(identifier));
-    // Delete from cache and mssql
-    identifiersToDelete.forEach(async identifier=>{
-        await sqlService.deleteStory(rundownStr,identifier);
-        await inewsCache.deleteStory(rundownStr,identifier);
-    });
-}
-
-async function getStory(rundownStr, fileName){
-    const storyPromise = conn.story(rundownStr, fileName);
-    const story = await storyPromise;
-    return story;
-}
-
-function isEmpty(obj) {
-    return Object.keys(obj).length === 0;
-}
-
-
-//******* Those 2 func is to find duplicated, create niw uniq sql item, then modify the item id on INEWS story (Not implemented yet) ********/
-// To use: updateStory(story.id, story, rundownStr);
-async function updateStory(storyId,modifiedStory,rundownStr) {
-    const storyData = "<storyid>"+storyId; // Example story data in NSML format
-    logger(`triggered mod... ${rundownStr}`);
-    try {
-      const response = await conn.stor(storyData,modifiedStory, rundownStr);
-      logger(response);
-    } catch (error) {
-      console.error("Error updating story:", error);
-    }
-}
-
-async function checkForDuplicatedItems(rundownStr, story){
-    const attachmentsIdArr = Object.keys(story.attachments);
-    attachmentsIdArr.forEach(async (itemId)=>{
-        if(itemHash.isUsed(itemId)){
-            
-            // Fetch duplicated item 
-            const originItem = await sqlService.getFullItem(itemId);
-            originItem.templateId = originItem.template;
-            originItem.productionId = originItem.production;
-            
-            // Store copy and get new uid
-            const assertedUid = await sqlService.storeNewItem(originItem);
-
-            logger(assertedUid);
-
-            conn.storyNsml(rundownStr, story.fileName)
-        			    .then(story => {
-        					const updatedStory = story.replace(`<gfxItem>${itemId}</gfxItem>`,`<gfxItem>${assertedUid}</gfxItem>`);
-                            updateStory(story.fileName,updatedStory,rundownStr);
-        				})
-        				.catch(error => {
-        					console.error("ERROR", error);
-        				});
-        }
-    });
-}
-
-conn.on('connections', connections => {
-    logger(`${connections} FTP connections active`);
-});
-export default {
-    startMainProcess
-};
+const processor = new RundownProcessor();
+export default processor;

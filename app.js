@@ -1,4 +1,4 @@
-import inewsService from "./src/services/inews-service.js";
+import processor from "./src/services/inews-service.js";
 import routes from "./src/routes/routes.js";
 import express from "express";
 import cors from "cors";
@@ -24,5 +24,5 @@ app.listen(port, () => {
     logger(`Server service running on port ${port}`);
     logger(`Plugin url: http://${host}:${port}/index.html`)
     
-    inewsService.startMainProcess();
+    processor.startMainProcess();
 });

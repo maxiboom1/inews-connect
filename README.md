@@ -25,6 +25,10 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 **LOGS:**
 
+1.9.0
+
+- Inews-service refactored to class module. I ready now to focus on duplicates.
+
 1.8.8
 
 - Implemented scenes and folder names normalizer
