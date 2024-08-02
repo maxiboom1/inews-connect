@@ -37,7 +37,6 @@ async function getTemplates() {
 }
 
 function createAccordionItem(sceneName, folders, templates, sceneCounter, sceneColor) {
-    console.log(sceneColor);
     const sceneAccordion = document.createElement('div');
     sceneAccordion.className = 'accordion-item';
     sceneAccordion.className = 'dark';
@@ -194,7 +193,7 @@ function renderTemplate(templateId) {
     function checkAndHideSpinner() {
         if (iframeLoaded && minTimeElapsed) {
             iframe.style.display = 'block';
-            iframe.contentWindow.selectFirstTextField();
+            //iframe.contentWindow.selectFirstTextField();
             spinner.style.visibility = "hidden";
         }
     }
