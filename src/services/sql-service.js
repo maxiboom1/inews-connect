@@ -120,7 +120,7 @@ class SqlService {
         try {
             const sql = `SELECT * FROM ngn_inews_rundowns`;
             const result = await db.execute(sql);
-            const cacheRundowns = await inewsCache.getRundownsArr();
+            const cacheRundowns = await inewsCache.getRundownsArr(); // Get rundowns from config.json
             const unwatchedRundowns = result.filter(item => !cacheRundowns.includes(item.name)).map(item => item.uid);
             for(const r of unwatchedRundowns){
                 const values = {uid: r};

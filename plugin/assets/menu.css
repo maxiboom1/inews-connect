@@ -100,14 +100,14 @@ hr{
     background-color: transparent;
 }
 .dark-red {
-    --bs-accordion-btn-bg:darkred;
-    --bs-accordion-active-bg:darkred;
+    --bs-accordion-btn-bg:rgba(139, 0, 0, 0.296);
+    --bs-accordion-active-bg:rgba(139, 0, 0, 0.296);;
 }
 .dark-green {
-    --bs-accordion-btn-bg:darkgreen;
-    --bs-accordion-active-bg:darkgreen;
+    --bs-accordion-btn-bg:rgba(0, 100, 0, 0.28);
+    --bs-accordion-active-bg:rgba(0, 100, 0, 0.28);
 }
 .dark-blue {
-    --bs-accordion-btn-bg:darkblue;
-    --bs-accordion-active-bg:darkblue;
+    --bs-accordion-btn-bg:rgba(0, 0, 139, 0.28);
+    --bs-accordion-active-bg:rgba(0, 0, 139, 0.28);
 }

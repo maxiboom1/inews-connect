@@ -193,7 +193,7 @@ function renderTemplate(templateId) {
     function checkAndHideSpinner() {
         if (iframeLoaded && minTimeElapsed) {
             iframe.style.display = 'block';
-            //iframe.contentWindow.selectFirstTextField();
+            try {iframe.contentWindow.selectFirstTextField();}catch{}
             spinner.style.visibility = "hidden";
         }
     }
