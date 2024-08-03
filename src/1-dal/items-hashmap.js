@@ -5,10 +5,9 @@ class ItemsHashmap {
     constructor() {
         this.map = {}; 
         this.unlinked = {};
-        
+        this.duplicates = {};
         this.cacheFilePath = path.join(path.resolve(), 'unlinkedItemsCache.json');        
         this.loadUnlinkedFromCache();
-        //setInterval(() => this.updateCacheFile(), 10 * 60 * 1000); // Update cache every 10 minutes
         setInterval(() => this.updateCacheFile(), 60000); 
     }
 
@@ -31,15 +30,15 @@ class ItemsHashmap {
         }
     }
 
-    add(gfxItem) {
+    async add(gfxItem) {
         if (this.map[gfxItem]) {
             this.map[gfxItem] += 1;
         } else {
             this.map[gfxItem] = 1;
         }
-
+        //console.log('Updated gfx item in item hash: ',this.map[gfxItem], "here is the isused result: ", this.isUsed(gfxItem));
         delete this.unlinked[gfxItem];
-        
+        return;
     }
 
     remove(gfxItem) {
@@ -52,7 +51,8 @@ class ItemsHashmap {
     }
 
     isUsed(gfxItem) {
-        return this.map[gfxItem] > 0;
+        const result = this.map[gfxItem]>0;
+        return result;
     }
 
     get(){
@@ -63,7 +63,6 @@ class ItemsHashmap {
         this.unlinked[gfxItem] = "";
     }
 
-    
 }
 
 const itemsHash = new ItemsHashmap();

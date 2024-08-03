@@ -165,14 +165,23 @@ class SqlService {
             //Check for items in this story. attachments format: {gfxItem: { gfxTemplate, gfxProduction, itemSlug, ord }}
             if (Object.keys(story.attachments).length > 0){
                 Object.entries(story.attachments).forEach(async ([gfxItem, att]) => {
-                    const item = {
-                        rundownId: rundownMeta.uid,
-                        storyId: story.uid,
-                        itemId: gfxItem,
-                        ord:att.ord
+                    
+                    if(itemsHash.isUsed(gfxItem)){
+                        this.newDuplicatedItem(story, att.ord,rundownMeta,gfxItem);                        
+                    }else{
+                        const item = {
+                            rundownId: rundownMeta.uid,
+                            storyId: story.uid,
+                            itemId: gfxItem,
+                            ord:att.ord
+                        }
+                        
+                        await itemsHash.add(gfxItem);
+    
+                        await sqlService.updateItem(rundownStr, item); // item: {itemId, rundownId, storyId, ord}
                     }
-                    itemsHash.add(gfxItem);
-                    await sqlService.updateItem(rundownStr, item); // item: {itemId, rundownId, storyId, ord}
+                    
+ 
                   });
             }
 
@@ -466,7 +475,6 @@ class SqlService {
             logger(`Item ${item.gfxItem} updated from the plugin`);
         } catch (error) {
             console.error('Error on updating GFX item:', error);
-            // Since the function is void, we don't return anything, but you might want to handle the error appropriately
         }
     }
     
@@ -512,6 +520,48 @@ class SqlService {
             return null;
         }
     }
+
+
+    async newDuplicatedItem(story,ord,data,masterGfxId){
+        const originalItem = await this.getFullItem(masterGfxId);
+        const duplicateItem = {
+            name: story.storyName,
+            lastupdate: createTick(),
+            production: originalItem.production,
+            rundown: data.uid,
+            story: story.uid,
+            ord: ord,
+            ordupdate: createTick(),
+            template: originalItem.template,
+            data: originalItem.data,
+            scripts: originalItem.scripts,
+            enabled: 1,
+            tag: "",
+        }
+        //const duplicatedUid = await this.storeDuplicateItem(duplicateItem);
+        //console.log('duplicated item will be: ', duplicateItem);
+
+        // store in inews-cache
+        // update items-hashmap 
+    }
+
+    async storeDuplicateItem(duplicateItem) { 
+
+        const sqlQuery = `
+            INSERT INTO ngn_inews_items (name, lastupdate, production, rundown, story, ord, ordupdate, template, data, scripts, enabled, tag)
+            OUTPUT INSERTED.uid
+            VALUES (@name, @lastupdate, @production, @rundown, @story, @ord, @ordupdate,@template, @data, @scripts, @enabled, @tag);`;
+    
+        try {
+            const result = await db.execute(sqlQuery, duplicateItem);
+            return result.recordset[0].uid; 
+        } catch (error) {
+            console.error('Error on storing duplicated GFX item:', error);
+            return null;
+        }
+    }
+
+
     
 }    
 

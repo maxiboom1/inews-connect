@@ -4,8 +4,6 @@ class InewsCache {
     
     constructor() {
         this.productions = {}; //{name: {uid:uid, scenes:[]},name2:uid2, ... other productions...}
-        // OLD
-        //this.templates = {}; // {templateName:{uid:uid, production:production,icon:iconData}, otherTemplateName:{...}, ...}
         this.templates = {}; // {templateUid: {templateName, production, icon}, ...}
         this.stories = {}; //{'rundownName': {'storyIdentifier': {storyProps...} } }; ==> see example at page footer
         this.rundownsList = {}; // {rundownName:{uid,production}, otherRundownName:{...}, ...}
@@ -44,15 +42,7 @@ class InewsCache {
             
           }
     }
-    // OLD
-    // async setTemplates(templates){ // Expect: [{ uid, name, production, icon},{...}]
-    //     this.templates = {};
-    //     templates.forEach(t => {
-    //         this.templates[t.name] = {uid:t.uid, production: t.production, icon:t.icon};
-    //     });
-    // }
 
-    // NEW
     async setTemplates(templates) {
         this.templates = {};
         templates.forEach(t => {

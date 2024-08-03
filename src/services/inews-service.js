@@ -65,12 +65,25 @@ class RundownProcessor {
     }
 
     async handleNewStory(rundownStr, listItem, index) {
+        // Get story string obj
         const story = await this.getStory(rundownStr, listItem.fileName);
+        
+        // Add parsed attachments
         listItem.attachments = xmlParser.parseAttachments(story);
+        
+        // Add pageNumber
         listItem.pageNumber = story.fields.pageNumber;
+        
+        // Set enabled to 1 if attachment exists
         listItem.enabled = this.isEmpty(listItem.attachments) ? 0 : 1;
+
+        // Store new story in SQL, and get asserted uid
         const assertedStoryUid = await sqlService.addDbStory(rundownStr, listItem, index);
+        
+        // Add asserted uid to listItem
         listItem.uid = assertedStoryUid;
+
+        // Save this story to cache
         await inewsCache.saveStory(rundownStr, listItem, index);
     }
 
@@ -130,38 +143,6 @@ class RundownProcessor {
 
     isEmpty(obj) {
         return Object.keys(obj).length === 0;
-    }
-
-    async updateStory(storyId, modifiedStory, rundownStr) {
-        const storyData = "<storyid>" + storyId;
-        logger(`triggered mod... ${rundownStr}`);
-        try {
-            const response = await conn.stor(storyData, modifiedStory, rundownStr);
-            logger(response);
-        } catch (error) {
-            console.error("Error updating story:", error);
-        }
-    }
-
-    async checkForDuplicatedItems(rundownStr, story) {
-        const attachmentsIdArr = Object.keys(story.attachments);
-        for (const itemId of attachmentsIdArr) {
-            if (itemHash.isUsed(itemId)) {
-                const originItem = await sqlService.getFullItem(itemId);
-                originItem.templateId = originItem.template;
-                originItem.productionId = originItem.production;
-                const assertedUid = await sqlService.storeNewItem(originItem);
-                logger(assertedUid);
-
-                try {
-                    const storyNsml = await conn.storyNsml(rundownStr, story.fileName);
-                    const updatedStory = storyNsml.replace(`<gfxItem>${itemId}</gfxItem>`, `<gfxItem>${assertedUid}</gfxItem>`);
-                    await this.updateStory(story.fileName, updatedStory, rundownStr);
-                } catch (error) {
-                    console.error("ERROR", error);
-                }
-            }
-        }
     }
 
     async startMainProcess() {
