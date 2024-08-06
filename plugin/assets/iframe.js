@@ -29,7 +29,7 @@ function getItemData(){
 
 function drag(event) { 
     const msg = createMosMessage();
-    event.dataTransfer.setData("text/plain",msg);
+    event.dataTransfer.setData("text",msg);
 }
 
 function drop() {
