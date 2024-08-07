@@ -137,60 +137,51 @@ class SqlService {
 // ****************************** STORY FUNCTIONS ****************************** //
 
     async addDbStory(rundownStr, story, order){ //Story: {fileType,fileName,identifier,locator,storyName,modified,flags,pageNumber,attachments{gfxitem{props}}}
-        const rundownMeta = await inewsCache.getRundownList(rundownStr);
-        const values = {
-            name: story.storyName,
-            lastupdate: createTick(),
-            rundown: rundownMeta.uid,
-            production: rundownMeta.production,
-            ord: order,
-            ordupdate: createTick(),
-            enabled: story.enabled,
-            floating: story.flags.floated,
-            tag: "",
-            identifier: story.identifier,
-            locator:story.locator,
-            number:story.pageNumber || "",
-            properties:""
+    const rundownMeta = await inewsCache.getRundownList(rundownStr);
+    const values = {
+        name: story.storyName,
+        lastupdate: createTick(),
+        rundown: rundownMeta.uid,
+        production: rundownMeta.production,
+        ord: order,
+        ordupdate: createTick(),
+        enabled: story.enabled,
+        floating: story.flags.floated,
+        tag: "",
+        identifier: story.identifier,
+        locator:story.locator,
+        number:story.pageNumber || "",
+        properties:""
+    }
+    const sqlQuery = `
+        INSERT INTO ngn_inews_stories (name, lastupdate, rundown, production, ord, ordupdate, enabled, floating, tag, identifier, locator,number, properties)
+        OUTPUT inserted.uid
+        VALUES (@name, @lastupdate, @rundown, @production, @ord, @ordupdate, @enabled, @floating, @tag, @identifier, @locator, @number,@properties);`;            
+    try {
+        const result = await db.execute(sqlQuery, values);
+        const assertedStoryUid = result.recordset[0].uid;
+        story.uid = assertedStoryUid;
+        
+        //Check for items in this story. attachments format: {gfxItem: { gfxTemplate, gfxProduction, itemSlug, ord }}
+        if (Object.keys(story.attachments).length > 0){
+            Object.entries(story.attachments).forEach(async ([gfxItem, att]) => {
+                const item = {
+                    rundownId: rundownMeta.uid,
+                    storyId: story.uid,
+                    itemId: gfxItem,
+                    ord:att.ord
+                }
+                itemsHash.add(gfxItem);
+                await sqlService.updateItem(rundownStr, item); // item: {itemId, rundownId, storyId, ord}
+                });
         }
-        const sqlQuery = `
-            INSERT INTO ngn_inews_stories (name, lastupdate, rundown, production, ord, ordupdate, enabled, floating, tag, identifier, locator,number, properties)
-            OUTPUT inserted.uid
-            VALUES (@name, @lastupdate, @rundown, @production, @ord, @ordupdate, @enabled, @floating, @tag, @identifier, @locator, @number,@properties);`;            
-        try {
-            const result = await db.execute(sqlQuery, values);
-            const assertedStoryUid = result.recordset[0].uid;
-            story.uid = assertedStoryUid;
-            
-            //Check for items in this story. attachments format: {gfxItem: { gfxTemplate, gfxProduction, itemSlug, ord }}
-            if (Object.keys(story.attachments).length > 0){
-                Object.entries(story.attachments).forEach(async ([gfxItem, att]) => {
-                    
-                    if(itemsHash.isUsed(gfxItem)){
-                        this.newDuplicatedItem(story, att.ord,rundownMeta,gfxItem);                        
-                    }else{
-                        const item = {
-                            rundownId: rundownMeta.uid,
-                            storyId: story.uid,
-                            itemId: gfxItem,
-                            ord:att.ord
-                        }
-                        
-                        await itemsHash.add(gfxItem);
-    
-                        await sqlService.updateItem(rundownStr, item); // item: {itemId, rundownId, storyId, ord}
-                    }
-                    
- 
-                  });
-            }
 
-            await this.rundownLastUpdate(rundownStr);
-            logger(`Registering new story to ${rundownStr}: ${story.storyName}`); 
-            return assertedStoryUid;
-        } catch (error) {
-            console.error('Error executing query:', error); 
-        }
+        await this.rundownLastUpdate(rundownStr);
+        logger(`Registering new story to ${rundownStr}: ${story.storyName}`); 
+        return assertedStoryUid;
+    } catch (error) {
+        console.error('Error executing query:', error); 
+    }
     }
 
     async modifyDbStory(rundownStr,story){ //Story: {fileType,fileName,identifier,locator,storyName,modified,flags,attachments{gfxitem{props}}}
@@ -520,7 +511,6 @@ class SqlService {
             return null;
         }
     }
-
 
     async newDuplicatedItem(story,ord,data,masterGfxId){
         const originalItem = await this.getFullItem(masterGfxId);

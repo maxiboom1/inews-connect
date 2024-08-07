@@ -1,24 +1,6 @@
 import {XMLParser} from "fast-xml-parser";
 import itemsHash from "../1-dal/items-hashmap.js";
 
-function parseXmlString(XMLdata) {
-    const parser = new XMLParser();
-    let jObj = parser.parse(XMLdata);
-    const item = jObj.AttachmentContent.mos.ncsItem.item;
-    return {
-      ord: item.itemID, 
-      itemId: item.gfxItem
-    };
-  }
-  
-function parseXmlForReorder(XMLdata) {
-  const parser = new XMLParser();
-  let jObj = parser.parse(XMLdata);
-  const item = jObj.AttachmentContent.mos.ncsItem.item;
-  delete item.gfxItem; // Remove gfxItem for reorder comparison
-  return item;
-}
-
 function parseAttachments(story) {
   const attachments = story.attachments;
   const obj = {};
@@ -37,10 +19,7 @@ function parseAttachments(story) {
         }
         
         // FOUND DUPLICATED ITEM!
-        if(itemsHash.isUsed(item.gfxItem)){
-          // If im here, that means that we found {item} that already exists.
-          //1. we need to create new copy of it 
-        }
+        if(itemsHash.isUsed(item.gfxItem)){}
          
         // Create a new object with only the specified properties
         obj[item.gfxItem] = {
@@ -57,8 +36,7 @@ function parseAttachments(story) {
     return obj;
 }
 
-
-export default {parseXmlString, parseXmlForReorder,parseAttachments};
+export default {parseAttachments};
 
 
 /*
