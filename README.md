@@ -25,6 +25,26 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 **LOGS:**
 
+1.9.1
+
+- Refactor for items service
+- Implemented duplicates cache file and basic methods in items-cache.js
+- Implemented erase method to erase all duplicates from DB on load.
+- Handling duplicates - stage1: On new story - if we catch duplicate item then we:
+1. Make copy of it in SQL - with new id
+2. Update duplicates cache ({dulicateItemId:referenceItemId, ...});
+3. Update story cache with new duplicate item, and remove the original.
+
+- Now, on stage 2 we need to handle modify story with duplicates. What should happens when user reorder duplicated item? 
+Keep in mind, any modify of duplicate is an modify of reference item (the original one). 
+Once modified, we need to sync it with all its duplicates.
+On delete, we should clean all registered duplicates.
+
+
+
+
+
+
 1.9.0
 
 - Inews-service refactored to class module. I ready now to focus on duplicates.
