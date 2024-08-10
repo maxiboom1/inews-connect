@@ -6,6 +6,7 @@ import inewsCache from "../1-dal/inews-cache.js";
 import xmlParser from "../utilities/xml-parser.js";
 import itemHash from "../1-dal/items-hashmap.js";
 import logger from "../utilities/logger.js";
+import itemsService from "./items-service.js";
 
 class RundownProcessor {
     constructor() {
@@ -63,12 +64,12 @@ class RundownProcessor {
             console.error(`ERROR at Index ${index}:`, error);
         }
     }
-
+    // Done, in terms of duplicates
     async handleNewStory(rundownStr, listItem, index) {
         // Get story string obj
         const story = await this.getStory(rundownStr, listItem.fileName);
         
-        // Add parsed attachments
+        // Add parsed attachments 
         listItem.attachments = xmlParser.parseAttachments(story);
         
         // Add pageNumber
@@ -77,7 +78,7 @@ class RundownProcessor {
         // Set enabled to 1 if attachment exists
         listItem.enabled = this.isEmpty(listItem.attachments) ? 0 : 1;
 
-        // Store new story in SQL, and get asserted uid
+        // Store new story (without attachments!) in SQL, and get asserted uid
         const assertedStoryUid = await sqlService.addDbStory(rundownStr, listItem, index);
         
         // Add asserted uid to listItem
@@ -85,6 +86,13 @@ class RundownProcessor {
 
         // Save this story to cache
         await inewsCache.saveStory(rundownStr, listItem, index);
+
+        await itemsService.registerStoryItems(rundownStr,listItem);
+
+        await sqlService.rundownLastUpdate(rundownStr);
+
+        await sqlService.storyLastUpdate(assertedStoryUid);
+
     }
 
     async handleExistingStory(rundownStr, listItem, index) {

@@ -2,6 +2,7 @@ node_modules/
 plugin/templates/
 config.json
 unlinkedItemsCache.json
+duplicatesCache.json
 config.backup
 temp
 Docs&&Database/

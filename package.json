@@ -26,7 +26,7 @@
     "utf-8-validate": "^6.0.3"
   },
   "scripts": {
-    "start": "nodemon --ignore unlinkedItemsCache.json app.js"
+    "start": "nodemon --ignore unlinkedItemsCache.json --ignore duplicatesCache.json app.js"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

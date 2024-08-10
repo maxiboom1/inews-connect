@@ -1,12 +1,15 @@
 import fs from 'fs';
 import path from 'path';
+import sqlService from '../services/sql-service.js';
 
 class ItemsHashmap {
+    
     constructor() {
         this.map = {}; 
         this.unlinked = {};
-        this.duplicates = {};
-        this.cacheFilePath = path.join(path.resolve(), 'unlinkedItemsCache.json');        
+        this.duplicates = {}; // {itemId:referenceItemId, ...}
+        this.cacheFilePath = path.join(path.resolve(), 'unlinkedItemsCache.json');
+        this.duplicatesFilePath = path.join(path.resolve(), 'duplicatesCache.json');            
         this.loadUnlinkedFromCache();
         setInterval(() => this.updateCacheFile(), 60000); 
     }
@@ -63,6 +66,38 @@ class ItemsHashmap {
         this.unlinked[gfxItem] = "";
     }
 
+    /* - - - - - - - - - - DUPLICATES - - - - - - - - - - */
+
+    async addDuplicate(referenceItemId, itemId){
+        this.duplicates[itemId]  = referenceItemId;
+        await this.updateDuplicatesCache();
+    }
+
+    async deleteDuplicate(itemId){
+        delete this.duplicates[itemId];
+        this.updateDuplicatesCache();
+    }
+
+    async updateDuplicatesCache(){
+        try {
+            const data = JSON.stringify(this.duplicates);
+            fs.writeFileSync(this.duplicatesFilePath, data, 'utf8');
+        } catch (err) {
+            console.error('Error writing to duplicates cache file:', err);
+        }
+    }
+
+    async resetDuplicates(){
+        
+        // Read cache on load
+        const cachedDuplicates = fs.readFileSync(this.duplicatesFilePath, 'utf8');
+        // Get duplicates array from cache
+        const duplicatesToDelete = Object.keys(JSON.parse(cachedDuplicates));
+        // Delete duplicates from DB
+        duplicatesToDelete.forEach(async itemId => await sqlService.deleteItemById(itemId));
+        // Clear cache file on load
+        fs.writeFileSync(this.duplicatesFilePath, JSON.stringify(this.duplicates), 'utf8');
+    }
 }
 
 const itemsHash = new ItemsHashmap();

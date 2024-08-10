@@ -166,6 +166,18 @@ class InewsCache {
             return true;
         }
     }
+
+    async getStoryAttachments(rundownStr,identifier){
+        if (this.stories[rundownStr] && this.stories[rundownStr][identifier]) {
+            //return this.stories[rundownStr][identifier].attachments;
+            return {...this.stories[rundownStr][identifier].attachments};
+        }
+    }
+    async setStoryAttachments(rundownStr,identifier,attachments){
+        if (this.stories[rundownStr] && this.stories[rundownStr][identifier]) {
+            this.stories[rundownStr][identifier].attachments = attachments;
+        }
+    }
     
     // ********************* RUNDOWNS FUNCTIONS ********************** //
 
@@ -183,6 +195,10 @@ class InewsCache {
 
     async getRundownList(rundownStr){
         return this.rundownsList[rundownStr];
+    }
+
+    async getProdIdByRundown(rundownStr){
+        return this.rundownsList[rundownStr].production;
     }
 
     async getRundownLength(rundownStr) {
