@@ -98,6 +98,10 @@ class ItemsHashmap {
         // Clear cache file on load
         fs.writeFileSync(this.duplicatesFilePath, JSON.stringify(this.duplicates), 'utf8');
     }
+
+    isDuplicate(itemId){
+        ///...
+    }
 }
 
 const itemsHash = new ItemsHashmap();

@@ -31,6 +31,15 @@ async function compareItems(rundownStr, story) {
 
         // Create item event
         if (!cacheStoryKeys.includes(storyGfxItem)) {
+            
+            // Handles for duplicated new item in existing story (but not the same copy within same story)
+            if(itemsHash.isUsed(storyGfxItem)){
+                console.log('found new duplicate item!');
+                await createDuplicate(rundownId,story,storyGfxItem,storyProp.ord,rundownStr);
+                itemsHash.add(storyGfxItem);
+                continue;
+            };
+            
             itemsHash.add(storyGfxItem);
             await sqlService.updateItem(rundownStr, {
                 itemId: storyGfxItem,
@@ -108,16 +117,16 @@ async function registerStoryItems(rundownStr, story) {
 2. Store asserted item id in the story
 */
 async function createDuplicate(rundownId, story, referenceItemId,ord,rundownStr) {
-    
+    let uid = story.uid;
+    if(story.uid === undefined){ uid = await inewsCache.getStoryUid(rundownStr,story.identifier)};
     // Get original item from sql
     const referenceItem = await sqlService.getFullItem(referenceItemId);
     // Modify original properties
     referenceItem.rundown = rundownId;
-    referenceItem.story = story.uid;
+    referenceItem.story = uid;
     referenceItem.ord = ord
     referenceItem.lastupdate = createTick();
     referenceItem.ordupdate = createTick();
-
     // Save as duplicate and get asserted id
     const duplicateItemUid = await sqlService.storeDuplicateItem(referenceItem);
     // Save duplicate and its reference ids to items cache
