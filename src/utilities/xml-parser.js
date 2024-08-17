@@ -29,9 +29,6 @@ function parseAttachments(story) {
           // Type 2 XML
           item = jObj.AttachmentContent.mos;
       }
-      
-      // FOUND DUPLICATED ITEM!
-      if(itemsHash.isUsed(item.gfxItem)){}
         
       // Create a new object with only the specified properties
       obj[item.gfxItem] = {

@@ -10,8 +10,20 @@ class ItemsHashmap {
         this.duplicates = {}; // {itemId:{referenceItemId,rundownStr, storyIdentifier} ...}
         this.cacheFilePath = path.join(path.resolve(), 'unlinkedItemsCache.json');
         this.duplicatesFilePath = path.join(path.resolve(), 'duplicatesCache.json');            
+        
+        // Ensure cache files exist on load
+        this.ensureCacheFileExists(this.cacheFilePath, {});
+        this.ensureCacheFileExists(this.duplicatesFilePath, {});
+        
         this.loadUnlinkedFromCache();
         setInterval(() => this.updateCacheFile(), 60000); 
+    }
+
+    // Ensure the cache file exists or create it with default content
+    ensureCacheFileExists(filePath, defaultContent) {
+        if (!fs.existsSync(filePath)) {
+            fs.writeFileSync(filePath, JSON.stringify(defaultContent), 'utf8');
+        }
     }
 
     loadUnlinkedFromCache() {
