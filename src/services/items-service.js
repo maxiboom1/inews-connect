@@ -236,4 +236,29 @@ async function clearAllDuplicates(itemId){
     
 }
 
-export default { compareItems, registerStoryItems, clearAllDuplicates };
+async function updateDuplicates(item){// Expect: {name, data, scripts, templateId, productionId, gfxItem}
+    if(itemsHash.isUsed(item.gfxItem)){
+        
+        const referenceItem = await sqlService.getFullItem(item.gfxItem);
+        
+        const duplicates = itemsHash.getDuplicatesByReference(item.gfxItem);
+        
+        for (const [id, value] of Object.entries(duplicates)) { 
+            await sqlService.updateItemFromFront({
+                "name":referenceItem.name,
+                "data":referenceItem.data,
+                "scripts":referenceItem.scripts,
+                "templateId":referenceItem.template,
+                "productionId":referenceItem.production,
+                "gfxItem":id
+
+            });
+          }
+        
+        
+        //console.log('Modified master item!', duplicates, referenceItem);
+        
+    }
+}
+
+export default { compareItems, registerStoryItems, clearAllDuplicates, updateDuplicates};

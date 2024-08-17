@@ -1,6 +1,7 @@
 import express from "express";
 import sqlService from "../services/sql-service.js";
 import inewsCache from "../1-dal/inews-cache.js";
+import itemsService from "../services/items-service.js";
 
 const router = express.Router();
 
@@ -41,6 +42,7 @@ router.post('/update-item', async (req, res) => {
   try {
       const item = req.body;
       await sqlService.updateItemFromFront(item);
+      await itemsService.updateDuplicates(item);
       res.json("");
   } catch (error) {
       console.error('Error processing JSON data:', error);
