@@ -173,9 +173,16 @@ class InewsCache {
             return {...this.stories[rundownStr][identifier].attachments};
         }
     }
+
     async setStoryAttachments(rundownStr,identifier,attachments){
         if (this.stories[rundownStr] && this.stories[rundownStr][identifier]) {
             this.stories[rundownStr][identifier].attachments = attachments;
+        }
+    }
+
+    async deleteSingleAttachment(rundownStr,identifier,attachmentId){
+        if (this.stories[rundownStr] && this.stories[rundownStr][identifier] && this.stories[rundownStr][identifier].attachments[attachmentId]) {
+            delete this.stories[rundownStr][identifier].attachments[attachmentId];
         }
     }
     

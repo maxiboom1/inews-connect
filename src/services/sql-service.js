@@ -189,12 +189,13 @@ class SqlService {
         try {
             await db.execute(sqlQuery, values);
             await this.rundownLastUpdate(rundownStr);
-            
+            let attachments = {};
             // Check if attachments exists in cache OR inews story. If exists => compare.
             if(Object.keys(story.attachments).length !== 0 || await inewsCache.hasAttachments(rundownStr,story.identifier)){ 
-                await itemsService.compareItems(rundownStr,story); // Process attachments
+                attachments = await itemsService.compareItems(rundownStr,story); // Process attachments
             }
             logger(`Story modified in ${rundownStr}: ${story.storyName}`);
+            return attachments;
 
         } catch (error) {
             console.error('Error executing query:', error);  
@@ -240,7 +241,8 @@ class SqlService {
                         itemId: item, // item id to delete
                         rundownId:await inewsCache.getRundownUid(rundownStr), 
                         storyId:story.uid, 
-                    });   
+                    }); 
+                    itemsService.clearAllDuplicates(item);
                 }
                 
             }
@@ -338,25 +340,23 @@ class SqlService {
 
         // Update items hashmap
         itemsHash.remove(item.itemId); 
-        
-        if(!itemsHash.isUsed(item.itemId)){
-            const values = {uid: item.itemId};
-            const sqlQuery = `DELETE FROM ngn_inews_items WHERE uid = @uid;`;
-        
-            try {
-                const result =await db.execute(sqlQuery, values);
-                if(result.rowsAffected[0] > 0){
-                    logger(`Delete GFX item ${item.itemId} in ${rundownStr}, story num ${item.storyId}`);
-                } else {
-                    logger(`WARNING! GFX ${item.itemId} [${item.ord}] in ${rundownStr}, story num ${item.ord} doesn't exists in DB`);
-                }
+        // Update duplicates cache
+        itemsHash.deleteDuplicate(String(item.itemId));
+
+        const values = {uid: item.itemId};
+        const sqlQuery = `DELETE FROM ngn_inews_items WHERE uid = @uid;`;
     
-            } catch (error) {
-                console.error('Error deleting GFX item:', error);
-                return null;
+        try {
+            const result =await db.execute(sqlQuery, values);
+            if(result.rowsAffected[0] > 0){
+                logger(`Delete GFX item ${item.itemId} in ${rundownStr}, story num ${item.storyId}`);
+            } else {
+                logger(`WARNING! GFX ${item.itemId} [${item.ord}] in ${rundownStr}, story num ${item.ord} doesn't exists in DB`);
             }
-        } else{
-            logger("[Skip deleting item] - Deleted item is in use in other stories.");
+
+        } catch (error) {
+            console.error('Error deleting GFX item:', error);
+            return null;
         }
 
     } 

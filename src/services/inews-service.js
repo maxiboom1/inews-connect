@@ -105,13 +105,14 @@ class RundownProcessor {
             await this.modifyStory(rundownStr, listItem);
         }
     }
-
+ 
     async modifyStory(rundownStr, listItem) {
         const story = await this.getStory(rundownStr, listItem.fileName);
         listItem.attachments = xmlParser.parseAttachments(story);
         listItem.pageNumber = story.fields.pageNumber;
         listItem.enabled = this.isEmpty(listItem.attachments) ? 0 : 1;
-        await sqlService.modifyDbStory(rundownStr, listItem);
+        
+        listItem.attachments = await sqlService.modifyDbStory(rundownStr, listItem);
         await inewsCache.modifyStory(rundownStr, listItem);
     }
 

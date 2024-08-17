@@ -8,7 +8,7 @@ import createTick from "../utilities/time-tick.js";
 /**
  * Handles story modify event.
  * Gets Inews story obj and rundown Str. 
- * Fetch cached story by identifier, compare cache stories with inews stories for create, modify, reorder and delete events.
+ * Fetch cached story by identifier, compare cache story items with inews story item for create, modify, reorder and delete events.
  * Depends on event, calls updateItem/updateItemOrd/updateItemSlug/deleteItem from sql service.
  * Story expected structure: 
  * { fileType,fileName,identifier,locator,storyName,modified,flags,attachments{gfxItem{gfxTemplate,gfxProduction,itemSlug,ord}} }
@@ -26,20 +26,37 @@ async function compareItems(rundownStr, story) {
     const storyKeys = Object.keys(storyItems);
     const cacheStoryKeys = Object.keys(cachedItems);
 
-    // Run over story evens (attachments)
+    // Run over story evens (attachments){"ItemId":{* gfxTemplate,* gfxProduction,* itemSlug,* ord}
     for (const [storyGfxItem, storyProp] of Object.entries(storyItems)) {
+        
+        // Check if given item is duplicate - if it is - get duplicate id.
+        const dupId = isAlreadyRegistered(storyGfxItem, cacheStoryKeys);
+        if(dupId){
+            story.attachments[dupId] = story.attachments[storyGfxItem];
+            delete story.attachments[storyGfxItem];
+            // Duplicate reorder
+            await sqlService.updateItemOrd(rundownStr, {
+                itemId: dupId,
+                rundownId: rundownId,
+                storyId: storyId,
+                ord: storyProp.ord
+            });
+        }
+
+        // New duplicate 
+        if(!cacheStoryKeys.includes(storyGfxItem) && itemsHash.isUsed(storyGfxItem)){
+            if(!dupId){
+                story.attachments = await createDuplicateOnExistStory(rundownId,story,storyGfxItem,storyProp.ord,rundownStr);
+                itemsHash.add(storyGfxItem);
+            } else{
+                story.attachments[dupId] = story.attachments[storyGfxItem];
+                delete story.attachments[storyGfxItem];
+            }
+            continue; 
+        } 
 
         // Create item event
         if (!cacheStoryKeys.includes(storyGfxItem)) {
-            
-            // Handles for duplicated new item in existing story (but not the same copy within same story)
-            if(itemsHash.isUsed(storyGfxItem)){
-                console.log('found new duplicate item!');
-                await createDuplicate(rundownId,story,storyGfxItem,storyProp.ord,rundownStr);
-                itemsHash.add(storyGfxItem);
-                continue;
-            };
-            
             itemsHash.add(storyGfxItem);
             await sqlService.updateItem(rundownStr, {
                 itemId: storyGfxItem,
@@ -49,19 +66,22 @@ async function compareItems(rundownStr, story) {
             });
 
             logger(`New item registered in ${rundownStr}, story ${story.storyName}`)
+            continue;
+        }
 
-            // Reorder item event
-        } else if (storyProp.ord !== cachedItems[storyGfxItem].ord) {
+        // Reorder item event
+        if (storyProp.ord !== cachedItems[storyGfxItem].ord) {
             await sqlService.updateItemOrd(rundownStr, {
                 itemId: storyGfxItem,
                 rundownId: rundownId,
                 storyId: storyId,
                 ord: storyProp.ord
             });
-            logger(`Item reordered in ${rundownStr}, story ${story.storyName}`);
-
-            // Modify item event
-        } else if (storyProp.itemSlug !== cachedItems[storyGfxItem].itemSlug) {
+            logger(`Item reordered in ${rundownStr}, story ${story.storyName}`);      
+        }
+        
+        // Modify item event
+        if (storyProp.itemSlug !== cachedItems[storyGfxItem].itemSlug) {
             await sqlService.updateItemSlug(rundownStr, {
                 itemId: storyGfxItem,
                 rundownId: rundownId,
@@ -84,10 +104,47 @@ async function compareItems(rundownStr, story) {
                     rundownId: rundownId,
                     storyId: storyId,
                 });
+                clearAllDuplicates(key);
             }
         });
 
     }
+
+    return story.attachments;
+}
+
+async function createDuplicateOnExistStory(rundownId, story, referenceItemId,ord,rundownStr) {
+    // Get story id from cache
+    let uid = await inewsCache.getStoryUid(rundownStr,story.identifier);
+    // Get original item from sql
+    const referenceItem = await sqlService.getFullItem(referenceItemId);
+    
+    // Modify original properties
+    referenceItem.rundown = rundownId;
+    referenceItem.story = uid;
+    referenceItem.ord = ord
+    referenceItem.lastupdate = createTick();
+    referenceItem.ordupdate = createTick();
+    
+    // Save as duplicate and get asserted id
+    const duplicateItemUid = await sqlService.storeDuplicateItem(referenceItem);
+    
+    // Save duplicate and its reference ids to items cache
+    itemsHash.addDuplicate(referenceItemId, duplicateItemUid, rundownStr, story.identifier);
+    
+    // Modify cached story attachments with duplicates
+    delete story.attachments[referenceItemId];
+    const newItem = {
+        gfxTemplate:referenceItem.template,
+        gfxProduction:referenceItem.production,
+        itemSlug:referenceItem.name ,
+        ord: referenceItem.ord
+    }
+    story.attachments[duplicateItemUid] = newItem;
+    
+    logger(`New duplicate item in ${rundownStr}, story ${story.storyName}`)
+
+    return story.attachments;    
 
 }
 
@@ -117,20 +174,24 @@ async function registerStoryItems(rundownStr, story) {
 2. Store asserted item id in the story
 */
 async function createDuplicate(rundownId, story, referenceItemId,ord,rundownStr) {
-    let uid = story.uid;
-    if(story.uid === undefined){ uid = await inewsCache.getStoryUid(rundownStr,story.identifier)};
+    // Get story id from cache
+    let uid = await inewsCache.getStoryUid(rundownStr,story.identifier);
+
     // Get original item from sql
     const referenceItem = await sqlService.getFullItem(referenceItemId);
+    
     // Modify original properties
     referenceItem.rundown = rundownId;
     referenceItem.story = uid;
     referenceItem.ord = ord
     referenceItem.lastupdate = createTick();
     referenceItem.ordupdate = createTick();
+    
     // Save as duplicate and get asserted id
     const duplicateItemUid = await sqlService.storeDuplicateItem(referenceItem);
+    
     // Save duplicate and its reference ids to items cache
-    itemsHash.addDuplicate(referenceItemId,duplicateItemUid);
+    itemsHash.addDuplicate(referenceItemId,duplicateItemUid, rundownStr, story.identifier);
     
     // Modify cached story attachments with duplicates
     const storyAttachments = await inewsCache.getStoryAttachments(rundownStr,story.identifier);
@@ -142,9 +203,37 @@ async function createDuplicate(rundownId, story, referenceItemId,ord,rundownStr)
         ord: referenceItem.ord
     }
     storyAttachments[duplicateItemUid] = newItem;
+    
     await inewsCache.setStoryAttachments(rundownStr,story.identifier,storyAttachments);
+    
     logger(`New duplicate item in ${rundownStr}, story ${story.storyName}`)
 
 }
 
-export default { compareItems, registerStoryItems };
+// Gets item and items array, should check if in array exists item with reference that match given item id
+function isAlreadyRegistered(itemId, itemsArr) {
+    const matchingItem = itemsArr.find(item => itemsHash.getReferenceItem(item) === itemId);
+    return matchingItem ? matchingItem : null; // Return the matching itemId or null if no match found
+}
+
+// Deletes all duplicates of given item from DB and inews-cache
+async function clearAllDuplicates(itemId){
+    
+    const duplicates = itemsHash.getDuplicatesByReference(itemId); // Returns {itemId: {referenceItemId, rundownStr, storyIdentifier}} or null
+    if(duplicates){
+        Object.keys(duplicates).forEach(async itemId => {
+            const props = duplicates[itemId]; // Get the properties associated with the itemId
+    
+            // Delete the item from the database
+            await sqlService.deleteItemById(itemId); 
+    
+            // Delete the associated attachment using rundownStr and storyIdentifier
+            inewsCache.deleteSingleAttachment(props.rundownStr, props.storyIdentifier, itemId);
+    
+            itemsHash.deleteDuplicate(itemId);
+        });
+    }
+    
+}
+
+export default { compareItems, registerStoryItems, clearAllDuplicates };

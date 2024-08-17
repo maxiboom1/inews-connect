@@ -7,7 +7,7 @@ class ItemsHashmap {
     constructor() {
         this.map = {}; 
         this.unlinked = {};
-        this.duplicates = {}; // {itemId:referenceItemId, ...}
+        this.duplicates = {}; // {itemId:{referenceItemId,rundownStr, storyIdentifier} ...}
         this.cacheFilePath = path.join(path.resolve(), 'unlinkedItemsCache.json');
         this.duplicatesFilePath = path.join(path.resolve(), 'duplicatesCache.json');            
         this.loadUnlinkedFromCache();
@@ -68,14 +68,9 @@ class ItemsHashmap {
 
     /* - - - - - - - - - - DUPLICATES - - - - - - - - - - */
 
-    async addDuplicate(referenceItemId, itemId){
-        this.duplicates[itemId]  = referenceItemId;
-        await this.updateDuplicatesCache();
-    }
-
-    async deleteDuplicate(itemId){
-        delete this.duplicates[itemId];
-        this.updateDuplicatesCache();
+    async addDuplicate(referenceItemId, itemId, rundownStr, storyIdentifier) {
+    this.duplicates[itemId] = { rundownStr, storyIdentifier, referenceItemId };
+    await this.updateDuplicatesCache();
     }
 
     async updateDuplicatesCache(){
@@ -100,8 +95,37 @@ class ItemsHashmap {
     }
 
     isDuplicate(itemId){
-        ///...
+        if(this.duplicates[itemId]) return true;
+        return false;
     }
+
+    getReferenceItem(itemId) {
+        if(this.duplicates[itemId]){
+            return this.duplicates[itemId].referenceItemId;
+        }
+        return null;
+        
+    }
+
+    async deleteDuplicate(itemId){
+        if(this.duplicates[itemId] === undefined) return;
+        delete this.duplicates[itemId];
+        await this.updateDuplicatesCache();
+    }
+
+    getDuplicatesByReference(referenceItemId) {
+        const duplicatesObj = {};
+        
+        for (const [itemId, props] of Object.entries(this.duplicates)) {
+            if (props.referenceItemId === referenceItemId) {
+                duplicatesObj[itemId] = props; // Store the props with itemId as the key
+            }
+        }
+    
+        // Return null if the object is empty
+        return Object.keys(duplicatesObj).length === 0 ? null : duplicatesObj;
+    }
+    
 }
 
 const itemsHash = new ItemsHashmap();
