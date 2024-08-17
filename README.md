@@ -25,6 +25,14 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 **LOGS:**
 
+1.9.3
+
+- Implemented duplicates.
+- Lot of functionaliny in items-service and itemsHash modules.
+- Implemented setNameOnLoad() on fron pages - to set static headers on load
+
+
+
 1.9.1
 
 - Refactor for items service

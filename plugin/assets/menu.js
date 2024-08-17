@@ -202,6 +202,7 @@ function renderTemplate(templateId) {
     iframe.src = url;  
     iframe.onload = function() {
         iframeLoaded = true;
+        iframe.contentWindow.setNameOnLoad();
         checkAndHideSpinner();
     };
     

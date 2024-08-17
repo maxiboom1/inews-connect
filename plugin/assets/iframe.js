@@ -158,6 +158,9 @@ document.body.addEventListener('change', function(event) {
 function nameInputUpdate(name, includedTemplateName = false){ 
     if(includedTemplateName){
         document.getElementById("nameInput").value = name;
+        if(document.getElementById("nameInput").value === ""){
+            const staticHeader = document.body.getAttribute('data-template-name');
+        }
         return;
     }
     const staticHeader = document.body.getAttribute('data-template-name');
@@ -168,6 +171,11 @@ function nameInputUpdate(name, includedTemplateName = false){
     }
 
     document.getElementById("nameInput").value = result;    
+}
+
+function setNameOnLoad(){
+    const staticHeader = document.body.getAttribute('data-template-name');
+    document.getElementById("nameInput").value = staticHeader;   
 }
 
 document.addEventListener('UpdateNameEvent', function(event) {nameInputUpdate(event.detail.name);}); 
