@@ -28,8 +28,8 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 1.9.3
 
 - Implemented duplicates.
-- Lot of functionaliny in items-service and itemsHash modules.
-- Implemented setNameOnLoad() on fron pages - to set static headers on load
+- Lot of functionality in items-service and itemsHash modules.
+- Implemented setNameOnLoad() on front pages - to set static headers on load
 
 
 

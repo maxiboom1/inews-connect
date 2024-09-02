@@ -107,6 +107,7 @@ class ItemsHashmap {
     }
 
     isDuplicate(itemId){
+        console.log(itemId)
         if(this.duplicates[itemId]) return true;
         return false;
     }

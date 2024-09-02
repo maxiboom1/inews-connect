@@ -2,6 +2,7 @@ import express from "express";
 import sqlService from "../services/sql-service.js";
 import inewsCache from "../1-dal/inews-cache.js";
 import itemsService from "../services/items-service.js";
+import itemsHash from "../1-dal/items-hashmap.js";
 
 const router = express.Router();
 

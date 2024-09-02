@@ -13,8 +13,8 @@ import createTick from "../utilities/time-tick.js";
  * Story expected structure: 
  * { fileType,fileName,identifier,locator,storyName,modified,flags,attachments{gfxItem{gfxTemplate,gfxProduction,itemSlug,ord}} }
  * @param {string} rundownStr 
- * @param {{}} story 
- * @return {void}
+ * @param {} story 
+ * @return {} attachments
  */
 async function compareItems(rundownStr, story) {
     const cachedStory = await inewsCache.getStory(rundownStr, story.identifier);
@@ -113,6 +113,7 @@ async function compareItems(rundownStr, story) {
     return story.attachments;
 }
 
+
 async function createDuplicateOnExistStory(rundownId, story, referenceItemId,ord,rundownStr) {
     // Get story id from cache
     let uid = await inewsCache.getStoryUid(rundownStr,story.identifier);
@@ -148,6 +149,7 @@ async function createDuplicateOnExistStory(rundownId, story, referenceItemId,ord
 
 }
 
+
 async function registerStoryItems(rundownStr, story) {
     const rundownId = await inewsCache.getRundownUid(rundownStr);
 
@@ -169,10 +171,7 @@ async function registerStoryItems(rundownStr, story) {
     }
 }
 
-/*
-1. Create duplicate in SQL [Create new item]
-2. Store asserted item id in the story
-*/
+
 async function createDuplicate(rundownId, story, referenceItemId,ord,rundownStr) {
     // Get story id from cache
     let uid = await inewsCache.getStoryUid(rundownStr,story.identifier);
