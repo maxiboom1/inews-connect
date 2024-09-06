@@ -28,7 +28,7 @@ function getItemData(){
 }
 
 function drag(event) { 
-    const msg = createMosMessage();
+    const msg = createMosMessage(); // Returns well-formatted <mos> message as string
     event.dataTransfer.setData("text",msg);
 }
 
