@@ -5,12 +5,54 @@ async function clickOnSave(){
         const values = getItemData(); // returns item{name,data,scripts,templateId,productionId}       
         const gfxItem = await window.parent.fetchData(`${originUrl}/api/set-item`,"POST",JSON.stringify(values));
         setGfxItem(gfxItem);
-        showDragButton();
+        await setCopyBuffer(gfxItem);
+        //showDragButton();
     }catch(err){
         console.error("Failed to post data");
     }
 }
 
+async function setCopyBuffer(gfxItem){
+    // Try copying with Clipboard API
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(createMosMessage1(gfxItem));
+    } else {
+        // Fallback method
+        const tempTextarea = document.createElement("textarea");
+        tempTextarea.value = createMosMessage1(gfxItem);
+        document.body.appendChild(tempTextarea);
+        tempTextarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(tempTextarea);
+        console.warn("Clipboard API not available; used fallback method.");
+    }
+}
+
+function createMosMessage1(gfxItem){
+    const templateId = document.body.getAttribute('data-template');
+    const productionId = document.body.getAttribute('data-production');
+    let itemID = "";
+    if(document.body.hasAttribute("data-itemID")){
+        itemID = document.body.getAttribute('data-itemID');
+    }
+    return `<mos>
+        <ncsItem>
+            <item>
+                <itemID>${itemID}</itemID>
+                <itemSlug>${document.getElementById("nameInput").value.replace(/'/g, "")}</itemSlug>
+                <objID></objID>
+                <mosID>iNEWSMOS1</mosID>
+                <mosItemBrowserProgID>alex</mosItemBrowserProgID>
+                <mosItemEditorProgID>alexE</mosItemEditorProgID>
+                <mosAbstract></mosAbstract>
+                <group>1</group>
+                <gfxItem>${gfxItem}</gfxItem>
+                <gfxTemplate>${templateId}</gfxTemplate>
+                <gfxProduction>${productionId}</gfxProduction>
+            </item>
+        </ncsItem>
+    </mos>`;
+}
 // returns item{name,data,scripts,templateId,productionId}
 function getItemData(){
         const _NA_Values = __NA_GetValues();

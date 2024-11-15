@@ -25,6 +25,11 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 **LOGS:**
 
+1.9.4
+
+- Added copy to buffer function. Drag function disabled.
+- Added duplicate check on update item from front - to avoid error
+
 1.9.3
 
 - Implemented duplicates.

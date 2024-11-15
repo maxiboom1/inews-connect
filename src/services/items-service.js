@@ -241,7 +241,7 @@ async function updateDuplicates(item){// Expect: {name, data, scripts, templateI
         const referenceItem = await sqlService.getFullItem(item.gfxItem);
         
         const duplicates = itemsHash.getDuplicatesByReference(item.gfxItem);
-        
+        if (duplicates ===null) return;
         for (const [id, value] of Object.entries(duplicates)) { 
             await sqlService.updateItemFromFront({
                 "name":referenceItem.name,
