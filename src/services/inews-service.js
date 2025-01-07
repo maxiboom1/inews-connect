@@ -14,7 +14,7 @@ class RundownProcessor {
     }
 
     async initialize() {
-        logger('Starting Inews-connect 1.9.3...');
+        logger('Starting Inews-connect 1.9.5...');
         await sqlService.initialize();
         this.rundownIterator();
     }

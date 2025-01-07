@@ -6,7 +6,12 @@ async function clickOnSave(){
         const gfxItem = await window.parent.fetchData(`${originUrl}/api/set-item`,"POST",JSON.stringify(values));
         setGfxItem(gfxItem);
         await setCopyBuffer(gfxItem);
-        //showDragButton();
+        const promptSpan = document.getElementById('promptSpan');
+        promptSpan.style.display = "block";
+        setTimeout(() => {
+            promptSpan.style.display = "none";
+        }, 3000);
+
     }catch(err){
         console.error("Failed to post data");
     }
@@ -256,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Handle key handler to change to favorite
-    document.addEventListener("keydown", (event) => {
+    document.addEventListener("keydown", async (event)  => {
         const modifier = document.getElementById("pluginPopover").getAttribute("data-modifier"); // Return string "alt"/"ctrl"/"shift"
         const keyPressed = event.key.toLowerCase();
         
@@ -268,6 +273,10 @@ document.addEventListener('DOMContentLoaded', () => {
         
             if (buttonData[keyPressed]&& isModifierPressed) {
                 window.parent.renderTemplate(buttonData[keyPressed]);
+            }
+
+            if (keyPressed === "s" && event.ctrlKey) {
+                await clickOnSave();
             }
     
     });

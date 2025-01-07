@@ -25,6 +25,12 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 **LOGS:**
 
+1.9.5
+
+- Added "ctrl+s" keystroke to save items.
+- Added notification once item saved
+- Some minor style changes on plugin panel.
+
 1.9.4
 
 - Added copy to buffer function. Drag function disabled.

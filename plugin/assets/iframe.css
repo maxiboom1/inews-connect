@@ -79,5 +79,20 @@ button{
   }
   
   .linksButton:hover {
-    background-color: #444;
+    background-color: #444444;
   }
+
+  #save{
+    margin-left: 10px;
+  }
+
+  .pluginPanelBtn:hover {
+    background-color: #2295e0;
+}
+
+#promptSpan{
+    font-weight: normal;
+    color:#8ecf4fe0;
+    margin-left: -5px;
+    display: none;
+}

@@ -99,9 +99,11 @@ function createPluginPanel(document) {
     pluginPanelDiv.id = 'pluginPanel';
     pluginPanelDiv.classList.add('pluginPanel'); // Add the class to the pluginPanel div
 
+    const promptSpan = createSpan(document, "promptSpan");
+
     // Append buttons to the "pluginPanel" div
     pluginPanelDiv.appendChild(backButton);
-    pluginPanelDiv.appendChild(saveButton);
+    // pluginPanelDiv.appendChild(saveButton);
     pluginPanelDiv.appendChild(dragButton);
     pluginPanelDiv.appendChild(previewButton);
     pluginPanelDiv.appendChild(linkButton);
@@ -118,6 +120,8 @@ function createPluginPanel(document) {
     // Append label and input to the "pluginPanel" div
     pluginPanelDiv.appendChild(nameLabel);
     pluginPanelDiv.appendChild(nameInput);
+    pluginPanelDiv.appendChild(saveButton);
+    pluginPanelDiv.appendChild(promptSpan);
 
     return pluginPanelDiv;
 }
@@ -146,6 +150,13 @@ function createFavoritesDiv(document){
     });
 
     return popupDiv;
+}
+
+function createSpan(document,id){
+    const span = document.createElement("span");
+    span.textContent = "Item saved";
+    span.id = id;
+    return span;
 }
 
 export default processAndWriteFiles;
