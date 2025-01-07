@@ -4,7 +4,6 @@ import hebDecoder from "../utilities/hebrew-decoder.js";
 import sqlService from "./sql-service.js";
 import inewsCache from "../1-dal/inews-cache.js";
 import xmlParser from "../utilities/xml-parser.js";
-import itemHash from "../1-dal/items-hashmap.js";
 import logger from "../utilities/logger.js";
 import itemsService from "./items-service.js";
 
@@ -14,7 +13,7 @@ class RundownProcessor {
     }
 
     async initialize() {
-        logger('Starting Inews-connect 1.9.5...');
+        logger('Starting Inews-connect 1.9.5.1...');
         await sqlService.initialize();
         this.rundownIterator();
     }

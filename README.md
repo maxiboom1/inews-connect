@@ -25,11 +25,12 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 **LOGS:**
 
-1.9.5
+1.9.5.1
 
 - Added "ctrl+s" keystroke to save items.
-- Added notification once item saved
+- Added notification once item saved.
 - Some minor style changes on plugin panel.
+- Fixed order bug in favorites render.
 
 1.9.4
 
