@@ -100,6 +100,7 @@ class RundownProcessor {
         if (action === "reorder") {
             await sqlService.reorderDbStory(rundownStr, listItem, index);
             await inewsCache.reorderStory(rundownStr, listItem, index);
+            await sqlService.rundownLastUpdate(rundownStr);
         } else if (action === "modify") {
             await this.modifyStory(rundownStr, listItem);
         }

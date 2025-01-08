@@ -188,13 +188,13 @@ class SqlService {
         
         try {
             await db.execute(sqlQuery, values);
-            await this.rundownLastUpdate(rundownStr);
             let attachments = {};
             // Check if attachments exists in cache OR inews story. If exists => compare.
             if(Object.keys(story.attachments).length !== 0 || await inewsCache.hasAttachments(rundownStr,story.identifier)){ 
                 attachments = await itemsService.compareItems(rundownStr,story); // Process attachments
             }
             logger(`Story modified in ${rundownStr}: ${story.storyName}`);
+            await this.rundownLastUpdate(rundownStr);
             return attachments;
 
         } catch (error) {
@@ -218,7 +218,6 @@ class SqlService {
         `;
         try {
             await db.execute(sqlQuery, values);
-            await this.rundownLastUpdate(rundownStr);
             logger(`Reorder story in ${rundownStr}: ${story.storyName}`);
         } catch (error) {
             console.error('Error executing query:', error);

@@ -236,13 +236,16 @@ async function clearAllDuplicates(itemId){
 }
 
 async function updateDuplicates(item){// Expect: {name, data, scripts, templateId, productionId, gfxItem}
+    
     if(itemsHash.isUsed(item.gfxItem)){
         
         const referenceItem = await sqlService.getFullItem(item.gfxItem);
-        
+        const rundownsToUpdateArr = [];
         const duplicates = itemsHash.getDuplicatesByReference(item.gfxItem);
         if (duplicates ===null) return;
+        
         for (const [id, value] of Object.entries(duplicates)) { 
+            rundownsToUpdateArr.push(value.rundownStr);
             await sqlService.updateItemFromFront({
                 "name":referenceItem.name,
                 "data":referenceItem.data,
@@ -252,10 +255,11 @@ async function updateDuplicates(item){// Expect: {name, data, scripts, templateI
                 "gfxItem":id
 
             });
-          }
+        }
         
-        
-        //console.log('Modified master item!', duplicates, referenceItem);
+          for (const rundownStr of [...new Set(rundownsToUpdateArr)]) { // Use Set to avoid duplicates
+            await sqlService.rundownLastUpdate(rundownStr);
+        }
         
     }
 }

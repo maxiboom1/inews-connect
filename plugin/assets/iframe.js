@@ -275,7 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.parent.renderTemplate(buttonData[keyPressed]);
             }
 
-            if (keyPressed === "s" && event.ctrlKey) {
+            if ((keyPressed === "s" || keyPressed === "ד") && event.ctrlKey) {
                 await clickOnSave();
             }
     

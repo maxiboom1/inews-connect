@@ -25,6 +25,10 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 **LOGS:**
 
+1.9.6
+
+- Update "lastRundownUpdate" on duplicates related to other rundowns.
+
 1.9.5.1
 
 - Added "ctrl+s" keystroke to save items.
