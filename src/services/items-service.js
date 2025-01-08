@@ -89,6 +89,7 @@ async function compareItems(rundownStr, story) {
                 itemSlug: storyProp.itemSlug
             });
             logger(`Item ${storyProp.itemSlug} modified in ${rundownStr}, story ${story.storyName}`);
+
         }
 
     }
@@ -173,6 +174,7 @@ async function registerStoryItems(rundownStr, story) {
 
 
 async function createDuplicate(rundownId, story, referenceItemId,ord,rundownStr) {
+    
     // Get story id from cache
     let uid = await inewsCache.getStoryUid(rundownStr,story.identifier);
 
@@ -188,9 +190,8 @@ async function createDuplicate(rundownId, story, referenceItemId,ord,rundownStr)
     
     // Save as duplicate and get asserted id
     const duplicateItemUid = await sqlService.storeDuplicateItem(referenceItem);
-    
     // Save duplicate and its reference ids to items cache
-    itemsHash.addDuplicate(referenceItemId,duplicateItemUid, rundownStr, story.identifier);
+    itemsHash.addDuplicate(referenceItemId,duplicateItemUid, rundownStr, story.identifier, story.uid);
     
     // Modify cached story attachments with duplicates
     const storyAttachments = await inewsCache.getStoryAttachments(rundownStr,story.identifier);
@@ -198,7 +199,7 @@ async function createDuplicate(rundownId, story, referenceItemId,ord,rundownStr)
     const newItem = {
         gfxTemplate:referenceItem.template,
         gfxProduction:referenceItem.production,
-        itemSlug:referenceItem.name ,
+        itemSlug:referenceItem.name,
         ord: referenceItem.ord
     }
     storyAttachments[duplicateItemUid] = newItem;
@@ -241,11 +242,13 @@ async function updateDuplicates(item){// Expect: {name, data, scripts, templateI
         
         const referenceItem = await sqlService.getFullItem(item.gfxItem);
         const rundownsToUpdateArr = [];
+        const storiesToUpdateArr = [];
         const duplicates = itemsHash.getDuplicatesByReference(item.gfxItem);
         if (duplicates ===null) return;
         
         for (const [id, value] of Object.entries(duplicates)) { 
             rundownsToUpdateArr.push(value.rundownStr);
+            storiesToUpdateArr.push(value.storyId)
             await sqlService.updateItemFromFront({
                 "name":referenceItem.name,
                 "data":referenceItem.data,
@@ -257,10 +260,14 @@ async function updateDuplicates(item){// Expect: {name, data, scripts, templateI
             });
         }
         
-          for (const rundownStr of [...new Set(rundownsToUpdateArr)]) { // Use Set to avoid duplicates
+        for (const rundownStr of [...new Set(rundownsToUpdateArr)]) { // Use Set to avoid duplicates
             await sqlService.rundownLastUpdate(rundownStr);
         }
-        
+        for (const storyId of [...new Set(storiesToUpdateArr)]) { // Use Set to avoid duplicates
+            await sqlService.storyLastUpdate(storyId);
+        }
+
+        //console.log(await itemsHash.getReferenceItem(item.gfxItem));
     }
 }
 

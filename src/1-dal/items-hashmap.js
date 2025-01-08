@@ -80,8 +80,8 @@ class ItemsHashmap {
 
     /* - - - - - - - - - - DUPLICATES - - - - - - - - - - */
 
-    async addDuplicate(referenceItemId, itemId, rundownStr, storyIdentifier) {
-    this.duplicates[itemId] = { rundownStr, storyIdentifier, referenceItemId };
+    async addDuplicate(referenceItemId, itemId, rundownStr, storyIdentifier, storyId) {
+    this.duplicates[itemId] = { rundownStr, storyIdentifier, referenceItemId, storyId};
     await this.updateDuplicatesCache();
     }
 

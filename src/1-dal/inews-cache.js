@@ -78,22 +78,6 @@ class InewsCache {
 
     // ********************* TEMPLATES FUNCTIONS ********************** //
 
-    // OLD
-    // async getTemplatesByProduction(productionUid) {
-    //     const filteredTemplates = [];
-      
-    //     for (const [templateName, templateData] of Object.entries(this.templates)) {
-    //       if (templateData.production === productionUid) {
-    //         const { uid, production, icon } = templateData;
-    //         const templateObject = { uid, production, icon, name: templateName };
-    //         filteredTemplates.push(templateObject);
-    //       }
-    //     }
-      
-    //     return filteredTemplates;
-    // }
-
-    // NEW
     async getTemplatesByProduction(productionUid) {
         const filteredTemplates = [];
     
