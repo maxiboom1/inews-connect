@@ -188,20 +188,14 @@ class SqlService {
         
         try {
             await db.execute(sqlQuery, values);
-            let attachments = {};
-            // Check if attachments exists in cache OR inews story. If exists => compare.
-            if(Object.keys(story.attachments).length !== 0 || await inewsCache.hasAttachments(rundownStr,story.identifier)){ 
-                attachments = await itemsService.compareItems(rundownStr,story); // Process attachments
-            }
             logger(`Story modified in ${rundownStr}: ${story.storyName}`);
             await this.rundownLastUpdate(rundownStr);
-            return attachments;
-
         } catch (error) {
             console.error('Error executing query:', error);  
         }
 
     }
+
 
     async reorderDbStory(rundownStr,story,ord){
         const values = {
@@ -463,6 +457,40 @@ class SqlService {
             // Execute the update query with the provided values
             await db.execute(sqlQuery, values);
             logger(`Item ${item.gfxItem} updated from the plugin`);
+        } catch (error) {
+            console.error('Error on updating GFX item:', error);
+        }
+    }
+
+    async updateItemFromItemsService(item) { // Expect: {name, data, scripts, templateId, productionId, gfxItem}
+        const values = {
+            name: item.name,
+            lastupdate: createTick(),
+            production: item.productionId,
+            template: item.templateId,
+            data: item.data,
+            scripts: item.scripts,
+            enabled: 1,
+            tag: "", 
+            uid: item.gfxItem
+        };
+
+        const sqlQuery = `
+            UPDATE ngn_inews_items
+            SET name = @name,
+                lastupdate = @lastupdate,
+                production = @production,
+                template = @template,
+                data = @data,
+                scripts = @scripts,
+                enabled = @enabled,
+                tag = @tag
+            WHERE uid = @uid;`;
+
+        try {
+            // Execute the update query with the provided values
+            await db.execute(sqlQuery, values);
+            logger(`Item ${item.gfxItem} updated`);
         } catch (error) {
             console.error('Error on updating GFX item:', error);
         }

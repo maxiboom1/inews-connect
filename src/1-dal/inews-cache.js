@@ -172,6 +172,9 @@ class InewsCache {
     
     // ********************* RUNDOWNS FUNCTIONS ********************** //
 
+    async getRundownsObj(){
+        return this.rundownsList;
+    }
     async getRundownsArr(){ // Return arr of rundownStr's 
         return Object.keys(this.rundownsList);
     }

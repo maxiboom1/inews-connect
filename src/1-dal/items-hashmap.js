@@ -7,7 +7,7 @@ class ItemsHashmap {
     constructor() {
         this.map = {}; 
         this.unlinked = {};
-        this.duplicates = {}; // {itemId:{referenceItemId,rundownStr, storyIdentifier} ...}
+        this.duplicates = {}; // {itemId:{referenceItemId,rundownStr, storyIdentifier, storyId} ...}
         this.cacheFilePath = path.join(path.resolve(), 'unlinkedItemsCache.json');
         this.duplicatesFilePath = path.join(path.resolve(), 'duplicatesCache.json');            
         
@@ -81,8 +81,8 @@ class ItemsHashmap {
     /* - - - - - - - - - - DUPLICATES - - - - - - - - - - */
 
     async addDuplicate(referenceItemId, itemId, rundownStr, storyIdentifier, storyId) {
-    this.duplicates[itemId] = { rundownStr, storyIdentifier, referenceItemId, storyId};
-    await this.updateDuplicatesCache();
+        this.duplicates[itemId] = { rundownStr, storyIdentifier, referenceItemId, storyId};
+        await this.updateDuplicatesCache();
     }
 
     async updateDuplicatesCache(){
@@ -110,6 +110,10 @@ class ItemsHashmap {
         console.log(itemId)
         if(this.duplicates[itemId]) return true;
         return false;
+    }
+    
+    hasDuplicates(itemId) {
+        return Object.values(this.duplicates).some(duplicate => duplicate.referenceItemId === itemId);
     }
 
     getReferenceItem(itemId) {

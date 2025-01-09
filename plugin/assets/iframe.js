@@ -114,6 +114,16 @@ function setGfxItem(gfxItem){
     document.body.setAttribute("data-gfxItem",gfxItem);
 }
 
+function setDuplicateStatus(bool){
+    console.log("in", bool)
+    document.body.setAttribute("data-hasDuplicate",bool);
+    console.log(getDuplicateStatus());
+}
+
+function getDuplicateStatus(){
+    return document.body.getAttribute("data-hasDuplicate");
+}
+
 function getGfxItem(){
     return document.body.getAttribute("data-gfxItem");
 }
@@ -231,6 +241,8 @@ document.addEventListener('UpdateNameEvent', function(event) {nameInputUpdate(ev
 document.addEventListener('DOMContentLoaded', () => {
     const linkButton = document.getElementById('linkButton');
     const popover = document.getElementById('pluginPopover');
+    const duplicateStatus = getDuplicateStatus();
+    console.log("dup: "+ duplicateStatus);
     
     linkButton.addEventListener('mouseover', (e) => {
         const rect = linkButton.getBoundingClientRect();

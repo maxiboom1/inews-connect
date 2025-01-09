@@ -25,6 +25,13 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 **LOGS:**
 
+1.9.7
+
+- Refactored items-service to class.
+- Store rundowns in inews-service constructor
+- Handle items that have duplicates and pass it to front page (Adding itemData.hasDuplicate value in route).
+- Handle hasDuplicate on front and store in html body atr as "data-hasDuplicate".
+
 1.9.6
 
 - Update "lastRundownUpdate" on duplicates related to other rundowns.

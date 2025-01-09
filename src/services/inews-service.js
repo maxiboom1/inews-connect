@@ -10,23 +10,24 @@ import itemsService from "./items-service.js";
 class RundownProcessor {
     constructor() {
         this.setupConnectionListener();
+        this.rundownsObj = {}; // {rundownStr:{uid:value, production:value}}
+        this.rundowns = [];
+    }
+    
+    async startMainProcess() {
+        await this.initialize();
     }
 
     async initialize() {
-        logger('Starting Inews-connect 1.9.5.1...');
+        logger('Starting Inews-connect 1.9.6...');
         await sqlService.initialize();
+        this.rundownsObj = await inewsCache.getRundownsObj();
+        this.rundowns = Object.keys(this.rundownsObj);
         this.rundownIterator();
     }
 
-    setupConnectionListener() {
-        conn.on('connections', connections => {
-            logger(`${connections} FTP connections active`);
-        });
-    }
-
     async rundownIterator() {
-        const rundowns = await inewsCache.getRundownsArr();
-        for (const rundownStr of rundowns) {
+        for (const rundownStr of this.rundowns) {
             await this.processRundown(rundownStr);
         }
         setTimeout(() => this.rundownIterator(), appConfig.pullInterval);
@@ -63,7 +64,7 @@ class RundownProcessor {
             console.error(`ERROR at Index ${index}:`, error);
         }
     }
-    // Done, in terms of duplicates
+    
     async handleNewStory(rundownStr, listItem, index) {
         // Get story string obj
         const story = await this.getStory(rundownStr, listItem.fileName);
@@ -107,12 +108,24 @@ class RundownProcessor {
     }
  
     async modifyStory(rundownStr, listItem) {
-        const story = await this.getStory(rundownStr, listItem.fileName);
-        listItem.attachments = xmlParser.parseAttachments(story);
-        listItem.pageNumber = story.fields.pageNumber;
-        listItem.enabled = this.isEmpty(listItem.attachments) ? 0 : 1;
         
-        listItem.attachments = await sqlService.modifyDbStory(rundownStr, listItem);
+        // Fetch detailed story from inews
+        const story = await this.getStory(rundownStr, listItem.fileName); 
+        // Parse attachments
+        listItem.attachments = xmlParser.parseAttachments(story);
+        // Assign pageNumber
+        listItem.pageNumber = story.fields.pageNumber;
+        // Set enabled if attachments exists
+        listItem.enabled = this.isEmpty(listItem.attachments) ? 0 : 1; 
+        // Check for cached attachments (boolean)
+        const cachedAttachments = await inewsCache.hasAttachments(rundownStr,listItem.identifier);
+        
+        if(listItem.enabled || cachedAttachments){            
+            
+            listItem.attachments = await itemsService.compareItems(rundownStr, this.rundownUid(rundownStr), listItem); // Process attachments
+        }
+
+        await sqlService.modifyDbStory(rundownStr, listItem);
         await inewsCache.modifyStory(rundownStr, listItem);
     }
 
@@ -154,8 +167,14 @@ class RundownProcessor {
         return Object.keys(obj).length === 0;
     }
 
-    async startMainProcess() {
-        await this.initialize();
+    setupConnectionListener() {
+        conn.on('connections', connections => {
+            logger(`${connections} FTP connections active`);
+        });
+    }
+
+    rundownUid(rundownStr){
+        return this.rundownsObj[rundownStr].uid;
     }
 }
 

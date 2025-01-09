@@ -23,6 +23,12 @@ router.get('/templates/:uid', async (req, res) => {
 router.get('/get-item-data/:uid', async (req, res) => {
   const itemUid = req.params.uid;
   const itemData = await sqlService.getItemData(itemUid);
+  if(itemsHash.hasDuplicates(itemUid)){
+    itemData.hasDuplicate = true;
+  } else {
+    itemData.hasDuplicate = false;
+  }
+  console.log(itemData);
   res.json(itemData);
 });
 
