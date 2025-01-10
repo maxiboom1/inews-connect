@@ -3,8 +3,10 @@ import sqlService from "../services/sql-service.js";
 import inewsCache from "../1-dal/inews-cache.js";
 import itemsService from "../services/items-service.js";
 import itemsHash from "../1-dal/items-hashmap.js";
-
+import appConfig from "../utilities/app-config.js";
 const router = express.Router();
+
+const showDuplicatesStatus = appConfig.showDuplicatesStatus;
 
 // Get http://serverAddr:4001/api/productions
 router.get('/productions', async (req, res) => {
@@ -23,12 +25,11 @@ router.get('/templates/:uid', async (req, res) => {
 router.get('/get-item-data/:uid', async (req, res) => {
   const itemUid = req.params.uid;
   const itemData = await sqlService.getItemData(itemUid);
-  if(itemsHash.hasDuplicates(itemUid)){
+  if(itemsHash.hasDuplicates(itemUid) && showDuplicatesStatus){
     itemData.hasDuplicate = true;
   } else {
     itemData.hasDuplicate = false;
   }
-  console.log(itemData);
   res.json(itemData);
 });
 

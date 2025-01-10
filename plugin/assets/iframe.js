@@ -8,6 +8,9 @@ async function clickOnSave(){
         await setCopyBuffer(gfxItem);
         const promptSpan = document.getElementById('promptSpan');
         promptSpan.style.display = "block";
+        promptSpan.style.color = "green";
+        promptSpan.textContent = "Item saved"
+
         setTimeout(() => {
             promptSpan.style.display = "none";
         }, 3000);
@@ -115,9 +118,13 @@ function setGfxItem(gfxItem){
 }
 
 function setDuplicateStatus(bool){
-    console.log("in", bool)
     document.body.setAttribute("data-hasDuplicate",bool);
-    console.log(getDuplicateStatus());
+    if(getDuplicateStatus() === "true"){
+        const promptSpan = document.getElementById('promptSpan');
+        promptSpan.textContent = "Copied";
+        promptSpan.style.color = "red";
+        promptSpan.style.display = "block";
+    }
 }
 
 function getDuplicateStatus(){

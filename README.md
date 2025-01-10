@@ -25,6 +25,11 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 **LOGS:**
 
+1.9.8
+
+- Added duplicate status on front. 
+- Added showDuplicatesStatus boolean in appConfig. In routes, if it true, we add the duplicate status to itemData, otherwise, we always return to front hasDuplicate = false, so no duplicates status will be rendered.
+
 1.9.7
 
 - Refactored items-service to class.
