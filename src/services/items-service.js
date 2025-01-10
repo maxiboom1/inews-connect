@@ -3,6 +3,7 @@ import itemsHash from "../1-dal/items-hashmap.js";
 import sqlService from "./sql-service.js";
 import logger from "../utilities/logger.js";
 import createTick from "../utilities/time-tick.js";
+import lastUpdateService from "./last-update-service.js";
 
 class StoryItemManager {
     constructor() {
@@ -200,29 +201,34 @@ class StoryItemManager {
     }
     
     // Deletes all duplicates of given item from DB and inews-cache
-    async clearAllDuplicates(itemId){
+    async clearAllDuplicates(itemId) {
         
-        const duplicates = itemsHash.getDuplicatesByReference(itemId); // Returns {itemId: {referenceItemId, rundownStr, storyIdentifier}} or null
-        if(duplicates){
-            Object.keys(duplicates).forEach(async itemId => {
-                const props = duplicates[itemId]; // Get the properties associated with the itemId
+        // Returns {itemId: {referenceItemId, rundownStr, storyIdentifier}} or null
+        const duplicates = itemsHash.getDuplicatesByReference(itemId); 
         
+        if (duplicates) {
+            // Use Object.entries to get both the key and value
+            for (const [itemId, props] of Object.entries(duplicates)) {
+                // Construct item to sqlService.deleteItem func
+                const itemToDelete = { itemId: itemId, storyId:props.storyId }
+                
                 // Delete the item from the database
-                await sqlService.deleteItemById(itemId); 
-        
+                await sqlService.deleteItem(props.rundownStr, itemToDelete);
+
                 // Delete the associated attachment using rundownStr and storyIdentifier
                 inewsCache.deleteSingleAttachment(props.rundownStr, props.storyIdentifier, itemId);
-        
+
                 itemsHash.deleteDuplicate(itemId);
-            });
+            }
         }
-        
     }
   
     async updateDuplicates(item) {
+
         if (itemsHash.isUsed(item.gfxItem)) {
             const referenceItem = await sqlService.getFullItem(item.gfxItem);
-            const rundownsToUpdateArr = [];
+            const masterItemRundownStr = await inewsCache.getRundownStr(referenceItem.rundown); // Get original item rundownStr by rundown uid
+            const rundownsToUpdateArr = [masterItemRundownStr]; // Add original item rundown to array of rundowns that will be rundownLastUpdate'd
             const storiesToUpdateArr = [];
             const duplicates = itemsHash.getDuplicatesByReference(item.gfxItem);
             if (duplicates === null) return;
@@ -241,7 +247,7 @@ class StoryItemManager {
             }
 
             await Promise.all([...new Set(rundownsToUpdateArr)].map(async rundownStr => {
-                await sqlService.rundownLastUpdate(rundownStr);
+                lastUpdateService.triggerRundownUpdate(rundownStr);
             }));
 
             await Promise.all([...new Set(storiesToUpdateArr)].map(async storyId => {

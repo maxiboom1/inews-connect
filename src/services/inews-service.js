@@ -6,6 +6,7 @@ import inewsCache from "../1-dal/inews-cache.js";
 import xmlParser from "../utilities/xml-parser.js";
 import logger from "../utilities/logger.js";
 import itemsService from "./items-service.js";
+import lastUpdateService from "./last-update-service.js";
 
 class RundownProcessor {
     constructor() {
@@ -89,7 +90,7 @@ class RundownProcessor {
 
         await itemsService.registerStoryItems(rundownStr,listItem);
 
-        await sqlService.rundownLastUpdate(rundownStr);
+        lastUpdateService.triggerRundownUpdate(rundownStr)
 
         await sqlService.storyLastUpdate(assertedStoryUid);
 
@@ -101,7 +102,7 @@ class RundownProcessor {
         if (action === "reorder") {
             await sqlService.reorderDbStory(rundownStr, listItem, index);
             await inewsCache.reorderStory(rundownStr, listItem, index);
-            await sqlService.rundownLastUpdate(rundownStr);
+            lastUpdateService.triggerRundownUpdate(rundownStr);
         } else if (action === "modify") {
             await this.modifyStory(rundownStr, listItem);
         }
@@ -111,6 +112,7 @@ class RundownProcessor {
         
         // Fetch detailed story from inews
         const story = await this.getStory(rundownStr, listItem.fileName); 
+        
         // Parse attachments
         listItem.attachments = xmlParser.parseAttachments(story);
         // Assign pageNumber
@@ -122,11 +124,14 @@ class RundownProcessor {
         
         if(listItem.enabled || cachedAttachments){            
             
-            listItem.attachments = await itemsService.compareItems(rundownStr, this.rundownUid(rundownStr), listItem); // Process attachments
+            listItem.attachments = await itemsService.compareItems(rundownStr, this.getRundownUid(rundownStr), listItem); // Process attachments
         }
-
+        const storyId = await inewsCache.getStoryUid(rundownStr,listItem.identifier);
         await sqlService.modifyDbStory(rundownStr, listItem);
+        await sqlService.storyLastUpdate(storyId);
+        lastUpdateService.triggerRundownUpdate(rundownStr);
         await inewsCache.modifyStory(rundownStr, listItem);
+        
     }
 
     async handleDeletedStories(rundownStr, listItems) {
@@ -173,7 +178,7 @@ class RundownProcessor {
         });
     }
 
-    rundownUid(rundownStr){
+    getRundownUid(rundownStr){
         return this.rundownsObj[rundownStr].uid;
     }
 }

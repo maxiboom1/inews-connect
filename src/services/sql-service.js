@@ -6,6 +6,7 @@ import itemsService from "./items-service.js";
 import itemsHash from "../1-dal/items-hashmap.js";
 import createTick from "../utilities/time-tick.js";
 import logger from "../utilities/logger.js";
+import lastUpdateService from "./last-update-service.js";
 
 class SqlService {
 
@@ -161,7 +162,6 @@ class SqlService {
             const result = await db.execute(sqlQuery, values);
             const assertedStoryUid = result.recordset[0].uid;
             story.uid = assertedStoryUid;
-            //await this.rundownLastUpdate(rundownStr);
             logger(`Registering new story to ${rundownStr}: ${story.storyName}`); 
             return assertedStoryUid;
         } catch (error) {
@@ -189,7 +189,7 @@ class SqlService {
         try {
             await db.execute(sqlQuery, values);
             logger(`Story modified in ${rundownStr}: ${story.storyName}`);
-            await this.rundownLastUpdate(rundownStr);
+            lastUpdateService.executeUpdate(rundownStr);
         } catch (error) {
             console.error('Error executing query:', error);  
         }
@@ -225,7 +225,7 @@ class SqlService {
             const values = {identifier: identifier};
             const sqlQuery = `DELETE FROM ngn_inews_stories WHERE identifier = @identifier;`;
             await db.execute(sqlQuery, values);
-            await this.rundownLastUpdate(rundownStr);
+            lastUpdateService.executeUpdate(rundownStr);
             
             // Check for attachments in story
             if(Object.keys(story.attachments).length > 0){
@@ -330,6 +330,31 @@ class SqlService {
     }
 
     async deleteItem(rundownStr, item){ //Item: {itemId, rundownId, storyId}
+
+        // Update items hashmap
+        itemsHash.remove(item.itemId); 
+        // Update duplicates cache
+        itemsHash.deleteDuplicate(String(item.itemId));
+
+        const values = {uid: item.itemId};
+        const sqlQuery = `DELETE FROM ngn_inews_items WHERE uid = @uid;`;
+    
+        try {
+            const result =await db.execute(sqlQuery, values);
+            if(result.rowsAffected[0] > 0){
+                logger(`Delete GFX item ${item.itemId} in ${rundownStr}, story num ${item.storyId}`);
+            } else {
+                logger(`WARNING! GFX ${item.itemId} [${item.ord}] in ${rundownStr}, story num ${item.ord} doesn't exists in DB`);
+            }
+
+        } catch (error) {
+            console.error('Error deleting GFX item:', error);
+            return null;
+        }
+
+    } 
+
+    async disableItem(rundownStr, item){ //Item: {itemId, rundownId, storyId}
 
         // Update items hashmap
         itemsHash.remove(item.itemId); 
@@ -498,7 +523,8 @@ class SqlService {
     
 // ********************* LAST UPDATE && ORD LAST UPDATE FUNCTIONS ********************** //
     
-    async rundownLastUpdate(rundownStr){
+    async rundownLastUpdate(rundownStr, msg=""){
+        console.log("rundown update: ", rundownStr, "from: ", msg);
             const rundownMeta = await inewsCache.getRundownList(rundownStr);
             try {
                 const values = {
@@ -517,6 +543,7 @@ class SqlService {
     }
 
     async storyLastUpdate(storyId){
+        console.log("story update: ", storyId);
         try {
             const values = {
                 uid: storyId,
@@ -557,7 +584,6 @@ class SqlService {
     }
 
     async storeDuplicateItem(item) { // Expect: {name, data, scripts, templateId,productionId}
-
         const sqlQuery = `
             INSERT INTO ngn_inews_items (name, lastupdate, production, rundown, story, ord, ordupdate, template, data, scripts, enabled, tag)
             OUTPUT INSERTED.uid
@@ -571,7 +597,6 @@ class SqlService {
             return null;
         }
     }
-
 
     
 }    

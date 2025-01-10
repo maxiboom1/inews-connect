@@ -183,6 +183,13 @@ class InewsCache {
         return this.rundownsList[rundownStr].uid;
     }
 
+    async getRundownStr(uid){
+        for (const rundownStr in this.rundownsList) {
+            if(this.rundownsList[rundownStr].uid === uid) return rundownStr;
+        }
+        return null;
+    }
+
     async getRundown(rundownStr) {
         return this.stories[rundownStr];
     }

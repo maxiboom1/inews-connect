@@ -25,6 +25,13 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 **LOGS:**
 
+1.9.9
+
+- Added lastUpdateRundown call to original item in case user edited duplicate of this item,that placed in other rundown.
+- Added last-update-service - basically its simple debouncer that handle rundownLastUpdate calls, and if there are to many, and sets 1 sec timeout debounce. This reduce database calls. I need to add to it also storyLastUpdate.
+- Some updates in cleanups in code structure.
+- Now it seems I ready for cut/paste items - the case that user cut the item, normally will delete it. The idea is to disable it instead of delete, and if we notice this id in other story - revoke the item and update its data according new position.
+
 1.9.8
 
 - Added duplicate status on front. 

@@ -98,10 +98,16 @@ class ItemsHashmap {
         
         // Read cache on load
         const cachedDuplicates = fs.readFileSync(this.duplicatesFilePath, 'utf8');
-        // Get duplicates array from cache
-        const duplicatesToDelete = Object.keys(JSON.parse(cachedDuplicates));
-        // Delete duplicates from DB
-        duplicatesToDelete.forEach(async itemId => await sqlService.deleteItemById(itemId));
+
+        const duplicatesToDelete = Object.entries(JSON.parse(cachedDuplicates));
+
+        for (const [key, value] of duplicatesToDelete) {
+            const item = {
+                itemId: key, 
+                storyId:value.storyId
+            }
+            await sqlService.deleteItem(value.rundownStr, item);
+          }
         // Clear cache file on load
         fs.writeFileSync(this.duplicatesFilePath, JSON.stringify(this.duplicates), 'utf8');
     }
