@@ -117,13 +117,14 @@ function setGfxItem(gfxItem){
     document.body.setAttribute("data-gfxItem",gfxItem);
 }
 
-function setDuplicateStatus(bool){
+function setDuplicateStatus(bool,itemData){
     document.body.setAttribute("data-hasDuplicate",bool);
     if(getDuplicateStatus() === "true"){
         const promptSpan = document.getElementById('promptSpan');
         promptSpan.textContent = "Copied";
         promptSpan.style.color = "red";
         promptSpan.style.display = "block";
+        document.getElementById("tooltip").innerHTML = `${itemData.rundown}<br>${itemData.story}`;
     }
 }
 
@@ -244,7 +245,7 @@ function setNameOnLoad(){
 
 document.addEventListener('UpdateNameEvent', function(event) {nameInputUpdate(event.detail.name);}); 
 
-// ======================== Favorites ========================
+// ======================== Favorites && Duplicates status tooltip ========================
 document.addEventListener('DOMContentLoaded', () => {
     const linkButton = document.getElementById('linkButton');
     const popover = document.getElementById('pluginPopover');
@@ -299,6 +300,24 @@ document.addEventListener('DOMContentLoaded', () => {
             }
     
     });
+
+    const promptSpan = document.getElementById('promptSpan');
+    const tooltip = document.getElementById('tooltip');
+    
+    // Tooltip showing logic
+    if (promptSpan && tooltip) {
+        promptSpan.addEventListener('mouseenter', () => {
+            const rect = promptSpan.getBoundingClientRect();
+            tooltip.style.top = rect.bottom + window.scrollY + 5 + 'px';  // Position tooltip below the span
+            tooltip.style.left = rect.left + window.scrollX + 'px';      // Align with the left of the span
+            tooltip.style.display = 'block';  // Show the tooltip
+        });
+
+        // Tooltip hiding logic
+        promptSpan.addEventListener('mouseleave', () => {
+            tooltip.style.display = 'none';  // Hide the tooltip
+        });
+    }
 
 })
 

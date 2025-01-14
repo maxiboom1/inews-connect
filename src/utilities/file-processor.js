@@ -100,7 +100,7 @@ function createPluginPanel(document) {
     pluginPanelDiv.classList.add('pluginPanel'); // Add the class to the pluginPanel div
 
     const promptSpan = createSpan(document, "promptSpan", "Item saved");    
-    
+    const tooltipDiv = createTooltipDiv(document);
     // Append buttons to the "pluginPanel" div
     pluginPanelDiv.appendChild(backButton);
     // pluginPanelDiv.appendChild(saveButton);
@@ -122,6 +122,7 @@ function createPluginPanel(document) {
     pluginPanelDiv.appendChild(nameInput);
     pluginPanelDiv.appendChild(saveButton);
     pluginPanelDiv.appendChild(promptSpan);
+    pluginPanelDiv.appendChild(tooltipDiv);  // Add the tooltip div to the panel
 
     return pluginPanelDiv;
 }
@@ -157,6 +158,14 @@ function createSpan(document,id, text){
     span.textContent = text;
     span.id = id;
     return span;
+}
+
+function createTooltipDiv(document) {
+    const tooltipDiv = document.createElement('div');
+    tooltipDiv.id = 'tooltip';
+    tooltipDiv.classList.add('tooltip');
+    tooltipDiv.textContent = "This is the tooltip text for 'Item saved'"; // You can customize this text
+    return tooltipDiv;
 }
 
 export default processAndWriteFiles;

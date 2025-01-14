@@ -213,9 +213,30 @@ class InewsCache {
         return Object.keys(rundown);
     }
 
+    async getRundownStrAndStoryName(rundownUid, storyUid) {
+        const result = {};
+    
+        // Look for the rundown by its UID
+        const rundownStr = Object.keys(this.rundownsList).find(rundownStr => this.rundownsList[rundownStr].uid === rundownUid);
+        if (!rundownStr) return result; // If no matching rundown, return an empty result
+    
+        result.rundown = rundownStr;
+    
+        // Look for the story by its UID within the found rundown
+        const story = this.stories[rundownStr] ? Object.values(this.stories[rundownStr]).find(story => story.uid === storyUid) : null;
+        if (story) {
+            result.storyName = story.storyName;
+        }
+    
+        return result;
+    }
+    
+
     async getData() {
         return this.stories;
     }
+
+
     
 }
 

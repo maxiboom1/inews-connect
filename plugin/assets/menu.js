@@ -237,9 +237,9 @@ async function renderItem(templateId,gfxItem, itemID){
             iframe.contentWindow.setGfxItem(gfxItem); // Set gfxItemId in iframe head as "data-gfxitem"
             iframe.contentWindow.setItemID(itemID); // Set itemID in iframe head as "data-itemID"
             iframe.contentWindow.nameInputUpdate(itemName,true);
-            console.log('x', itemObj.hasDuplicate);
+            console.log('x', itemObj);
             if(itemObj.hasDuplicate) {
-                iframe.contentWindow.setDuplicateStatus(true);
+                iframe.contentWindow.setDuplicateStatus(true, itemObj);
             }
             // Show iframe
             iframe.style.display = 'block'; // Show the iframe

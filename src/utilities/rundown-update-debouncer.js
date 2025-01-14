@@ -1,4 +1,4 @@
-import sqlService from "./sql-service.js";
+import sqlService from "../services/sql-service.js";
 
 
 class LastUpdateService {
@@ -6,25 +6,21 @@ class LastUpdateService {
         this.debouncerTimeouts = new Map(); // Store timeouts for each rundownStr
     }
 
-    // Method to trigger the last update
     triggerRundownUpdate(rundownStr) {
-        // Clear any existing timeout for this rundownStr
         if (this.debouncerTimeouts.has(rundownStr)) {
             clearTimeout(this.debouncerTimeouts.get(rundownStr));
         }
 
-        // Set a new timeout for this rundownStr
         const timeout = setTimeout(() => {
             this.executeUpdate(rundownStr);
-        }, 1000); // 1 second debounce
+        }, 1000); 
 
-        // Store the timeout in the map
         this.debouncerTimeouts.set(rundownStr, timeout);
     }
 
     async executeUpdate(rundownStr) {
         try {
-            await sqlService.rundownLastUpdate(rundownStr, "LastUpdateService"); 
+            await sqlService.rundownLastUpdate(rundownStr, "rundownUpdateDebouncer"); 
         } catch (error) {
             console.error('Error executing update:', error);
         } finally {

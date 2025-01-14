@@ -6,7 +6,7 @@ import inewsCache from "../1-dal/inews-cache.js";
 import xmlParser from "../utilities/xml-parser.js";
 import logger from "../utilities/logger.js";
 import itemsService from "./items-service.js";
-import lastUpdateService from "./last-update-service.js";
+import lastUpdateService from "../utilities/rundown-update-debouncer.js";
 
 class RundownProcessor {
     constructor() {

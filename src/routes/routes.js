@@ -25,8 +25,13 @@ router.get('/templates/:uid', async (req, res) => {
 router.get('/get-item-data/:uid', async (req, res) => {
   const itemUid = req.params.uid;
   const itemData = await sqlService.getItemData(itemUid);
+  
+  // If item has duplicates, fetch and set hasDuplicate,rundown, story to itemData 
   if(itemsHash.hasDuplicates(itemUid) && showDuplicatesStatus){
+    const meta = await inewsCache.getRundownStrAndStoryName(itemData.rundown, itemData.story);
     itemData.hasDuplicate = true;
+    itemData.rundown = meta.rundown;
+    itemData.story = meta.storyName;
   } else {
     itemData.hasDuplicate = false;
   }

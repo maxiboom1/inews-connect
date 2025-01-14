@@ -3,7 +3,8 @@ import itemsHash from "../1-dal/items-hashmap.js";
 import sqlService from "./sql-service.js";
 import logger from "../utilities/logger.js";
 import createTick from "../utilities/time-tick.js";
-import lastUpdateService from "./last-update-service.js";
+import lastUpdateService from "../utilities/rundown-update-debouncer.js";
+import deleteItemDebouncer from "../utilities/delete-item-debouncer.js"
 
 class StoryItemManager {
     constructor() {
@@ -111,7 +112,8 @@ class StoryItemManager {
         if (this.cacheStoryKeys.length > this.storyKeys.length) {
             await Promise.all(this.cacheStoryKeys.map(async key => {
                 if (!this.storyKeys.includes(key)) {
-                    await sqlService.deleteItem(this.rundownStr, {
+                    // await sqlService.deleteItem(this.rundownStr, {
+                    deleteItemDebouncer.triggerDeleteItem(this.rundownStr, {
                         itemId: key,
                         rundownId: this.rundownId,
                         storyId: this.storyId,
@@ -213,7 +215,8 @@ class StoryItemManager {
                 const itemToDelete = { itemId: itemId, storyId:props.storyId }
                 
                 // Delete the item from the database
-                await sqlService.deleteItem(props.rundownStr, itemToDelete);
+                //await sqlService.deleteItem(props.rundownStr, itemToDelete);
+                deleteItemDebouncer.triggerDeleteItem(props.rundownStr, itemToDelete);
 
                 // Delete the associated attachment using rundownStr and storyIdentifier
                 inewsCache.deleteSingleAttachment(props.rundownStr, props.storyIdentifier, itemId);
