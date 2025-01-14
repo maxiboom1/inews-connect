@@ -12,7 +12,9 @@ import deleteItemDebouncer from "../utilities/delete-item-debouncer.js";
 class SqlService {
 
 // ****************************** INIT FUNCTIONS - RUNS ONCE ONLOAD ****************************** //
-    
+    constructor(){
+        this.cutItemTimeout = appConfig.cutItemTimeout;
+    }
     async initialize(){
         try {
             // Delete stories table in mssql 
@@ -234,7 +236,7 @@ class SqlService {
             // Check for attachments in story
             if(Object.keys(story.attachments).length > 0){
                 for(const item of Object.keys(story.attachments)){
-                    await this.deleteItem(rundownStr,{
+                    deleteItemDebouncer.triggerDeleteItem(rundownStr,{
                         itemId: item, // item id to delete
                         rundownId:await inewsCache.getRundownUid(rundownStr), 
                         storyId:story.uid, 
@@ -259,11 +261,12 @@ class SqlService {
             story: item.storyId,
             ord: item.ord,
             ordupdate: createTick(),
-            uid: item.itemId
+            uid: item.itemId,
+            enabled: 1
         };
         const sqlQuery = `
             UPDATE ngn_inews_items SET 
-            lastupdate = @lastupdate, rundown = @rundown, story = @story, ord = @ord, ordupdate = @ordupdate
+            lastupdate = @lastupdate, rundown = @rundown, story = @story, ord = @ord, ordupdate = @ordupdate, enabled = @enabled
             OUTPUT INSERTED.*
             WHERE uid = @uid;`;
     
@@ -334,6 +337,7 @@ class SqlService {
     }
 
     async deleteItem(rundownStr, item){ //Item: {itemId, rundownId, storyId}
+        logger(`Item ${item.itemId} has been deleted`)
         // Update items hashmap
         itemsHash.remove(item.itemId); 
         // Update duplicates cache
@@ -368,7 +372,7 @@ class SqlService {
         try {
             const result =await db.execute(sqlQuery, values);
             if(result.rowsAffected[0] > 0){
-                logger(`GFX ${item.itemId} in ${rundownStr}, story num ${item.storyId} disabled.`);
+                logger(`GFX ${item.itemId} in ${rundownStr}, story num ${item.storyId} disabled and will be deleted in ${this.cutItemTimeout/1000} sec`);
             } else {
                 logger(`GFX ${item.itemId} [${item.ord}] in ${rundownStr}, story num ${item.ord} doesn't exists in DB`);
             }
@@ -531,7 +535,6 @@ class SqlService {
     }
 
     async storyLastUpdate(storyId){
-        //console.log("story update: ", storyId);
         try {
             const values = {
                 uid: storyId,

@@ -112,7 +112,7 @@ class StoryItemManager {
         if (this.cacheStoryKeys.length > this.storyKeys.length) {
             await Promise.all(this.cacheStoryKeys.map(async key => {
                 if (!this.storyKeys.includes(key)) {
-                    await sqlService.deleteItem(this.rundownStr, {
+                    deleteItemDebouncer.triggerDeleteItem(this.rundownStr, {
                         itemId: key,
                         rundownId: this.rundownId,
                         storyId: this.storyId,
@@ -215,7 +215,7 @@ class StoryItemManager {
                 
                 // Delete the item from the database
                 await sqlService.deleteItem(props.rundownStr, itemToDelete);
-
+                
                 // Delete the associated attachment using rundownStr and storyIdentifier
                 inewsCache.deleteSingleAttachment(props.rundownStr, props.storyIdentifier, itemId);
 

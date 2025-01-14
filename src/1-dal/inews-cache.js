@@ -136,6 +136,7 @@ class InewsCache {
         this.stories[rundownStr][story.identifier].flags = story.flags;
         this.stories[rundownStr][story.identifier].attachments = story.attachments;
         this.stories[rundownStr][story.identifier].pageNumber = story.pageNumber;
+        this.stories[rundownStr][story.identifier].enabled = story.enabled;    
     }
 
     async deleteStory(rundownStr, identifier) {
@@ -153,7 +154,6 @@ class InewsCache {
 
     async getStoryAttachments(rundownStr,identifier){
         if (this.stories[rundownStr] && this.stories[rundownStr][identifier]) {
-            //return this.stories[rundownStr][identifier].attachments;
             return {...this.stories[rundownStr][identifier].attachments};
         }
     }

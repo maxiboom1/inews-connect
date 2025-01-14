@@ -46,25 +46,20 @@ class ItemsHashmap {
     }
 
     async add(gfxItem) {
-        if (this.map[gfxItem]) {
-            this.map[gfxItem] += 1;
-        } else {
-            this.map[gfxItem] = 1;
-        }
-        //console.log('Updated gfx item in item hash: ',this.map[gfxItem], "here is the isused result: ", this.isUsed(gfxItem));
+        this.map[gfxItem] = 1;
         delete this.unlinked[gfxItem];
         return;
     }
 
     remove(gfxItem) {
         if (this.map[gfxItem]) {
-            this.map[gfxItem] -= 1;
-            if (this.map[gfxItem] === 0) {
-                delete this.map[gfxItem];
-            }
+            delete this.map[gfxItem];
         }
     }
 
+    getHashData(gfxItem){
+        return this.map[gfxItem];
+    }
     isUsed(gfxItem) {
         const result = this.map[gfxItem]>0;
         return result;
@@ -113,7 +108,6 @@ class ItemsHashmap {
     }
 
     isDuplicate(itemId){
-        console.log(itemId)
         if(this.duplicates[itemId]) return true;
         return false;
     }
@@ -147,6 +141,20 @@ class ItemsHashmap {
     
         // Return null if the object is empty
         return Object.keys(duplicatesObj).length === 0 ? null : duplicatesObj;
+    }
+
+    getRundownStrsByReference(referenceItemId) {
+        const rundownStrsSet = new Set();
+        
+        for (const props of Object.values(this.duplicates)) {
+            if (props.referenceItemId === referenceItemId) {
+                rundownStrsSet.add(props.rundownStr); // Add to the set to ensure uniqueness
+            }
+        }
+        
+        // Convert the set back to an array and return null if it's empty
+        const uniqueRundownStrs = Array.from(rundownStrsSet);
+        return uniqueRundownStrs.length === 0 ? null : uniqueRundownStrs;
     }
     
 }

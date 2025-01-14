@@ -13,6 +13,7 @@ class RundownProcessor {
         this.setupConnectionListener();
         this.rundownsObj = {}; // {rundownStr:{uid:value, production:value}}
         this.rundowns = [];
+        this.syncRundowns = [];
     }
     
     async startMainProcess() {
@@ -20,7 +21,7 @@ class RundownProcessor {
     }
 
     async initialize() {
-        logger('Starting Inews-connect 1.9.6...');
+        logger('Starting Inews-connect 2.0.0...');
         await sqlService.initialize();
         this.rundownsObj = await inewsCache.getRundownsObj();
         this.rundowns = Object.keys(this.rundownsObj);
@@ -30,6 +31,9 @@ class RundownProcessor {
     async rundownIterator() {
         for (const rundownStr of this.rundowns) {
             await this.processRundown(rundownStr);
+            
+            // Remove the processed rundownStr from syncRundowns
+            this.syncRundowns = this.syncRundowns.filter(r => r !== rundownStr);
         }
         setTimeout(() => this.rundownIterator(), appConfig.pullInterval);
     }
@@ -105,6 +109,8 @@ class RundownProcessor {
             await inewsCache.reorderStory(rundownStr, listItem, index);
             lastUpdateService.triggerRundownUpdate(rundownStr);
         } else if (action === "modify") {
+            await this.modifyStory(rundownStr, listItem);
+        } else if(this.syncRundowns.includes(rundownStr)){
             await this.modifyStory(rundownStr, listItem);
         }
     }
@@ -182,6 +188,12 @@ class RundownProcessor {
 
     getRundownUid(rundownStr){
         return this.rundownsObj[rundownStr].uid;
+    }
+
+    setSyncRundowns(rundowns){
+        for(const rd of rundowns){
+            this.syncRundowns.push(rd);
+        }
     }
 }
 

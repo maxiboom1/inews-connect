@@ -25,6 +25,16 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 **LOGS:**
 
+2.0.0
+
+- Handling copy/cut/paste item events.
+
+DeleteItemDebouncer handles item deletions with duplicate management. 
+If an item is a duplicate, it's deleted immediately. 
+For items with duplicates, all duplicates are deleted, the item is disabled, and its deletion is scheduled. 
+Revoked items cancel deletion and trigger rundown syncs for duplicates. 
+The module uses timeouts to optimize operations and prevent conflicts.
+
 1.9.9.2
 
 - Fix for queries based on identifier only - I found that in some cases stories in different rundowns may have the same identifier - so in those cases i added check also for rundown uid - so the modified query condition looks like this: 
