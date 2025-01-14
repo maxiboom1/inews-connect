@@ -25,6 +25,11 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 **LOGS:**
 
+1.9.9.2
+
+- Fix for queries based on identifier only - I found that in some cases stories in different rundowns may have the same identifier - so in those cases i added check also for rundown uid - so the modified query condition looks like this: 
+```WHERE identifier = @identifier AND rundown = @rundown;```
+
 1.9.9.1
 
 - Added tooltip on duplicate status - to fetch this data on server we use new getRundownStrAndStoryName method in inews-cache. 

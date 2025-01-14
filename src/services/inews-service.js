@@ -100,7 +100,8 @@ class RundownProcessor {
         const action = await this.checkStory(rundownStr, listItem, index);
 
         if (action === "reorder") {
-            await sqlService.reorderDbStory(rundownStr, listItem, index);
+            const rundownUid = await inewsCache.getRundownUid(rundownStr);
+            await sqlService.reorderDbStory(rundownStr, listItem, index, rundownUid);
             await inewsCache.reorderStory(rundownStr, listItem, index);
             lastUpdateService.triggerRundownUpdate(rundownStr);
         } else if (action === "modify") {
@@ -127,7 +128,7 @@ class RundownProcessor {
             listItem.attachments = await itemsService.compareItems(rundownStr, this.getRundownUid(rundownStr), listItem); // Process attachments
         }
         const storyId = await inewsCache.getStoryUid(rundownStr,listItem.identifier);
-        await sqlService.modifyDbStory(rundownStr, listItem);
+        await sqlService.modifyDbStory(rundownStr, listItem, storyId);
         await sqlService.storyLastUpdate(storyId);
         lastUpdateService.triggerRundownUpdate(rundownStr);
         await inewsCache.modifyStory(rundownStr, listItem);
@@ -159,7 +160,8 @@ class RundownProcessor {
         }
         const identifiersToDelete = cachedIdentifiers.filter(identifier => !inewsHashMap.hasOwnProperty(identifier));
         for (const identifier of identifiersToDelete) {
-            await sqlService.deleteStory(rundownStr, identifier);
+            const rundownUid = await inewsCache.getRundownUid(rundownStr);
+            await sqlService.deleteStory(rundownStr, identifier, rundownUid);
             await inewsCache.deleteStory(rundownStr, identifier);
         }
     }

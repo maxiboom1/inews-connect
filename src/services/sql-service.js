@@ -170,21 +170,23 @@ class SqlService {
         }
     }
 
-    async modifyDbStory(rundownStr,story){ //Story: {fileType,fileName,identifier,locator,storyName,modified,flags,attachments{gfxitem{props}}}
+    async modifyDbStory(rundownStr,story, storyId){ //Story: {fileType,fileName,identifier,locator,storyName,modified,flags,attachments{gfxitem{props}}}
+        console.log("modify story: ", story.storyName)
         const values = {
-            identifier:story.identifier, // Filter param from sql ("WHERE ")
-            name:story.storyName,
+            identifier: story.identifier, // Filter param from sql ("WHERE ")
+            name: story.storyName,
             lastupdate: createTick(),
             locator: story.locator,
             enabled: story.enabled,
             floating: story.flags.floated,
-            number:story.pageNumber || ""
+            number: story.pageNumber || "",
+            uid: storyId
 
         };
         const sqlQuery = `
             UPDATE ngn_inews_stories
             SET name = @name, lastupdate = @lastupdate, locator = @locator, enabled = @enabled, floating = @floating, number=@number
-            WHERE identifier = @identifier;
+            WHERE uid = @uid;
         `;
         
         try {
@@ -198,18 +200,19 @@ class SqlService {
     }
 
 
-    async reorderDbStory(rundownStr,story,ord){
+    async reorderDbStory(rundownStr,story,ord, rundownUid){
         const values = {
             ord: ord,
             locator: story.locator,
             identifier: story.identifier,
             ordupdate: createTick(),
+            rundown: rundownUid
         };
         
         const sqlQuery = `
             UPDATE ngn_inews_stories
             SET ord = @ord, ordupdate = @ordupdate, locator = @locator
-            WHERE identifier = @identifier;
+            WHERE identifier = @identifier AND rundown = @rundown;
         `;
         try {
             await db.execute(sqlQuery, values);
@@ -220,19 +223,18 @@ class SqlService {
 
     }
 
-    async deleteStory(rundownStr,identifier) {
+    async deleteStory(rundownStr,identifier, rundownUid) {
         try {
             const story = await inewsCache.getStory(rundownStr,identifier);
-            const values = {identifier: identifier};
-            const sqlQuery = `DELETE FROM ngn_inews_stories WHERE identifier = @identifier;`;
+            const values = {identifier: identifier, rundown:rundownUid};
+            const sqlQuery = `DELETE FROM ngn_inews_stories WHERE identifier = @identifier AND rundown = @rundown;`;
             await db.execute(sqlQuery, values);
             lastUpdateService.triggerRundownUpdate(rundownStr);
             
             // Check for attachments in story
             if(Object.keys(story.attachments).length > 0){
                 for(const item of Object.keys(story.attachments)){
-                    //await this.deleteItem(rundownStr,{
-                    deleteItemDebouncer.triggerDeleteItem(rundownStr,{
+                    await this.deleteItem(rundownStr,{
                         itemId: item, // item id to delete
                         rundownId:await inewsCache.getRundownUid(rundownStr), 
                         storyId:story.uid, 
@@ -510,7 +512,7 @@ class SqlService {
 // ********************* LAST UPDATE && ORD LAST UPDATE FUNCTIONS ********************** //
     
     async rundownLastUpdate(rundownStr, msg=""){
-        logger(`Rundown update: ${rundownStr} from ${msg}`)
+        //logger(`Rundown update: ${rundownStr} from ${msg}`)
             const rundownMeta = await inewsCache.getRundownList(rundownStr);
             try {
                 const values = {
@@ -529,7 +531,7 @@ class SqlService {
     }
 
     async storyLastUpdate(storyId){
-        console.log("story update: ", storyId);
+        //console.log("story update: ", storyId);
         try {
             const values = {
                 uid: storyId,

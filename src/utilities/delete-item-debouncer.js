@@ -8,6 +8,8 @@ class DeleteItemDebouncer {
     }
 
     triggerDeleteItem(rundownStr, item) {
+        this.executeDelete(rundownStr, item);
+        return;
         // Validate inputs
         if (!rundownStr || typeof rundownStr !== 'string' || typeof item !== 'object') {
             console.error('Invalid inputs:', { rundownStr, item });
@@ -16,9 +18,7 @@ class DeleteItemDebouncer {
 
         // Create a unique key based on rundownStr and serialized item
         const key = `${rundownStr}:${JSON.stringify(item)}`;
-        // Update items hashmap
-        itemsHash.remove(item.itemId);
-
+        
         // Clear any existing timeout for this key
         if (this.debouncerTimeouts.has(key)) {
             clearTimeout(this.debouncerTimeouts.get(key));
@@ -37,12 +37,7 @@ class DeleteItemDebouncer {
         const key = `${rundownStr}:${JSON.stringify(item)}`;
 
         try {
-            if(!itemsHash.isUsed(item.itemId)){
-                await sqlService.deleteItem(rundownStr, item);
-            } else {
-                logger(`Item ${item.itemId} revoked! Probably duo cut/paste.`)
-            }
-            
+            await sqlService.deleteItem(rundownStr, item);  
         } catch (error) {
             console.error('Error executing delete:', error);
         } finally {
