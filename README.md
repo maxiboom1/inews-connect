@@ -25,6 +25,12 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 **LOGS:**
 
+1.9.9.1
+
+- Added tooltip on duplicate status - to fetch this data on server we use new getRundownStrAndStoryName method in inews-cache. 
+- Removed lastRundownUpdate debouncer to utilities folder
+- Added new delete-item-debouncer to utilities. It can receive item to delete, wait and then, on condition delete it. This should solve the cut/paste item issue. It still in work.
+
 1.9.9
 
 - Added lastUpdateRundown call to original item in case user edited duplicate of this item,that placed in other rundown.
