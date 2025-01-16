@@ -6,6 +6,7 @@ import processor from "../services/inews-service.js";
 import appConfig from "./app-config.js";
 
 class DeleteItemDebouncer {
+    
     constructor() {
         this.debouncerTimeouts = new Map(); // Store timeouts for each rundownStr + item combination
         this.cutItemTimeout = appConfig.cutItemTimeout;
@@ -19,6 +20,7 @@ class DeleteItemDebouncer {
             return; 
         }
         let duplicatesRundownStrs = [];
+        
         // If this item has duplicates - delete all of them.
         if(itemsHash.hasDuplicates(item.itemId)){
             // collect all duplicates rundownId's

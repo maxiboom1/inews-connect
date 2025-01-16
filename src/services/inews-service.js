@@ -14,6 +14,7 @@ class RundownProcessor {
         this.rundownsObj = {}; // {rundownStr:{uid:value, production:value}}
         this.rundowns = [];
         this.syncRundowns = [];
+        this.skippedRundowns = {}; // {rundownStr:boolean,rundownStr:boolean,}
     }
     
     async startMainProcess() {
@@ -25,6 +26,9 @@ class RundownProcessor {
         await sqlService.initialize();
         this.rundownsObj = await inewsCache.getRundownsObj();
         this.rundowns = Object.keys(this.rundownsObj);
+        for(const rundown of this.rundowns){
+            this.skippedRundowns[rundown] = false;
+        }
         this.rundownIterator();
     }
 
@@ -41,18 +45,28 @@ class RundownProcessor {
     async processRundown(rundownStr) {
         try {
             const listItems = await conn.list(rundownStr);
-            const storyPromises = this.processStories(rundownStr, listItems);
+            const filteredListItems = listItems.filter(item => item.fileType === 'STORY');
+            const cachedLength = await inewsCache.getRundownLength(rundownStr);
+            
+            // If there is new stories in rundown
+            if(cachedLength<filteredListItems.length && this.skippedRundowns[rundownStr] === false){
+                logger(`Noticed new stories in rundown ${rundownStr}. Skipping for now.`);
+                this.skippedRundowns[rundownStr] = true;
+                return;
+            }
+
+            const storyPromises = this.processStories(rundownStr, filteredListItems);
             await Promise.all(storyPromises);
-            await this.handleDeletedStories(rundownStr, listItems);
+            await this.handleDeletedStories(rundownStr, filteredListItems);
         } catch (error) {
             console.error("Error fetching and processing stories:", error);
+        } finally {
+            this.skippedRundowns[rundownStr] = false;
         }
     }
 
     processStories(rundownStr, listItems) {
-        return listItems
-            .filter(listItem => listItem.fileType === 'STORY')
-            .map((listItem, index) => this.processStory(rundownStr, listItem, index));
+        return listItems.map((listItem, index) => this.processStory(rundownStr, listItem, index));
     }
 
     async processStory(rundownStr, listItem, index) {
@@ -195,6 +209,8 @@ class RundownProcessor {
             this.syncRundowns.push(rd);
         }
     }
+
+    
 }
 
 const processor = new RundownProcessor();

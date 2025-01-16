@@ -25,6 +25,20 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 **LOGS:**
 
+2.0.1
+
+- Implemented a mechanism to skip processing rundowns when new stories are detected.
+
+This resolves an issue that occurs when a user cuts stories from one rundown and pastes them into another. Updates from the original rundown (deletes) and the target rundown (new story creation) can arrive in random sequences:
+1. New story updates arrive first, followed by delete events.
+2. Delete events arrive first, followed by new story updates.
+
+In the first case, duplicates are created for items whose originals were deleted before the system received the delete update, leading to item loss.
+
+To address this, a flag-based mechanism (`skippedRundowns`) was added. It detects when new stories are added by comparing the number of "STORY" items with the cached count. When detected, the system skips processing the rundown for that iteration, ensuring delete events are handled before processing new stories. The flag resets after processing to maintain normal operation.
+
+- In config file, removed "uid" prop from "rundown", so now we can register rundown as: "show.alex.rundown": {"production": 2}.
+
 2.0.0
 
 - Handling copy/cut/paste item events.

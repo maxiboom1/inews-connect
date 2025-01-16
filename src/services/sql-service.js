@@ -173,7 +173,6 @@ class SqlService {
     }
 
     async modifyDbStory(rundownStr,story, storyId){ //Story: {fileType,fileName,identifier,locator,storyName,modified,flags,attachments{gfxitem{props}}}
-        console.log("modify story: ", story.storyName)
         const values = {
             identifier: story.identifier, // Filter param from sql ("WHERE ")
             name: story.storyName,
