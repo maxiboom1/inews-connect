@@ -22,7 +22,7 @@ class RundownProcessor {
     }
 
     async initialize() {
-        logger('Starting Inews-connect 2.0.0...');
+        logger('Starting Inews-connect 2.0.2...');
         await sqlService.initialize();
         this.rundownsObj = await inewsCache.getRundownsObj();
         this.rundowns = Object.keys(this.rundownsObj);
