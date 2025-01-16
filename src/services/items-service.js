@@ -140,7 +140,7 @@ class StoryItemManager {
 
         const duplicateItemUid = await sqlService.storeDuplicateItem(referenceItem);
 
-        itemsHash.addDuplicate(referenceItemId, duplicateItemUid, rundownStr, story.identifier);
+        itemsHash.addDuplicate(referenceItemId, duplicateItemUid, rundownStr, story.identifier, uid, story.fileName);
 
         delete story.attachments[referenceItemId];
         const newItem = {
@@ -186,7 +186,7 @@ class StoryItemManager {
         referenceItem.ordupdate = createTick();
 
         const duplicateItemUid = await sqlService.storeDuplicateItem(referenceItem);
-        itemsHash.addDuplicate(referenceItemId, duplicateItemUid, rundownStr, story.identifier, story.uid);
+        itemsHash.addDuplicate(referenceItemId, duplicateItemUid, rundownStr, story.identifier, story.uid, story.fileName);
 
         const storyAttachments = await inewsCache.getStoryAttachments(rundownStr, story.identifier);
         delete storyAttachments[referenceItemId];

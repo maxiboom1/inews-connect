@@ -19,14 +19,13 @@ class DeleteItemDebouncer {
             await sqlService.deleteItem(rundownStr, item); 
             return; 
         }
-        let duplicatesRundownStrs = [];
+        let duplicateFileNames = [];
         
         // If this item has duplicates - delete all of them.
         if(itemsHash.hasDuplicates(item.itemId)){
-            // collect all duplicates rundownId's
-            duplicatesRundownStrs =  itemsHash.getRundownStrsByReference(item.itemId);
+            // collect all duplicates storyIdentifiers
+            duplicateFileNames =itemsHash.getDuplicatesStoryFileNames(item.itemId);
             await itemsService.clearAllDuplicates(item.itemId);
-
         }
         
         // Create a unique key based on rundownStr and serialized item
@@ -45,7 +44,7 @@ class DeleteItemDebouncer {
 
         // Set a new timeout for this key
         const timeout = setTimeout(() => {
-            this.executeDelete(rundownStr, item, duplicatesRundownStrs);
+            this.executeDelete(rundownStr, item, duplicateFileNames);
         }, this.cutItemTimeout); 
 
         // Store the timeout in the map
@@ -53,13 +52,13 @@ class DeleteItemDebouncer {
         
     }
 
-    async executeDelete(rundownStr, item, duplicatesRundownStrs) {
+    async executeDelete(rundownStr, item, duplicateFileNames) {
         
         if(itemsHash.isUsed(item.itemId)) {
             logger(`Item ${item.itemId} revoked! Probably duo cut/paste.`);
-            if(duplicatesRundownStrs.length > 0){
-                logger(`Item ${item.itemId} has duplicates. Re-sync rundown...`);
-                processor.setSyncRundowns(duplicatesRundownStrs);
+            if(duplicateFileNames.length > 0){
+                logger(`Item ${item.itemId} has duplicates. Re-sync triggered`);
+                processor.setSyncStoryFileNames(duplicateFileNames);
             }    
             return;
         }

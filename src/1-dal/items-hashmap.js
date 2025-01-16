@@ -75,8 +75,8 @@ class ItemsHashmap {
 
     /* - - - - - - - - - - DUPLICATES - - - - - - - - - - */
 
-    async addDuplicate(referenceItemId, itemId, rundownStr, storyIdentifier, storyId) {
-        this.duplicates[itemId] = { rundownStr, storyIdentifier, referenceItemId, storyId};
+    async addDuplicate(referenceItemId, itemId, rundownStr, storyIdentifier, storyId, storyFileName) {
+        this.duplicates[itemId] = { rundownStr, storyIdentifier, referenceItemId, storyId, storyFileName};
         await this.updateDuplicatesCache();
     }
 
@@ -142,22 +142,21 @@ class ItemsHashmap {
         // Return null if the object is empty
         return Object.keys(duplicatesObj).length === 0 ? null : duplicatesObj;
     }
-
-    getRundownStrsByReference(referenceItemId) {
-        const rundownStrsSet = new Set();
-        
-        for (const props of Object.values(this.duplicates)) {
-            if (props.referenceItemId === referenceItemId) {
-                rundownStrsSet.add(props.rundownStr); // Add to the set to ensure uniqueness
-            }
-        }
-        
-        // Convert the set back to an array and return null if it's empty
-        const uniqueRundownStrs = Array.from(rundownStrsSet);
-        return uniqueRundownStrs.length === 0 ? null : uniqueRundownStrs;
+    
+    // Gets referenceItemId and returns an array of unique duplicate storyFileName
+    getDuplicatesStoryFileNames(referenceItemId) {
+        return [
+            ...new Set(
+                Object.values(this.duplicates)
+                    .filter(duplicate => duplicate.referenceItemId === referenceItemId)
+                    .map(duplicate => duplicate.storyFileName)
+            )
+        ];
     }
     
+    
 }
+    
 
 const itemsHash = new ItemsHashmap();
 

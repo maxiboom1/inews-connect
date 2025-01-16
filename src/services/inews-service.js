@@ -13,7 +13,7 @@ class RundownProcessor {
         this.setupConnectionListener();
         this.rundownsObj = {}; // {rundownStr:{uid:value, production:value}}
         this.rundowns = [];
-        this.syncRundowns = [];
+        this.syncStories = [];
         this.skippedRundowns = {}; // {rundownStr:boolean,rundownStr:boolean,}
     }
     
@@ -35,9 +35,6 @@ class RundownProcessor {
     async rundownIterator() {
         for (const rundownStr of this.rundowns) {
             await this.processRundown(rundownStr);
-            
-            // Remove the processed rundownStr from syncRundowns
-            this.syncRundowns = this.syncRundowns.filter(r => r !== rundownStr);
         }
         setTimeout(() => this.rundownIterator(), appConfig.pullInterval);
     }
@@ -49,7 +46,7 @@ class RundownProcessor {
             const cachedLength = await inewsCache.getRundownLength(rundownStr);
             
             // If there is new stories in rundown
-            if(cachedLength<filteredListItems.length && this.skippedRundowns[rundownStr] === false){
+            if(cachedLength<filteredListItems.length && this.skippedRundowns[rundownStr] == false){
                 logger(`Noticed new stories in rundown ${rundownStr}. Skipping for now.`);
                 this.skippedRundowns[rundownStr] = true;
                 return;
@@ -58,11 +55,10 @@ class RundownProcessor {
             const storyPromises = this.processStories(rundownStr, filteredListItems);
             await Promise.all(storyPromises);
             await this.handleDeletedStories(rundownStr, filteredListItems);
+            this.skippedRundowns[rundownStr] = false;
         } catch (error) {
             console.error("Error fetching and processing stories:", error);
-        } finally {
-            this.skippedRundowns[rundownStr] = false;
-        }
+        } 
     }
 
     processStories(rundownStr, listItems) {
@@ -124,8 +120,11 @@ class RundownProcessor {
             lastUpdateService.triggerRundownUpdate(rundownStr);
         } else if (action === "modify") {
             await this.modifyStory(rundownStr, listItem);
-        } else if(this.syncRundowns.includes(rundownStr)){
+        } else if(this.syncStories.includes(listItem.fileName)){
             await this.modifyStory(rundownStr, listItem);
+            logger(`Synced duplicate items in story [${listItem.fileName}] ${listItem.storyName} `);
+            this.syncStories = this.syncStories.filter(filename => filename !== listItem.fileName);
+            logger(`Stories left in sync stack: ${this.syncStories}`);
         }
     }
  
@@ -204,9 +203,9 @@ class RundownProcessor {
         return this.rundownsObj[rundownStr].uid;
     }
 
-    setSyncRundowns(rundowns){
-        for(const rd of rundowns){
-            this.syncRundowns.push(rd);
+    setSyncStoryFileNames(filenames){
+        for(const filename of filenames){
+            this.syncStories.push(filename);
         }
     }
 

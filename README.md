@@ -25,6 +25,10 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 **LOGS:**
 
+2.0.2
+
+- Optimization update: Instead trigger complete rundown re-sync when master item moved, we sync only stories that have duplicates related to moved master item. We store in duplicates cache story filename (uniq value), and if their master item moved, we pass those filenames to re-sync.
+
 2.0.1
 
 - Implemented a mechanism to skip processing rundowns when new stories are detected.
