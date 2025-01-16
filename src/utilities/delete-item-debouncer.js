@@ -59,6 +59,7 @@ class DeleteItemDebouncer {
             if(duplicateFileNames.length > 0){
                 logger(`Item ${item.itemId} has duplicates. Re-sync triggered`);
                 processor.setSyncStoryFileNames(duplicateFileNames);
+                processor.incrementSyncCounter();
             }    
             return;
         }

@@ -15,6 +15,7 @@ class RundownProcessor {
         this.rundowns = [];
         this.syncStories = [];
         this.skippedRundowns = {}; // {rundownStr:boolean,rundownStr:boolean,}
+        this.syncCounter = 0;
     }
     
     async startMainProcess() {
@@ -22,7 +23,7 @@ class RundownProcessor {
     }
 
     async initialize() {
-        logger('Starting Inews-connect 2.0.2...');
+        logger('Starting Inews-connect 2.0.3...');
         await sqlService.initialize();
         this.rundownsObj = await inewsCache.getRundownsObj();
         this.rundowns = Object.keys(this.rundownsObj);
@@ -33,6 +34,10 @@ class RundownProcessor {
     }
 
     async rundownIterator() {
+       
+        // This handles case that cutted story with duplicate doesnt exists, but its filename still in this.syncStories arr. So, in this case we clear it
+        this.checkSyncStatus(); 
+
         for (const rundownStr of this.rundowns) {
             await this.processRundown(rundownStr);
         }
@@ -209,7 +214,22 @@ class RundownProcessor {
         }
     }
 
-    
+    incrementSyncCounter (){
+        this.syncCounter += 1;
+    }
+
+    checkSyncStatus(){
+        
+        if(this.syncCounter>0){ 
+            this.syncCounter -=1 
+        }
+        if(this.syncCounter === 0 && this.syncStories.length>0) {
+            this.syncStories = [];
+            logger(`Sync stack reset. Probably the stories to sync was deleted duo story cut/paste`);
+        }
+    }
+
+
 }
 
 const processor = new RundownProcessor();

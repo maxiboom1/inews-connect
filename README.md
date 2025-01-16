@@ -25,6 +25,11 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 **LOGS:**
 
+2.0.3
+
+- Optimization update: handle case that cutted story with duplicate doesn't exists, but its filename still in this.syncStories arr. 
+So, in this case we clear this.syncStories using this.syncCounter, which incremented each time we schedule delete. And decrements in checkSyncStatus func.
+
 2.0.2
 
 - Optimization update: Instead trigger complete rundown re-sync when master item moved, we sync only stories that have duplicates related to moved master item. We store in duplicates cache story filename (uniq value), and if their master item moved, we pass those filenames to re-sync.
