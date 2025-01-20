@@ -55,7 +55,7 @@ router.post('/update-item', async (req, res) => {
   try {
       const item = req.body;
       await sqlService.updateItemFromFront(item);
-      await itemsService.updateDuplicates(item);
+      await itemsService.itemProcessor("",0,{},{updateDuplicates:true, item:item});
       res.json("");
   } catch (error) {
       console.error('Error processing JSON data:', error);
@@ -63,9 +63,18 @@ router.post('/update-item', async (req, res) => {
   }
 });
 
-// Get http://serverAddr:4001/api/getdata
-router.get('/getdata', async (req, res) => {
+// **************** DEBUGGING *****************/ 
+
+
+// Get http://serverAddr:4001/api/getstories
+router.get('/getstories', async (req, res) => {
   const data = await inewsCache.getData();
+  res.json(data);
+});
+
+// Get http://serverAddr:4001/api/getitems
+router.get('/getitems', async (req, res) => {
+  const data = itemsHash.getData();
   res.json(data);
 });
 

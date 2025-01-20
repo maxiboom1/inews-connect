@@ -154,6 +154,9 @@ class ItemsHashmap {
         ];
     }
     
+    getData(){
+        return this.map;
+    }
     
 }
     

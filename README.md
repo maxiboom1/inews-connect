@@ -25,6 +25,12 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 **LOGS:**
 
+2.0.4
+
+- Single entry-point to items-service.
+- Removed sync-counter that was implementer earlier
+
+
 2.0.3
 
 - Optimization update: handle case that cutted story with duplicate doesn't exists, but its filename still in this.syncStories arr. 

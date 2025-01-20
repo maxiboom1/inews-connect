@@ -234,13 +234,13 @@ class SqlService {
             
             // Check for attachments in story
             if(Object.keys(story.attachments).length > 0){
-                for(const item of Object.keys(story.attachments)){
+                for(const itemId of Object.keys(story.attachments)){
                     deleteItemDebouncer.triggerDeleteItem(rundownStr,{
-                        itemId: item, // item id to delete
+                        itemId: itemId, // item id to delete
                         rundownId:await inewsCache.getRundownUid(rundownStr), 
                         storyId:story.uid, 
                     }); 
-                    itemsService.clearAllDuplicates(item);
+                    await itemsService.itemProcessor("",0, {},{clearDuplicates:true, itemId:itemId});
                 }
                 
             }

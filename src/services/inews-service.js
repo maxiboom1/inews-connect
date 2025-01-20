@@ -15,7 +15,6 @@ class RundownProcessor {
         this.rundowns = [];
         this.syncStories = [];
         this.skippedRundowns = {}; // {rundownStr:boolean,rundownStr:boolean,}
-        this.syncCounter = 0;
     }
     
     async startMainProcess() {
@@ -23,7 +22,7 @@ class RundownProcessor {
     }
 
     async initialize() {
-        logger('Starting Inews-connect 2.0.3...');
+        logger('Starting Inews-connect 2.0.4...');
         await sqlService.initialize();
         this.rundownsObj = await inewsCache.getRundownsObj();
         this.rundowns = Object.keys(this.rundownsObj);
@@ -35,9 +34,6 @@ class RundownProcessor {
 
     async rundownIterator() {
        
-        // This handles case that cutted story with duplicate doesnt exists, but its filename still in this.syncStories arr. So, in this case we clear it
-        this.checkSyncStatus(); 
-
         for (const rundownStr of this.rundowns) {
             await this.processRundown(rundownStr);
         }
@@ -107,7 +103,7 @@ class RundownProcessor {
         // Save this story to cache
         await inewsCache.saveStory(rundownStr, listItem, index);
 
-        await itemsService.registerStoryItems(rundownStr,listItem);
+        await itemsService.itemProcessor(rundownStr,this.rundownsObj[rundownStr].uid, listItem, {newStory:true});
 
         lastUpdateService.triggerRundownUpdate(rundownStr)
 
@@ -137,7 +133,6 @@ class RundownProcessor {
         
         // Fetch detailed story from inews
         const story = await this.getStory(rundownStr, listItem.fileName); 
-        
         // Parse attachments
         listItem.attachments = xmlParser.parseAttachments(story);
         // Assign pageNumber
@@ -149,7 +144,7 @@ class RundownProcessor {
         
         if(listItem.enabled || cachedAttachments){            
             
-            listItem.attachments = await itemsService.compareItems(rundownStr, this.getRundownUid(rundownStr), listItem); // Process attachments
+            listItem.attachments = await itemsService.itemProcessor(rundownStr, this.getRundownUid(rundownStr), listItem); // Process attachments
         }
         const storyId = await inewsCache.getStoryUid(rundownStr,listItem.identifier);
         await sqlService.modifyDbStory(rundownStr, listItem, storyId);
@@ -211,21 +206,7 @@ class RundownProcessor {
     setSyncStoryFileNames(filenames){
         for(const filename of filenames){
             this.syncStories.push(filename);
-        }
-    }
-
-    incrementSyncCounter (){
-        this.syncCounter += 1;
-    }
-
-    checkSyncStatus(){
-        
-        if(this.syncCounter>0){ 
-            this.syncCounter -=1 
-        }
-        if(this.syncCounter === 0 && this.syncStories.length>0) {
-            this.syncStories = [];
-            logger(`Sync stack reset. Probably the stories to sync was deleted duo story cut/paste`);
+            console.log(`DEBUG::::setSyncStoryFileNames=> this.syncStories: ${this.syncStories}`);
         }
     }
 

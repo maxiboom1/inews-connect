@@ -13,10 +13,21 @@ class StoryItemManager {
         this.story = {};
         this.cachedStory = {};
         this.storyId = null;
-        this.cachedItems = {};
-        this.storyItems = {};
-        this.storyKeys = [];
-        this.cacheStoryKeys = [];
+        this.cachedAttachments = {};
+        this.storyAttachments = {};
+        this.storyAttachmentsIds = [];
+        this.cacheAttachmentsIds = [];
+    }
+
+    async registerStoryItems() {
+
+        for (const [itemId, itemProp] of Object.entries(this.story.attachments)) {
+            if (itemsHash.isUsed(itemId)) {
+                await this.createDuplicate(this.rundownId, this.story, itemId, itemProp.ord, this.rundownStr);
+            } else {
+                await this.registerNewItem(itemId, itemProp);
+            }
+        }
     }
 
     async setGlobalValues(rundownStr, rundownId, story){
@@ -25,93 +36,109 @@ class StoryItemManager {
         this.story = story;
         this.cachedStory = await inewsCache.getStory(rundownStr, story.identifier);
         this.storyId = this.cachedStory.uid;
-        this.cachedItems = this.cachedStory.attachments;
-        this.storyItems = this.story.attachments;
-        this.storyKeys = Object.keys(this.storyItems);
-        this.cacheStoryKeys = Object.keys(this.cachedItems);
+        this.cachedAttachments = this.cachedStory.attachments;
+        this.storyAttachments = this.story.attachments;
+        this.storyAttachmentsIds = Object.keys(this.storyAttachments);
+        this.cacheAttachmentsIds = Object.keys(this.cachedAttachments);
         return;
     }
 
-    async compareItems(rundownStr, rundownId, story) {
+    async itemProcessor(rundownStr, rundownId, story, options={}) {
+        
+        if (options.updateDuplicates) {
+            await this.updateDuplicates(options.item);
+            return;
+        }
+
+        if (options.clearDuplicates) {
+            await this.clearAllDuplicates(options.itemId);
+            return;
+        }
+
         await this.setGlobalValues(rundownStr, rundownId, story);
-    
-        for (const [storyGfxItem, storyProp] of Object.entries(this.storyItems)) {
-            await this.processStoryItem(storyGfxItem, storyProp);
+        
+        if (options.newStory) {
+            await this.registerStoryItems();
+            return;
+        }
+  
+        for (const [itemId, itemProp] of Object.entries(this.storyAttachments)) {
+            await this.processStoryItem(itemId, itemProp);
         }
     
         await this.removeUnusedItems();
         return story.attachments;
     }
     
-    async processStoryItem(storyGfxItem, storyProp) {
-        const dupId = this.isAlreadyRegistered(storyGfxItem, this.cacheStoryKeys);
+    async processStoryItem(itemId, itemProp) {
+        const dupId = this.isAlreadyRegistered(itemId, this.cacheAttachmentsIds);
     
         if (dupId) {
-            await this.handleDuplicateItem(storyGfxItem, dupId, storyProp);
-        } else if (!this.cacheStoryKeys.includes(storyGfxItem) && itemsHash.isUsed(storyGfxItem)) {
-            await this.handleNewItem(storyGfxItem, storyProp);
-        } else if (!this.cacheStoryKeys.includes(storyGfxItem)) {
-            await this.registerNewItem(storyGfxItem, storyProp);
+            await this.handleDuplicateItem(itemId, dupId, itemProp);
+        } else if (!this.cacheAttachmentsIds.includes(itemId) && itemsHash.isUsed(itemId)) {
+            await this.handleNewItem(itemId, itemProp);
+        } else if (!this.cacheAttachmentsIds.includes(itemId)) {
+            await this.registerNewItem(itemId, itemProp);
         } else {
-            await this.updateExistingItem(storyGfxItem, storyProp);
+            await this.updateExistingItem(itemId, itemProp);
         }
     }
     
-    async handleDuplicateItem(storyGfxItem, dupId, storyProp) {
-        this.story.attachments[dupId] = this.story.attachments[storyGfxItem];
-        delete this.story.attachments[storyGfxItem];
+    async handleDuplicateItem(itemId, dupId, itemProp) {
+        this.story.attachments[dupId] = this.story.attachments[itemId];
+        delete this.story.attachments[itemId];
     
         await sqlService.updateItemOrd(this.rundownStr, {
             itemId: dupId,
             rundownId: this.rundownId,
             storyId: this.storyId,
-            ord: storyProp.ord
+            ord: itemProp.ord
         });
     }
     
-    async handleNewItem(storyGfxItem, storyProp) {
-        this.story.attachments = await this.createDuplicateOnExistStory(this.rundownId, this.story, storyGfxItem, storyProp.ord, this.rundownStr);
-        itemsHash.add(storyGfxItem);
+    async handleNewItem(itemId, itemProp) {
+        this.story.attachments = await this.createDuplicateOnExistStory(this.rundownId, this.story, itemId, itemProp.ord, this.rundownStr);
+        itemsHash.add(itemId);
     }
     
-    async registerNewItem(storyGfxItem, storyProp) {
-        itemsHash.add(storyGfxItem);
+    async registerNewItem(itemId, itemProp) {
+        itemsHash.add(itemId);
         await sqlService.updateItem(this.rundownStr, {
-            itemId: storyGfxItem,
+            itemId: itemId,
             rundownId: this.rundownId,
             storyId: this.storyId,
-            ord: storyProp.ord
+            ord: itemProp.ord
         });
     
         logger(`New item registered in ${this.rundownStr}, story ${this.story.storyName}`);
     }
     
-    async updateExistingItem(storyGfxItem, storyProp) {
-        if (storyProp.ord !== this.cachedItems[storyGfxItem].ord) {
+    async updateExistingItem(itemId, itemProp) {
+        if (itemProp.ord !== this.cachedAttachments[itemId].ord) {
             await sqlService.updateItemOrd(this.rundownStr, {
-                itemId: storyGfxItem,
+                itemId: itemId,
                 rundownId: this.rundownId,
                 storyId: this.storyId,
-                ord: storyProp.ord
+                ord: itemProp.ord
             });
             logger(`Item reordered in ${this.rundownStr}, story ${this.story.storyName}`);
         }
     
-        if (storyProp.itemSlug !== this.cachedItems[storyGfxItem].itemSlug) {
+        if (itemProp.itemSlug !== this.cachedAttachments[itemId].itemSlug) {
             await sqlService.updateItemSlug(this.rundownStr, {
-                itemId: storyGfxItem,
+                itemId: itemId,
                 rundownId: this.rundownId,
                 storyId: this.storyId,
-                itemSlug: storyProp.itemSlug
+                itemSlug: itemProp.itemSlug
             });
-            logger(`Item ${storyProp.itemSlug} modified in ${this.rundownStr}, story ${this.story.storyName}`);
+            logger(`Item ${itemProp.itemSlug} modified in ${this.rundownStr}, story ${this.story.storyName}`);
         }
     }
     
     async removeUnusedItems() {
-        if (this.cacheStoryKeys.length > this.storyKeys.length) {
-            await Promise.all(this.cacheStoryKeys.map(async key => {
-                if (!this.storyKeys.includes(key)) {
+        if (this.cacheAttachmentsIds.length > this.storyAttachmentsIds.length) {
+            await Promise.all(this.cacheAttachmentsIds.map(async key => {
+                if (!this.storyAttachmentsIds.includes(key)) {
                     deleteItemDebouncer.triggerDeleteItem(this.rundownStr, {
                         itemId: key,
                         rundownId: this.rundownId,
@@ -154,25 +181,6 @@ class StoryItemManager {
         logger(`New duplicate item in ${rundownStr}, story ${story.storyName}`);
 
         return story.attachments;
-    }
-
-    async registerStoryItems(rundownStr, story) {
-        const rundownId = await inewsCache.getRundownUid(rundownStr);
-
-        for (const [storyGfxItem, storyProp] of Object.entries(story.attachments)) {
-            if (itemsHash.isUsed(storyGfxItem)) {
-                await this.createDuplicate(rundownId, story, storyGfxItem, storyProp.ord, rundownStr);
-            } else {
-                await sqlService.updateItem(rundownStr, {
-                    itemId: storyGfxItem,
-                    rundownId: rundownId,
-                    storyId: story.uid,
-                    ord: storyProp.ord
-                });
-                itemsHash.add(storyGfxItem);
-                logger(`New item registered in ${rundownStr}, story ${story.storyName}`);
-            }
-        }
     }
 
     async createDuplicate(rundownId, story, referenceItemId, ord, rundownStr) {
@@ -225,8 +233,8 @@ class StoryItemManager {
     }
   
     async updateDuplicates(item) {
-
-        if (itemsHash.isUsed(item.gfxItem)) {
+        if (itemsHash.hasDuplicates(item.gfxItem)) {
+            console.log("vah");
             const referenceItem = await sqlService.getFullItem(item.gfxItem);
             const masterItemRundownStr = await inewsCache.getRundownStr(referenceItem.rundown); // Get original item rundownStr by rundown uid
             const rundownsToUpdateArr = [masterItemRundownStr]; // Add original item rundown to array of rundowns that will be rundownLastUpdate'd
