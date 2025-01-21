@@ -222,7 +222,7 @@ class StoryItemManager {
                 const itemToDelete = { itemId: itemId, storyId:props.storyId }
                 
                 // Delete the item from the database
-                await sqlService.deleteItem(props.rundownStr, itemToDelete);
+                await sqlService.deleteItem(props.rundownStr, itemToDelete, {duplicate: "DUPLICATE"});
                 
                 // Delete the associated attachment using rundownStr and storyIdentifier
                 inewsCache.deleteSingleAttachment(props.rundownStr, props.storyIdentifier, itemId);

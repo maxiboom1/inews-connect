@@ -335,8 +335,8 @@ class SqlService {
         }
     }
 
-    async deleteItem(rundownStr, item){ //Item: {itemId, rundownId, storyId}
-        logger(`Item ${item.itemId} has been deleted`)
+    async deleteItem(rundownStr, item, options = {}){ //Item: {itemId, rundownId, storyId}
+        logger(`${options.duplicate} Item ${item.itemId} has been deleted`);
         // Update items hashmap
         itemsHash.remove(item.itemId); 
         // Update duplicates cache

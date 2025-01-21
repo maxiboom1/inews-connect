@@ -16,7 +16,7 @@ class DeleteItemDebouncer {
         
         // If the item is duplicate - delete it and exit the process.
         if(itemsHash.isDuplicate(item.itemId)){
-            await sqlService.deleteItem(rundownStr, item); 
+            await sqlService.deleteItem(rundownStr, item, {duplicate: "DUPLICATE"}); 
             return; 
         }
         let duplicateFileNames = [];
