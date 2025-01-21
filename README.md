@@ -29,6 +29,7 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 - Single entry-point to items-service.
 - Removed sync-counter that was implementer earlier
+- TO DO: Must clear this.syncStories array from time to time !
 
 
 2.0.3
