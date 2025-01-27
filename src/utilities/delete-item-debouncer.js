@@ -58,7 +58,7 @@ class DeleteItemDebouncer {
             logger(`Item ${item.itemId} revoked! Probably duo cut/paste.`);
             if(duplicateFileNames.length > 0){
                 logger(`Item ${item.itemId} has duplicates: ${duplicateFileNames} Re-sync triggered`);
-                processor.setSyncStoryFileNames(duplicateFileNames);
+                //processor.setSyncStoryFileNames(duplicateFileNames);
             }    
             return;
         }
