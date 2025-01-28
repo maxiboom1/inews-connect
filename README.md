@@ -25,6 +25,13 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 **LOGS:**
 
+
+2.0.5
+
+- Clear this.syncStories array after 3 attempts. Convert it to map.
+- Added condition that checks if more than 5 stories was added in batch - this is the placeholder to clear db stories and rundown cache, and completly resync in this case
+- Added version to appConfig.
+
 2.0.4
 
 - Single entry-point to items-service.

@@ -25,7 +25,7 @@ class DeleteItemDebouncer {
         if(itemsHash.hasDuplicates(item.itemId)){
             // collect all duplicates storyIdentifiers
             duplicateFileNames =itemsHash.getDuplicatesStoryFileNames(item.itemId);
-            await itemsService.itemProcessor("",0, {},{clearDuplicates:true, itemId:item.itemId});
+            await itemsService.itemProcessor("",0, {},{clearDuplicates:true, itemId:item.itemId});// Ensuring single entrypoint to items service
         }
         
         // Create a unique key based on rundownStr and serialized item
@@ -58,7 +58,7 @@ class DeleteItemDebouncer {
             logger(`Item ${item.itemId} revoked! Probably duo cut/paste.`);
             if(duplicateFileNames.length > 0){
                 logger(`Item ${item.itemId} has duplicates: ${duplicateFileNames} Re-sync triggered`);
-                //processor.setSyncStoryFileNames(duplicateFileNames);
+                processor.setSyncStoryFileNames(duplicateFileNames);
             }    
             return;
         }

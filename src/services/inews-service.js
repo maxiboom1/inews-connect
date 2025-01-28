@@ -9,11 +9,12 @@ import itemsService from "./items-service.js";
 import lastUpdateService from "../utilities/rundown-update-debouncer.js";
 
 class RundownProcessor {
+    
     constructor() {
         this.setupConnectionListener();
         this.rundownsObj = {}; // {rundownStr:{uid:value, production:value}}
         this.rundowns = [];
-        this.syncStories = [];
+        this.syncStories = new Map(); //{storyFileName:counter,... }
         this.skippedRundowns = {}; // {rundownStr:boolean,rundownStr:boolean,}
     }
     
@@ -22,7 +23,7 @@ class RundownProcessor {
     }
 
     async initialize() {
-        logger('Starting Inews-connect 2.0.4...');
+        logger(`Starting Inews-connect ${appConfig.version}...`);
         await sqlService.initialize();
         this.rundownsObj = await inewsCache.getRundownsObj();
         this.rundowns = Object.keys(this.rundownsObj);
@@ -37,6 +38,9 @@ class RundownProcessor {
         for (const rundownStr of this.rundowns) {
             await this.processRundown(rundownStr);
         }
+        
+        this.handleSyncStories();
+        
         setTimeout(() => this.rundownIterator(), appConfig.pullInterval);
     }
 
@@ -51,6 +55,12 @@ class RundownProcessor {
                 logger(`Noticed new stories in rundown ${rundownStr}. Skipping for now.`);
                 this.skippedRundowns[rundownStr] = true;
                 return;
+            }
+
+            // If there is more than 5 stories more added to the lineup - resync complete lineup.
+            if(cachedLength+5<filteredListItems.length){
+                logger(`Noticed batch stories insert in rundown ${rundownStr}. Resync rundown.`);
+                
             }
 
             const storyPromises = this.processStories(rundownStr, filteredListItems);
@@ -119,13 +129,14 @@ class RundownProcessor {
             await sqlService.reorderDbStory(rundownStr, listItem, index, rundownUid);
             await inewsCache.reorderStory(rundownStr, listItem, index);
             lastUpdateService.triggerRundownUpdate(rundownStr);
+        
         } else if (action === "modify") {
             await this.modifyStory(rundownStr, listItem);
-        } else if(this.syncStories.includes(listItem.fileName)){
+        
+        } else if (this.syncStories.has(listItem.fileName)) {
             await this.modifyStory(rundownStr, listItem);
             logger(`Synced duplicate items in story [${listItem.fileName}] ${listItem.storyName} `);
-            this.syncStories = this.syncStories.filter(filename => filename !== listItem.fileName);
-            logger(`Stories left in sync stack: ${this.syncStories}`);
+            this.syncStories.delete(listItem.fileName); 
         }
     }
  
@@ -203,13 +214,31 @@ class RundownProcessor {
         return this.rundownsObj[rundownStr].uid;
     }
 
-    setSyncStoryFileNames(filenames){
-        for(const filename of filenames){
-            this.syncStories.push(filename);
-            console.log(`DEBUG::::setSyncStoryFileNames=> this.syncStories: ${this.syncStories}`);
+    setSyncStoryFileNames(filenames) {
+        try {
+            for (const filename of filenames) {
+                this.syncStories.set(filename, 3);
+            }
+        } catch (error) {
+            logger(`Error in setSyncStoryFileNames: ${error.message}`);
         }
     }
 
+    handleSyncStories() {
+        try {
+            for (const [filename, retryCount] of this.syncStories) {
+                const newRetryCount = retryCount - 1;
+                if (newRetryCount === 0) {
+                    this.syncStories.delete(filename);
+                    logger(`Removed story ${filename} from syncStories after 3 attempts`);
+                } else {
+                    this.syncStories.set(filename, newRetryCount);
+                }
+            }
+        } catch (error) {
+            logger(`Error in handleSyncStories: ${error.message}`);
+        }
+    }
 
 }
 
