@@ -165,14 +165,13 @@ class SqlService {
             const result = await db.execute(sqlQuery, values);
             const assertedStoryUid = result.recordset[0].uid;
             story.uid = assertedStoryUid;
-            logger(`Registering new story to ${rundownStr}: ${story.storyName}`); 
             return assertedStoryUid;
         } catch (error) {
             console.error('Error executing query:', error); 
         }
     }
 
-    async modifyDbStory(rundownStr,story, storyId){ //Story: {fileType,fileName,identifier,locator,storyName,modified,flags,attachments{gfxitem{props}}}
+    async modifyDbStory(story, storyId){ //Story: {fileType,fileName,identifier,locator,storyName,modified,flags,attachments{gfxitem{props}}}
         const values = {
             identifier: story.identifier, // Filter param from sql ("WHERE ")
             name: story.storyName,
@@ -192,7 +191,6 @@ class SqlService {
         
         try {
             await db.execute(sqlQuery, values);
-            logger(`Story modified in ${rundownStr}: ${story.storyName}`);
         } catch (error) {
             console.error('Error executing query:', error);  
         }
@@ -200,7 +198,7 @@ class SqlService {
     }
 
 
-    async reorderDbStory(rundownStr,story,ord, rundownUid){
+    async reorderDbStory(story,ord, rundownUid){
         const values = {
             ord: ord,
             locator: story.locator,
@@ -216,7 +214,6 @@ class SqlService {
         `;
         try {
             await db.execute(sqlQuery, values);
-            logger(`Reorder story in ${rundownStr}: ${story.storyName}`);
         } catch (error) {
             console.error('Error executing query:', error);
         }
@@ -225,28 +222,10 @@ class SqlService {
 
     async deleteStory(rundownStr,identifier, rundownUid) {
         try {
-            const story = await inewsCache.getStory(rundownStr,identifier);
             const values = {identifier: identifier, rundown:rundownUid};
             const sqlQuery = `DELETE FROM ngn_inews_stories WHERE identifier = @identifier AND rundown = @rundown;`;
             await db.execute(sqlQuery, values);
             lastUpdateService.triggerRundownUpdate(rundownStr);
-            
-            // Is it really need to be here?
-            if(Object.keys(story.attachments).length > 0){
-                for(const itemId of Object.keys(story.attachments)){
-                    deleteItemDebouncer.triggerDeleteItem(rundownStr,{
-                        itemId: itemId, // item id to delete
-                        rundownId:await inewsCache.getRundownUid(rundownStr), 
-                        storyId:story.uid, 
-                    }); 
-                    
-                    // Why I run this? 
-                    await itemsService.itemProcessor("",0, {},{clearDuplicates:true, itemId:itemId});
-                }
-                
-            }
-            logger(`Story with identifier ${identifier} deleted from ${rundownStr}`);
-    
         } catch (error) {
             console.error(`Error deleting ${uid} story:`, error);
         }

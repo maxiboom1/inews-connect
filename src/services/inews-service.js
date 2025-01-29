@@ -7,6 +7,8 @@ import xmlParser from "../utilities/xml-parser.js";
 import logger from "../utilities/logger.js";
 import itemsService from "./items-service.js";
 import lastUpdateService from "../utilities/rundown-update-debouncer.js";
+import cache from "../1-dal/inews-cache.js";
+import deleteItemDebouncer from "../utilities/delete-item-debouncer.js";
 
 class RundownProcessor {
     
@@ -119,6 +121,8 @@ class RundownProcessor {
 
         await sqlService.storyLastUpdate(assertedStoryUid);
 
+        logger(`[STORY] Registering new story to ${rundownStr}: ${listItem.storyName}`); 
+
     }
 
     async handleExistingStory(rundownStr, listItem, index) {
@@ -126,10 +130,10 @@ class RundownProcessor {
 
         if (action === "reorder") {
             const rundownUid = await inewsCache.getRundownUid(rundownStr);
-            await sqlService.reorderDbStory(rundownStr, listItem, index, rundownUid);
+            await sqlService.reorderDbStory(listItem, index, rundownUid);
             await inewsCache.reorderStory(rundownStr, listItem, index);
             lastUpdateService.triggerRundownUpdate(rundownStr);
-        
+            logger(`[STORY] Reorder story in ${rundownStr}: ${listItem.storyName}`);
         } else if (action === "modify") {
             await this.modifyStory(rundownStr, listItem);
         
@@ -158,11 +162,11 @@ class RundownProcessor {
             listItem.attachments = await itemsService.itemProcessor(rundownStr, this.getRundownUid(rundownStr), listItem); // Process attachments
         }
         const storyId = await inewsCache.getStoryUid(rundownStr,listItem.identifier);
-        await sqlService.modifyDbStory(rundownStr, listItem, storyId);
+        await sqlService.modifyDbStory(listItem, storyId);
         await sqlService.storyLastUpdate(storyId);
         lastUpdateService.triggerRundownUpdate(rundownStr);
         await inewsCache.modifyStory(rundownStr, listItem);
-        
+        logger(`[STORY] Story modified in ${rundownStr}: ${listItem.storyName}`);
     }
 
     async handleDeletedStories(rundownStr, listItems) {
@@ -188,14 +192,36 @@ class RundownProcessor {
         for (const listItem of listItems) {
             inewsHashMap[listItem.identifier] = 1;
         }
+        
         const identifiersToDelete = cachedIdentifiers.filter(identifier => !inewsHashMap.hasOwnProperty(identifier));
+        
         for (const identifier of identifiersToDelete) {
+            await this.deleteStoryItems(rundownStr, identifier);
             const rundownUid = await inewsCache.getRundownUid(rundownStr);
-            
-            
             await sqlService.deleteStory(rundownStr, identifier, rundownUid);
             await inewsCache.deleteStory(rundownStr, identifier);
+            logger(`[STORY] Story with identifier ${identifier} deleted from ${rundownStr}`);
+
         }
+
+    }
+
+    async deleteStoryItems(rundownStr, identifier){
+        const items = await cache.getStoryAttachments(rundownStr,identifier);
+        
+        if(Object.keys(items).length > 0){
+            for(const itemId of Object.keys(items)){
+                const itemToDelete = {
+                    itemId: itemId, // item id to delete
+                    rundownId: this.rundownsObj[rundownStr].uid, 
+                    storyId: cache.getStoryUid(rundownStr, identifier)
+                }
+
+                deleteItemDebouncer.triggerDeleteItem(rundownStr,itemToDelete, identifier); 
+            }
+            
+        }
+
     }
 
     async getStory(rundownStr, fileName) {

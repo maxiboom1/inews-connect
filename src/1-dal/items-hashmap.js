@@ -52,14 +52,17 @@ class ItemsHashmap {
     }
 
     remove(gfxItem) {
+        console.log(this.map, gfxItem)
         if (this.map[gfxItem]) {
             delete this.map[gfxItem];
         }
+        console.log(this.map)
     }
 
     getHashData(gfxItem){
         return this.map[gfxItem];
     }
+    
     isUsed(gfxItem) {
         const result = this.map[gfxItem]>0;
         return result;
@@ -143,7 +146,7 @@ class ItemsHashmap {
         return Object.keys(duplicatesObj).length === 0 ? null : duplicatesObj;
     }
     
-    // Gets referenceItemId and returns an array of unique duplicate storyFileName
+    // Not used in branch anymore
     getDuplicatesStoryFileNames(referenceItemId) {
         return [
             ...new Set(
@@ -154,6 +157,19 @@ class ItemsHashmap {
         ];
     }
     
+    // Returns {identifier:rundownStr} pairs 
+    getDuplicateStoryIdentifiers(referenceItemId) {
+        const uniquePairs = {};
+    
+        Object.values(this.duplicates)
+            .filter(duplicate => duplicate.referenceItemId === referenceItemId)
+            .forEach(duplicate => {
+                uniquePairs[duplicate.storyIdentifier] = duplicate.rundownStr;
+            });
+    
+        return uniquePairs;
+    }
+
     getData(){
         return this.map;
     }
