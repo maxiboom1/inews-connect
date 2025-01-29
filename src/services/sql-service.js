@@ -193,7 +193,6 @@ class SqlService {
         try {
             await db.execute(sqlQuery, values);
             logger(`Story modified in ${rundownStr}: ${story.storyName}`);
-            lastUpdateService.triggerRundownUpdate(rundownStr);
         } catch (error) {
             console.error('Error executing query:', error);  
         }
@@ -232,7 +231,7 @@ class SqlService {
             await db.execute(sqlQuery, values);
             lastUpdateService.triggerRundownUpdate(rundownStr);
             
-            // Check for attachments in story
+            // Is it really need to be here?
             if(Object.keys(story.attachments).length > 0){
                 for(const itemId of Object.keys(story.attachments)){
                     deleteItemDebouncer.triggerDeleteItem(rundownStr,{
@@ -240,6 +239,8 @@ class SqlService {
                         rundownId:await inewsCache.getRundownUid(rundownStr), 
                         storyId:story.uid, 
                     }); 
+                    
+                    // Why I run this? 
                     await itemsService.itemProcessor("",0, {},{clearDuplicates:true, itemId:itemId});
                 }
                 

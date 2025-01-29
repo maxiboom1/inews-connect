@@ -191,6 +191,8 @@ class RundownProcessor {
         const identifiersToDelete = cachedIdentifiers.filter(identifier => !inewsHashMap.hasOwnProperty(identifier));
         for (const identifier of identifiersToDelete) {
             const rundownUid = await inewsCache.getRundownUid(rundownStr);
+            
+            
             await sqlService.deleteStory(rundownStr, identifier, rundownUid);
             await inewsCache.deleteStory(rundownStr, identifier);
         }

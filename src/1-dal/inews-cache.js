@@ -112,8 +112,8 @@ class InewsCache {
     }
 
     async saveStory(rundownStr, story, ord) {
-
         this.stories[rundownStr][story.identifier] = {
+            fileName:story.fileName,
             storyName: story.storyName,
             locator: story.locator,
             flags: story.flags,
@@ -126,11 +126,13 @@ class InewsCache {
     }
 
     async reorderStory(rundownStr, story, ord) {
+        this.stories[rundownStr][story.identifier].fileName = story.fileName;
         this.stories[rundownStr][story.identifier].locator = story.locator;
         this.stories[rundownStr][story.identifier].ord = ord;
     }
 
     async modifyStory(rundownStr, story) {
+        this.stories[rundownStr][story.identifier].fileName = story.fileName;
         this.stories[rundownStr][story.identifier].storyName = story.storyName;
         this.stories[rundownStr][story.identifier].locator = story.locator;
         this.stories[rundownStr][story.identifier].flags = story.flags;
@@ -249,6 +251,7 @@ this.stories example
 {
     "SHOW.ALEX.rundown2": {
         "1689F6A3": {
+            "fileName": "some file name"
             "storyName": "anveks4ever",
             "locator": "000308ED:65930449",
             "flags": {
