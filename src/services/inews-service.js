@@ -14,10 +14,10 @@ class RundownProcessor {
     
     constructor() {
         this.setupConnectionListener();
-        this.rundownsObj = {}; // {rundownStr:{uid:value, production:value}}
+        this.rundownsObj = {}; // {rundownStr:{uid:value, production:value}, ...}
         this.rundowns = [];
-        this.syncStories = new Map(); // {identifier: {rundownStr, counter}}
-        this.skippedRundowns = {}; // {rundownStr:boolean,rundownStr:boolean,}
+        this.syncStories = new Map(); // {identifier: {rundownStr, counter}, ...}
+        this.skippedRundowns = {}; // {rundownStr:counter, ...}
     }
     
     async startMainProcess() {
@@ -45,7 +45,7 @@ class RundownProcessor {
         
         setTimeout(() => this.rundownIterator(), appConfig.pullInterval);
     }
-
+    // Need refactor skipping logic here
     async processRundown(rundownStr) {
         try {
             const listItems = await conn.list(rundownStr);
@@ -53,16 +53,43 @@ class RundownProcessor {
             const cachedLength = await inewsCache.getRundownLength(rundownStr);
             
             // If there is new stories in rundown
-            if(cachedLength<filteredListItems.length && this.skippedRundowns[rundownStr] == false){
-                logger(`[SYSTEM] Noticed new stories in rundown ${rundownStr}. Skipping for now.`);
-                this.skippedRundowns[rundownStr] = true;
-                return;
+            if(cachedLength<filteredListItems.length){
+                
+                // If it first iteration - set counter to 2 and return
+                if(this.skippedRundowns[rundownStr] === false){
+                    this.skippedRundowns[rundownStr] = 2;
+                    greenLogger(`[SYSTEM] Noticed new stories in rundown ${rundownStr}. Skipping for now.`);
+                    return;
+                }
+                // If there is already counter - decrease and return
+                if(this.skippedRundowns[rundownStr]>0){
+                    this.skippedRundowns[rundownStr]--;
+                    greenLogger(`[SYSTEM] Noticed new stories in rundown ${rundownStr}. Skipping for now.`);
+                    return;
+                }
+                
+                // If we are here then counter is 0, so reset state and keep process.
+                this.skippedRundowns[rundownStr] = false;
             }
 
-            // If there is more than 5 stories more added to the lineup - resync complete lineup.
-            if(cachedLength+5<filteredListItems.length){
-                warn(`Noticed batch stories insert in rundown ${rundownStr}.`);
+            // If there is more than 5 stories deleted - delay twice
+            if(cachedLength> 5+filteredListItems.length ){
                 
+                // If it first iteration - set counter to 1 and return
+                if(this.skippedRundowns[rundownStr] === false){
+                    this.skippedRundowns[rundownStr] = 1;
+                    greenLogger(`[SYSTEM] Noticed batch delete in rundown ${rundownStr}. Skipping for now.`);
+                    return;
+                }
+                // If there is already counter - decrease and return
+                if(this.skippedRundowns[rundownStr]>0){
+                    this.skippedRundowns[rundownStr]--;
+                    greenLogger(`[SYSTEM] Noticed batch delete in rundown ${rundownStr}. Skipping for now.`);
+                    return;
+                }
+                
+                // If we are here then counter is 0, so reset state and keep process.
+                this.skippedRundowns[rundownStr] = false;
             }
 
             const storyPromises = this.processStories(rundownStr, filteredListItems);
@@ -111,7 +138,6 @@ class RundownProcessor {
         
         // Add asserted uid to listItem
         listItem.uid = assertedStoryUid;
-
         logger(`[STORY] Registering new story to {${rundownStr}}: {${listItem.storyName}}`); 
         
         // Save this story to cache
