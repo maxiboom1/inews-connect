@@ -4,9 +4,11 @@ import hebDecoder from "../utilities/hebrew-decoder.js";
 import sqlService from "./sql-service.js";
 import inewsCache from "../1-dal/inews-cache.js";
 import xmlParser from "../utilities/xml-parser.js";
-import logger from "../utilities/logger.js";
+import { logger, warn } from "../utilities/logger.js";
 import itemsService from "./items-service.js";
 import lastUpdateService from "../utilities/rundown-update-debouncer.js";
+import cache from "../1-dal/inews-cache.js";
+import deleteService from "./delete-service.js";
 
 class RundownProcessor {
     
@@ -23,7 +25,7 @@ class RundownProcessor {
     }
 
     async initialize() {
-        logger(`Starting Inews-connect ${appConfig.version}...`);
+        logger(`[SYSTEM] Starting Inews-connect ${appConfig.version}...`);
         await sqlService.initialize();
         this.rundownsObj = await inewsCache.getRundownsObj();
         this.rundowns = Object.keys(this.rundownsObj);
@@ -52,14 +54,14 @@ class RundownProcessor {
             
             // If there is new stories in rundown
             if(cachedLength<filteredListItems.length && this.skippedRundowns[rundownStr] == false){
-                logger(`Noticed new stories in rundown ${rundownStr}. Skipping for now.`);
+                logger(`[SYSTEM] Noticed new stories in rundown ${rundownStr}. Skipping for now.`);
                 this.skippedRundowns[rundownStr] = true;
                 return;
             }
 
             // If there is more than 5 stories more added to the lineup - resync complete lineup.
             if(cachedLength+5<filteredListItems.length){
-                logger(`Noticed batch stories insert in rundown ${rundownStr}. Resync rundown.`);
+                logger(`Noticed batch stories insert in rundown ${rundownStr}.`);
                 
             }
 
@@ -110,6 +112,8 @@ class RundownProcessor {
         // Add asserted uid to listItem
         listItem.uid = assertedStoryUid;
 
+        logger(`[STORY] Registering new story to {${rundownStr}}: {${listItem.storyName}}`); 
+        
         // Save this story to cache
         await inewsCache.saveStory(rundownStr, listItem, index);
 
@@ -126,10 +130,10 @@ class RundownProcessor {
 
         if (action === "reorder") {
             const rundownUid = await inewsCache.getRundownUid(rundownStr);
-            await sqlService.reorderDbStory(rundownStr, listItem, index, rundownUid);
+            await sqlService.reorderDbStory(listItem, index, rundownUid);
             await inewsCache.reorderStory(rundownStr, listItem, index);
             lastUpdateService.triggerRundownUpdate(rundownStr);
-        
+            logger(`[STORY] Reorder story in ${rundownStr}: ${listItem.storyName}`);
         } else if (action === "modify") {
             await this.modifyStory(rundownStr, listItem);
         
@@ -158,17 +162,11 @@ class RundownProcessor {
             listItem.attachments = await itemsService.itemProcessor(rundownStr, this.getRundownUid(rundownStr), listItem); // Process attachments
         }
         const storyId = await inewsCache.getStoryUid(rundownStr,listItem.identifier);
-        await sqlService.modifyDbStory(rundownStr, listItem, storyId);
+        await sqlService.modifyDbStory(listItem, storyId);
         await sqlService.storyLastUpdate(storyId);
         lastUpdateService.triggerRundownUpdate(rundownStr);
         await inewsCache.modifyStory(rundownStr, listItem);
-        
-    }
-
-    async handleDeletedStories(rundownStr, listItems) {
-        if (listItems.length < await inewsCache.getRundownLength(rundownStr)) {
-            await this.deleteDif(rundownStr, listItems);
-        }
+        logger(`[STORY] Story modified in ${rundownStr}: ${listItem.storyName}`);
     }
 
     async checkStory(rundownStr, story, index) {
@@ -182,20 +180,48 @@ class RundownProcessor {
         return false;
     }
 
+    async handleDeletedStories(rundownStr, listItems) {
+        if (listItems.length < await inewsCache.getRundownLength(rundownStr)) {
+            await this.deleteDif(rundownStr, listItems);
+        }
+    }
+
     async deleteDif(rundownStr, listItems) {
         const inewsHashMap = {};
         const cachedIdentifiers = await inewsCache.getRundownIdentifiersList(rundownStr);
         for (const listItem of listItems) {
             inewsHashMap[listItem.identifier] = 1;
         }
+        
         const identifiersToDelete = cachedIdentifiers.filter(identifier => !inewsHashMap.hasOwnProperty(identifier));
+        
         for (const identifier of identifiersToDelete) {
+            await this.deleteStoryItems(rundownStr, identifier);
             const rundownUid = await inewsCache.getRundownUid(rundownStr);
-            
-            
             await sqlService.deleteStory(rundownStr, identifier, rundownUid);
             await inewsCache.deleteStory(rundownStr, identifier);
+            logger(`[STORY] Story with identifier ${identifier} deleted from ${rundownStr}`);
+
         }
+
+    }
+
+    async deleteStoryItems(rundownStr, identifier){
+        const items = await cache.getStoryAttachments(rundownStr,identifier);
+        
+        if(Object.keys(items).length > 0){
+            for(const itemId of Object.keys(items)){
+                const itemToDelete = {
+                    itemId: itemId, // item id to delete
+                    rundownId: this.rundownsObj[rundownStr].uid, 
+                    storyId: cache.getStoryUid(rundownStr, identifier)
+                }
+
+                await deleteService.triggerDeleteItem(rundownStr,itemToDelete, identifier); 
+            }
+            
+        }
+
     }
 
     async getStory(rundownStr, fileName) {
@@ -208,7 +234,7 @@ class RundownProcessor {
 
     setupConnectionListener() {
         conn.on('connections', connections => {
-            logger(`${connections} FTP connections active`);
+            logger(`[SYSTEM] ${connections} FTP connections active`);
         });
     }
 

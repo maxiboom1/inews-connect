@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import sqlService from '../services/sql-service.js';
+import { logger, warn } from '../utilities/logger.js';
 
 class ItemsHashmap {
     
@@ -60,6 +61,7 @@ class ItemsHashmap {
     getHashData(gfxItem){
         return this.map[gfxItem];
     }
+    
     isUsed(gfxItem) {
         const result = this.map[gfxItem]>0;
         return result;
@@ -100,6 +102,10 @@ class ItemsHashmap {
             const item = {
                 itemId: key, 
                 storyId:value.storyId
+            }
+            if(key === "null"){
+                warn(`[ITEM] Duplicate cache has invalid data, skipping..`);
+                continue;
             }
             await sqlService.deleteItem(value.rundownStr, item);
           }
@@ -143,7 +149,7 @@ class ItemsHashmap {
         return Object.keys(duplicatesObj).length === 0 ? null : duplicatesObj;
     }
     
-    // Gets referenceItemId and returns an array of unique duplicate storyFileName
+    // Not used in branch anymore
     getDuplicatesStoryFileNames(referenceItemId) {
         return [
             ...new Set(
@@ -154,6 +160,19 @@ class ItemsHashmap {
         ];
     }
     
+    // Returns {identifier:rundownStr} pairs 
+    getDuplicateStoryIdentifiers(referenceItemId) {
+        const uniquePairs = {};
+    
+        Object.values(this.duplicates)
+            .filter(duplicate => duplicate.referenceItemId === referenceItemId)
+            .forEach(duplicate => {
+                uniquePairs[duplicate.storyIdentifier] = duplicate.rundownStr;
+            });
+    
+        return uniquePairs;
+    }
+
     getData(){
         return this.map;
     }

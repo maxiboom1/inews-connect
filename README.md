@@ -25,6 +25,11 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 **LOGS:**
 
+2.0.6 - Brunch update
+
+- Rename deleteDebouncer to delete service and move it to services + dependencies update.
+- Added wanr red logger, move some loggers from SQL to high level functions
+- Many error scenario handling.
 
 2.0.5
 

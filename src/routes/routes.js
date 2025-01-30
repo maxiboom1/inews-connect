@@ -55,7 +55,7 @@ router.post('/update-item', async (req, res) => {
   try {
       const item = req.body;
       await sqlService.updateItemFromFront(item);
-      await itemsService.itemProcessor("",0,{},{updateDuplicates:true, item:item});
+      await itemsService.updateDuplicates(item);
       res.json("");
   } catch (error) {
       console.error('Error processing JSON data:', error);
