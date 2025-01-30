@@ -169,7 +169,6 @@ class ItemsHashmap {
             .forEach(duplicate => {
                 uniquePairs[duplicate.storyIdentifier] = duplicate.rundownStr;
             });
-    
         return uniquePairs;
     }
 

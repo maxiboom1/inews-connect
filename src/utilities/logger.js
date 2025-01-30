@@ -14,9 +14,18 @@ function warn(msg){
     const colors = {
         reset: "\x1b[0m",
         red: "\x1b[31m",
+        green: "\x1b[32m",
     };
 
     console.log(`${colors.red}%s${colors.reset}`,`${getCurrentDateTime()}:  ${msg}`);
+}
+
+function greenLogger(msg){
+    const colors = {
+        reset: "\x1b[0m",
+        green: "\x1b[32m",
+    };
+    console.log(`${colors.green}%s${colors.reset}`,`${getCurrentDateTime()}:  ${msg}`);
 }
 
 function getCurrentDateTime() {
@@ -31,4 +40,4 @@ function getCurrentDateTime() {
     return `${day}/${month}/${year} ${hour}:${min}:${sec}`;
 }
 
-export { logger, warn };
+export { logger, warn ,greenLogger};

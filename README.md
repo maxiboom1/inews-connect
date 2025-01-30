@@ -25,6 +25,12 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 **LOGS:**
 
+2.0.7
+
+- Implemented syncStories that passes from delete-service as obj {identifier:rundownStr}. We convert it to this.syncStories map and add counter prop: {identifier: {rundownStr, counter}}. On story check - we check if identifier and rundowns Str have match - if so, resync story and delete entry from map. Every process iteration run updateSyncStoriesMap that decrease counter and deletes entry if it 0.
+- Added green logger for app greetings.
+
+
 2.0.6 - Brunch update
 
 - Rename deleteDebouncer to delete service and move it to services + dependencies update.

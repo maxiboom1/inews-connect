@@ -4,7 +4,7 @@ import hebDecoder from "../utilities/hebrew-decoder.js";
 import sqlService from "./sql-service.js";
 import inewsCache from "../1-dal/inews-cache.js";
 import xmlParser from "../utilities/xml-parser.js";
-import { logger, warn } from "../utilities/logger.js";
+import { logger, warn, greenLogger } from "../utilities/logger.js";
 import itemsService from "./items-service.js";
 import lastUpdateService from "../utilities/rundown-update-debouncer.js";
 import cache from "../1-dal/inews-cache.js";
@@ -16,7 +16,7 @@ class RundownProcessor {
         this.setupConnectionListener();
         this.rundownsObj = {}; // {rundownStr:{uid:value, production:value}}
         this.rundowns = [];
-        this.syncStories = new Map(); //{storyFileName:counter,... }
+        this.syncStories = new Map(); // {identifier: {rundownStr, counter}}
         this.skippedRundowns = {}; // {rundownStr:boolean,rundownStr:boolean,}
     }
     
@@ -25,7 +25,7 @@ class RundownProcessor {
     }
 
     async initialize() {
-        logger(`[SYSTEM] Starting Inews-connect ${appConfig.version}...`);
+        greenLogger(`[SYSTEM] Starting Inews-connect ${appConfig.version}...`);
         await sqlService.initialize();
         this.rundownsObj = await inewsCache.getRundownsObj();
         this.rundowns = Object.keys(this.rundownsObj);
@@ -41,7 +41,7 @@ class RundownProcessor {
             await this.processRundown(rundownStr);
         }
         
-        this.handleSyncStories();
+        this.updateSyncStoriesMap();        
         
         setTimeout(() => this.rundownIterator(), appConfig.pullInterval);
     }
@@ -61,7 +61,7 @@ class RundownProcessor {
 
             // If there is more than 5 stories more added to the lineup - resync complete lineup.
             if(cachedLength+5<filteredListItems.length){
-                logger(`Noticed batch stories insert in rundown ${rundownStr}.`);
+                warn(`Noticed batch stories insert in rundown ${rundownStr}.`);
                 
             }
 
@@ -137,10 +137,10 @@ class RundownProcessor {
         } else if (action === "modify") {
             await this.modifyStory(rundownStr, listItem);
         
-        } else if (this.syncStories.has(listItem.fileName)) {
+        } else if (this.syncStories.has(listItem.identifier) && this.syncStories.get(listItem.identifier).rundownStr === rundownStr) {
             await this.modifyStory(rundownStr, listItem);
-            logger(`Synced duplicate items in story [${listItem.fileName}] ${listItem.storyName} `);
-            this.syncStories.delete(listItem.fileName); 
+            logger(`[STORY] Synced duplicate item/s in story [${listItem.storyName}]`);
+            this.syncStories.delete(listItem.identifier); 
         }
     }
  
@@ -242,29 +242,28 @@ class RundownProcessor {
         return this.rundownsObj[rundownStr].uid;
     }
 
-    setSyncStoryFileNames(filenames) {
-        try {
-            for (const filename of filenames) {
-                this.syncStories.set(filename, 3);
-            }
-        } catch (error) {
-            logger(`Error in setSyncStoryFileNames: ${error.message}`);
+    // Except: {identifier:rundownStr} obj
+    setSyncStory(storiesMap) {
+        // Iterate over the entries of the storyMap and update this.syncStories
+        for (const [identifier, rundownStr] of Object.entries(storiesMap)) {
+            this.syncStories.set(identifier, {rundownStr, counter:3});
         }
     }
 
-    handleSyncStories() {
-        try {
-            for (const [filename, retryCount] of this.syncStories) {
-                const newRetryCount = retryCount - 1;
-                if (newRetryCount === 0) {
-                    this.syncStories.delete(filename);
-                    logger(`Removed story ${filename} from syncStories after 3 attempts`);
-                } else {
-                    this.syncStories.set(filename, newRetryCount);
-                }
+    updateSyncStoriesMap() {
+        const toDelete = [];
+        
+        for (const [identifier, data] of this.syncStories.entries()) {
+            if (data.counter > 0) {
+                data.counter--;
+            } else {
+                toDelete.push(identifier); // Collect items for deletion
             }
-        } catch (error) {
-            logger(`Error in handleSyncStories: ${error.message}`);
+        }
+    
+        // Remove after iteration (avoids modifying the map while iterating)
+        for (const identifier of toDelete) {
+            this.syncStories.delete(identifier);
         }
     }
 

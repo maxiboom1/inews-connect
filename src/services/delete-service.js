@@ -41,7 +41,7 @@ class DeleteService {
             return;
         }
         
-        let duplicateFileNames = [];
+        let duplicateFileNames = {};
         
         // If hasDuplicates, collect duplicates for resync, and delete them
         if(itemsHash.hasDuplicates(this.item.itemId)){
@@ -111,9 +111,9 @@ class DeleteService {
     }
 
     handleRevokedItem(itemId, duplicateFileNames) {
-        if (duplicateFileNames.length > 0) {
+        if (Object.keys(duplicateFileNames).length > 0) {
             logger(`[ITEM] Item ${itemId} revoked, and has duplicates: ${duplicateFileNames}. Re-sync triggered.`);
-            processor.setSyncStoryFileNames(duplicateFileNames);
+            processor.setSyncStory(duplicateFileNames);
         } else {
             logger(`[ITEM] Item ${itemId} revoked! Probably due to cut/paste.`);
         }

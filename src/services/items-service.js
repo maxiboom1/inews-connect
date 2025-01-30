@@ -147,7 +147,7 @@ class StoryItemManager {
                 storyId: this.storyId,
                 ord: itemProp.ord
             });
-            logger(`Item reordered in ${this.rundownStr}, story ${this.story.storyName}`);
+            logger(`[ITEM] Item reordered in ${this.rundownStr}, story ${this.story.storyName}`);
         }
     
         if (itemProp.itemSlug !== this.cachedAttachments[itemId].itemSlug) {
@@ -157,7 +157,7 @@ class StoryItemManager {
                 storyId: this.storyId,
                 itemSlug: itemProp.itemSlug
             });
-            logger(`Item ${itemProp.itemSlug} modified in ${this.rundownStr}, story ${this.story.storyName}`);
+            logger(`[ITEM] Item ${itemProp.itemSlug} modified in ${this.rundownStr}, story ${this.story.storyName}`);
         }
     }
     
