@@ -112,7 +112,7 @@ class DeleteService {
 
     handleRevokedItem(itemId, duplicateFileNames) {
         if (Object.keys(duplicateFileNames).length > 0) {
-            logger(`[ITEM] Item ${itemId} revoked, and has duplicates: ${duplicateFileNames}. Re-sync triggered.`);
+            logger(`[ITEM] Item ${itemId} revoked, and has duplicates. Re-sync triggered.`);
             processor.setSyncStory(duplicateFileNames);
         } else {
             logger(`[ITEM] Item ${itemId} revoked! Probably due to cut/paste.`);
