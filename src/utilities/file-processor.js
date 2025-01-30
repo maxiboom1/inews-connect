@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { JSDOM } from 'jsdom';
 import appConfig from './app-config.js';
-import logger from "../utilities/logger.js";
+import { logger, warn } from "../utilities/logger.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -23,16 +23,16 @@ async function processAndWriteFiles(templates) {
     } catch (error) {
         await fsPromises.mkdir(templatesFolder);
     }
-
+    let templateCounter = 0;
     for (const template of templates) {
         const { uid, source, name, production } = template;
         const injectedHtml = htmlWrapper(source,uid, production,name);
         const filePath = path.join(templatesFolder, `${uid}.html`);
         await fsPromises.writeFile(filePath, injectedHtml, 'utf-8');
         delete template.source;
-        logger(`Loaded ${name} template`);
+        ++templateCounter;
     }
-
+    logger(`[TEMPLATES] ${templateCounter} HTML templates stored on /plugin/templates/`)
     return templates;
 }
 

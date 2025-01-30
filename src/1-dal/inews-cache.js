@@ -95,13 +95,39 @@ class InewsCache {
     // ********************* STORY FUNCTIONS ********************** //
 
     async getStory(rundownStr, identifier) {
-        if (this.isStoryExists(rundownStr, identifier)) {
+        if (await this.isStoryExists(rundownStr, identifier)) {
             return this.stories[rundownStr][identifier];
         }
     }
 
+    async getStoryName(rundownStr, identifier) {
+        
+        if (await this.isStoryExists(rundownStr, identifier)) {
+            return this.stories[rundownStr][identifier].storyName;
+        }
+        return null;
+    }
+
+    async getStoryById(rundownStr, storyId) {
+        // Check if the rundown exists
+        if (!this.stories[rundownStr]) {
+            return null; // Rundown not found
+        }
+    
+        // Iterate through all stories in the rundown
+        for (const identifier in this.stories[rundownStr]) {
+            const story = this.stories[rundownStr][identifier];
+            // Check if the story's uid matches the provided storyId
+            if (story.uid === storyId) {
+                return story; // Return the matching story
+            }
+        }
+    
+        return null; // Story not found
+    }
+
     async getStoryUid(rundownStr, identifier){
-        if (this.isStoryExists(rundownStr, identifier)) {
+        if (await this.isStoryExists(rundownStr, identifier)) {
             return this.stories[rundownStr][identifier].uid;
         }
     }

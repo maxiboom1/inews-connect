@@ -4,7 +4,7 @@ import express from "express";
 import cors from "cors";
 import getServerIP from "./src/utilities/host-ip.js";
 import bodyParser from 'body-parser';
-import logger from "./src/utilities/logger.js";
+import { logger, warn } from "./src/utilities/logger.js";
 const app = express(); 
 
 app.use(cors({origin: '*'}));
@@ -21,8 +21,8 @@ app.use(express.static('plugin'));
 const port = 3000;
 app.listen(port, () => {
     const host = getServerIP();
-    logger(`Server service running on port ${port}`);
-    logger(`Plugin url: http://${host}:${port}/index.html`)
+    logger(`[SYSTEM] Server service running on port ${port}`);
+    logger(`[SYSTEM] Plugin url: http://${host}:${port}/index.html`)
     
     processor.startMainProcess();
 });

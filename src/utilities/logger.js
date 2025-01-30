@@ -1,3 +1,4 @@
+
 function logger(msg, err = false){
     if (err) {
         console.error(msg);
@@ -7,6 +8,15 @@ function logger(msg, err = false){
         console.log(`${getCurrentDateTime()}:  ${msg}`);
     }
     
+}
+
+function warn(msg){
+    const colors = {
+        reset: "\x1b[0m",
+        red: "\x1b[31m",
+    };
+
+    console.log(`${colors.red}%s${colors.reset}`,`${getCurrentDateTime()}:  ${msg}`);
 }
 
 function getCurrentDateTime() {
@@ -21,4 +31,4 @@ function getCurrentDateTime() {
     return `${day}/${month}/${year} ${hour}:${min}:${sec}`;
 }
 
-export default logger;
+export { logger, warn };

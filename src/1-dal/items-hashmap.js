@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import sqlService from '../services/sql-service.js';
+import { logger, warn } from '../utilities/logger.js';
 
 class ItemsHashmap {
     
@@ -52,11 +53,9 @@ class ItemsHashmap {
     }
 
     remove(gfxItem) {
-        console.log(this.map, gfxItem)
         if (this.map[gfxItem]) {
             delete this.map[gfxItem];
         }
-        console.log(this.map)
     }
 
     getHashData(gfxItem){
@@ -103,6 +102,10 @@ class ItemsHashmap {
             const item = {
                 itemId: key, 
                 storyId:value.storyId
+            }
+            if(key === "null"){
+                warn(`[ITEM] Duplicate cache has invalid data, skipping..`);
+                continue;
             }
             await sqlService.deleteItem(value.rundownStr, item);
           }

@@ -1,6 +1,6 @@
 import sql from "mssql";
 import appConfig from "../utilities/app-config.js";
-import logger from "../utilities/logger.js";
+import { logger, warn } from "../utilities/logger.js";
 
 const config = {
   user: appConfig.sqlServerUser,
@@ -16,11 +16,11 @@ const config = {
 const poolPromise = new sql.ConnectionPool(config)
   .connect()
   .then((pool) => {
-    logger('Connected to SQL Server');
+    logger('[SQL] Connected to SQL Server');
     return pool;
   })
   .catch((err) => {
-    console.error('Error connecting to SQL Server:', err);
+    console.error('[SQL] Error connecting to SQL Server:', err);
     throw err;
   });
 

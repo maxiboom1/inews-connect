@@ -5,9 +5,8 @@ import inewsCache from "../1-dal/inews-cache.js";
 import itemsService from "./items-service.js";
 import itemsHash from "../1-dal/items-hashmap.js";
 import createTick from "../utilities/time-tick.js";
-import logger from "../utilities/logger.js";
+import { logger, warn } from "../utilities/logger.js";
 import lastUpdateService from "../utilities/rundown-update-debouncer.js";
-import deleteItemDebouncer from "../utilities/delete-item-debouncer.js";
 
 class SqlService {
 
@@ -37,7 +36,7 @@ class SqlService {
         try {
             const sql = `DELETE FROM ngn_inews_stories`;
             await db.execute(sql);
-            logger(`ngn_inews_stories cleared....`);
+            logger(`[SQL] ngn_inews_stories cleared....`);
         } catch (error) {
             console.error('Error deleting stories from SQL:', error);
             throw error;
@@ -78,12 +77,12 @@ class SqlService {
             if (selectResult.recordset.length > 0) {
                 // If record exists, update it
                 await db.execute(updateQuery, values);
-                logger(`Registering existing rundown to active watch: ${rundownStr}`);
+                logger(`[SQL] Registering existing rundown to active watch: ${rundownStr}`);
                 return selectResult.recordset[0].uid; // Return existing UID
             } else {
                 // If record does not exist, insert a new one and return the new UID
                 const insertResult = await db.execute(insertQuery, values);
-                logger(`Registering new rundown to active watch: ${rundownStr}`);
+                logger(`[SQL] Registering new rundown to active watch: ${rundownStr}`);
                 return insertResult.recordset[0].uid; // Return new UID
             }
         } catch (error) {
@@ -96,7 +95,7 @@ class SqlService {
             const sql = `SELECT uid, name,properties FROM ngn_productions WHERE enabled = 1`;
             const productions = await db.execute(sql);
             await inewsCache.setProductions(productions);
-            logger(`Loaded productions from SQL`);
+            logger(`[SQL] Loaded productions from SQL`);
         } catch (error) {
             console.error('Error loading productions from SQL:', error);
             throw error;
@@ -113,7 +112,7 @@ class SqlService {
             //{ uid, name, production , icon}
             const templatesWithoutHtml = await processAndWriteFiles(templates);
             await inewsCache.setTemplates(templatesWithoutHtml);
-            logger(`Loaded templates from SQL`);
+            logger(`[SQL] Loaded templates from SQL`);
         } catch (error) {
             console.error('Error loading templates from SQL:', error);
             throw error;
@@ -131,7 +130,7 @@ class SqlService {
                 const sql = "UPDATE ngn_inews_rundowns SET enabled=0 WHERE uid = @uid";
                 await db.execute(sql,values);
             }
-            logger(`Noticed ${unwatchedRundowns.length} unwatched rundowns in db.`);
+            logger(`[SYSTEM] Noticed ${unwatchedRundowns.length} unwatched rundowns in db.`);
         } catch (error) {
             console.error('Error deleting stories from SQL:', error);
             throw error;
@@ -248,19 +247,17 @@ class SqlService {
             lastupdate = @lastupdate, rundown = @rundown, story = @story, ord = @ord, ordupdate = @ordupdate, enabled = @enabled
             OUTPUT INSERTED.*
             WHERE uid = @uid;`;
-    
-        try {
-            const result =await db.execute(sqlQuery, values);
-            // ADD HERE STORY UPDATE
-            if(result.rowsAffected[0] > 0){
-                logger("Registered new GFX item ");
-            } else {
-                logger(`WARNING! GFX ${item.itemId} [${item.ord}] in ${rundownStr}, story num ${item.ord} doesn't exists in DB`);
-            }
 
+        try {
+            const result = await db.execute(sqlQuery, values);
+            if (result.rowsAffected[0] > 0) {
+                return { success: true, message: "Item updated successfully" };
+            } else {
+                return { success: false, message: "No rows affected" };
+            }
         } catch (error) {
-            console.error('Error on storing GFX item:', error);
-            return null;
+            console.error('updateItem:Error on storing GFX item:', error);
+            return { success: false, message: "Database error", error: error.message };
         }
     }
 
@@ -310,37 +307,31 @@ class SqlService {
             }
 
         } catch (error) {
-            console.error('Error on storing GFX item:', error);
+            console.error('updateItemSlug:Error on storing GFX item:', error);
             return null;
         }
     }
 
-    async deleteItem(rundownStr, item, options = {}){ //Item: {itemId, rundownId, storyId}
-        logger(`${options.duplicate} Item ${item.itemId} has been deleted`);
-        // Update items hashmap
-        itemsHash.remove(item.itemId); 
-        // Update duplicates cache
-        itemsHash.deleteDuplicate(String(item.itemId));
-
+    async deleteItem(rundownStr, item){ //Item: {itemId, rundownId, storyId}
         const values = {uid: item.itemId};
         const sqlQuery = `DELETE FROM ngn_inews_items WHERE uid = @uid;`;
     
         try {
             const result =await db.execute(sqlQuery, values);
             if(result.rowsAffected[0] > 0){
-                logger(`Delete GFX item ${item.itemId} in ${rundownStr}, story num ${item.storyId}`);
+                return { success: true, message: "Item deleted successfully" };
             } else {
-                logger(`WARNING! GFX ${item.itemId} [${item.ord}] in ${rundownStr}, story num ${item.ord} doesn't exists in DB`);
+                return { success: false, message: "No rows affected" };            
             }
 
         } catch (error) {
             console.error('Error deleting GFX item:', error);
-            return null;
+            return { success: false, message: "Database error", error: error.message };
         }
 
     } 
 
-    async disableItem(rundownStr, item){ //Item: {itemId, rundownId, storyId}
+    async disableItem(item){ //Item: {itemId, rundownId, storyId}
 
         const values = {uid: item.itemId};
         const sqlQuery = `
@@ -350,15 +341,16 @@ class SqlService {
     
         try {
             const result =await db.execute(sqlQuery, values);
-            if(result.rowsAffected[0] > 0){
-                logger(`GFX ${item.itemId} in ${rundownStr}, story num ${item.storyId} disabled and will be deleted in ${this.cutItemTimeout/1000} sec`);
+            
+            if (result.rowsAffected[0] > 0) {
+                return { success: true, message: "Item disabled successfully" };
             } else {
-                logger(`GFX ${item.itemId} [${item.ord}] in ${rundownStr}, story num ${item.ord} doesn't exists in DB`);
+                return { success: false, message: "No rows affected" };
             }
 
         } catch (error) {
             console.error('Error disabling GFX item:', error);
-            return null;
+            return { success: false, message: "Database error", error: error.message };
         }
 
     } 
@@ -393,7 +385,7 @@ class SqlService {
             itemsHash.addUnlinked(result.recordset[0].uid);
             return result.recordset[0].uid; // We return it to front page and its stored in mos obj as gfxItem
         } catch (error) {
-            console.error('Error on storing GFX item:', error);
+            console.error('storeNewItem:Error on storing GFX item:', error);
             return null;
         }
     }
@@ -543,7 +535,7 @@ class SqlService {
     
         try {
             const result = await db.execute(sqlQuery, values);
-            if(result.rowsAffected[0] === 0) return {data:"N/A"};
+            if(result.rowsAffected[0] === 0) return null;
             
             return result.recordset[0];
  
@@ -563,7 +555,7 @@ class SqlService {
             const result = await db.execute(sqlQuery, item);
             return result.recordset[0].uid; // We return it to front page and its stored in mos obj as gfxItem
         } catch (error) {
-            console.error('Error on storing GFX item:', error);
+            console.error('storeDuplicateItem:Error on storing GFX item:', error);
             return null;
         }
     }

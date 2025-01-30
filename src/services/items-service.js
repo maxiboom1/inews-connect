@@ -1,10 +1,10 @@
 import inewsCache from "../1-dal/inews-cache.js";
 import itemsHash from "../1-dal/items-hashmap.js";
 import sqlService from "./sql-service.js";
-import logger from "../utilities/logger.js";
+import { logger, warn } from "../utilities/logger.js";
 import createTick from "../utilities/time-tick.js";
 import lastUpdateService from "../utilities/rundown-update-debouncer.js";
-import deleteItemDebouncer from "../utilities/delete-item-debouncer.js"
+import deleteService from "./delete-service.js"
 
 class StoryItemManager {
     constructor() {
@@ -64,39 +64,48 @@ class StoryItemManager {
     async createDuplicate(rundownId, story, referenceItemId, ord, rundownStr) {
         let uid = await inewsCache.getStoryUid(rundownStr, story.identifier);
         const referenceItem = await sqlService.getFullItem(referenceItemId);
-
-        referenceItem.rundown = rundownId;
-        referenceItem.story = uid;
-        referenceItem.ord = ord;
-        referenceItem.lastupdate = createTick();
-        referenceItem.ordupdate = createTick();
-
-        const duplicateItemUid = await sqlService.storeDuplicateItem(referenceItem);
-        itemsHash.addDuplicate(referenceItemId, duplicateItemUid, rundownStr, story.identifier, story.uid, story.fileName);
-
-        const storyAttachments = await inewsCache.getStoryAttachments(rundownStr, story.identifier);
-        delete storyAttachments[referenceItemId];
-        const newItem = {
-            gfxTemplate: referenceItem.template,
-            gfxProduction: referenceItem.production,
-            itemSlug: referenceItem.name,
-            ord: referenceItem.ord
+        if(referenceItem){
+            referenceItem.rundown = rundownId;
+            referenceItem.story = uid;
+            referenceItem.ord = ord;
+            referenceItem.lastupdate = createTick();
+            referenceItem.ordupdate = createTick();
+    
+            const duplicateItemUid = await sqlService.storeDuplicateItem(referenceItem);
+            itemsHash.addDuplicate(referenceItemId, duplicateItemUid, rundownStr, story.identifier, story.uid, story.fileName);
+    
+            const storyAttachments = await inewsCache.getStoryAttachments(rundownStr, story.identifier);
+            delete storyAttachments[referenceItemId];
+            const newItem = {
+                gfxTemplate: referenceItem.template,
+                gfxProduction: referenceItem.production,
+                itemSlug: referenceItem.name,
+                ord: referenceItem.ord
+            }
+            storyAttachments[duplicateItemUid] = newItem;
+            await inewsCache.setStoryAttachments(rundownStr, story.identifier, storyAttachments);
+            logger(`[ITEM] New duplicate item in ${rundownStr}, story ${story.storyName}`);
+        } else {
+            warn(`[ITEM] New duplicate item in ${rundownStr}, story ${story.storyName} has no master in SQL`);
         }
-        storyAttachments[duplicateItemUid] = newItem;
-        await inewsCache.setStoryAttachments(rundownStr, story.identifier, storyAttachments);
-        logger(`New duplicate item in ${rundownStr}, story ${story.storyName}`);
+
     }
 
     async registerNewItem(itemId, itemProp) {
         itemsHash.add(itemId);
-        await sqlService.updateItem(this.rundownStr, {
+        const item = {
             itemId: itemId,
             rundownId: this.rundownId,
             storyId: this.storyId,
             ord: itemProp.ord
-        });
-    
-        logger(`New item registered in ${this.rundownStr}, story ${this.story.storyName}`);
+        }
+        const result = await sqlService.updateItem(this.rundownStr, item);
+        if (result.success) {
+            logger(`[ITEM] New item registered in ${this.rundownStr}, story ${this.story.storyName}`);
+        } else {
+            warn(`[SQL] Update error. Item ${item.itemId} in ${this.rundownStr}, story {${this.story.storyName}}. Reason: ${result.message}`);
+        }
+        
     }
     
     async processStoryItem(itemId, itemProp) {
@@ -165,7 +174,7 @@ class StoryItemManager {
                         storyId: this.storyId,
                     };
                     
-                    await deleteItemDebouncer.triggerDeleteItem(this.rundownStr, itemToDelete, this.story.identifier);
+                    await deleteService.triggerDeleteItem(this.rundownStr, itemToDelete, this.story.identifier);
                 }
             }));
         }
@@ -179,29 +188,32 @@ class StoryItemManager {
     async createDuplicateOnExistStory(rundownId, story, referenceItemId, ord, rundownStr) {
         let uid = await inewsCache.getStoryUid(rundownStr, story.identifier);
         const referenceItem = await sqlService.getFullItem(referenceItemId);
+        if(referenceItem){
+            referenceItem.rundown = rundownId;
+            referenceItem.story = uid;
+            referenceItem.ord = ord;
+            referenceItem.lastupdate = createTick();
+            referenceItem.ordupdate = createTick();
+    
+            const duplicateItemUid = await sqlService.storeDuplicateItem(referenceItem);
+            itemsHash.addDuplicate(referenceItemId, duplicateItemUid, rundownStr, story.identifier, uid, story.fileName);
 
-        referenceItem.rundown = rundownId;
-        referenceItem.story = uid;
-        referenceItem.ord = ord;
-        referenceItem.lastupdate = createTick();
-        referenceItem.ordupdate = createTick();
+            delete story.attachments[referenceItemId];
+            const newItem = {
+                gfxTemplate: referenceItem.template,
+                gfxProduction: referenceItem.production,
+                itemSlug: referenceItem.name,
+                ord: referenceItem.ord
+            };
+            story.attachments[duplicateItemUid] = newItem;
+    
+            
+    
+            return story.attachments;
+        } else {
+            warn(`[ITEM] New duplicate item in ${rundownStr}, story ${story.storyName} has no master in SQL`);
+        }
 
-        const duplicateItemUid = await sqlService.storeDuplicateItem(referenceItem);
-
-        itemsHash.addDuplicate(referenceItemId, duplicateItemUid, rundownStr, story.identifier, uid, story.fileName);
-
-        delete story.attachments[referenceItemId];
-        const newItem = {
-            gfxTemplate: referenceItem.template,
-            gfxProduction: referenceItem.production,
-            itemSlug: referenceItem.name,
-            ord: referenceItem.ord
-        };
-        story.attachments[duplicateItemUid] = newItem;
-
-        logger(`New duplicate item in ${rundownStr}, story ${story.storyName}`);
-
-        return story.attachments;
     }
     
     async updateDuplicates(item) {
