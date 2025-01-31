@@ -1,7 +1,7 @@
 import inewsCache from "../1-dal/inews-cache.js";
 import itemsHash from "../1-dal/items-hashmap.js";
 import sqlService from "./sql-service.js";
-import { logger, warn } from "../utilities/logger.js";
+import logger from "../utilities/logger.js";
 import createTick from "../utilities/time-tick.js";
 import lastUpdateService from "../utilities/rundown-update-debouncer.js";
 import deleteService from "./delete-service.js"
@@ -86,7 +86,7 @@ class StoryItemManager {
             await inewsCache.setStoryAttachments(rundownStr, story.identifier, storyAttachments);
             logger(`[ITEM] New duplicate item in ${rundownStr}, story ${story.storyName}`);
         } else {
-            warn(`[ITEM] New duplicate item in ${rundownStr}, story ${story.storyName} has no master in SQL`);
+            logger(`[ITEM] New duplicate item in ${rundownStr}, story ${story.storyName} has no master in SQL`,"red");
         }
 
     }
@@ -103,7 +103,7 @@ class StoryItemManager {
         if (result.success) {
             logger(`[ITEM] New item registered in ${this.rundownStr}, story ${this.story.storyName}`);
         } else {
-            warn(`[SQL] Update error. Item ${item.itemId} in ${this.rundownStr}, story {${this.story.storyName}}. Reason: ${result.message}`);
+            logger(`[SQL] Update error. Item ${item.itemId} in ${this.rundownStr}, story {${this.story.storyName}}. Reason: ${result.message}`,"red");
         }
         
     }
@@ -211,7 +211,7 @@ class StoryItemManager {
     
             return story.attachments;
         } else {
-            warn(`[ITEM] New duplicate item in ${rundownStr}, story ${story.storyName} has no master in SQL`);
+            logger(`[ITEM] New duplicate item in ${rundownStr}, story ${story.storyName} has no master in SQL`,"red");
         }
 
     }

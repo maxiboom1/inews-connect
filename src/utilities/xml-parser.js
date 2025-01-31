@@ -1,7 +1,4 @@
 import {XMLParser} from "fast-xml-parser";
-import itemsHash from "../1-dal/items-hashmap.js";
-
-
 
 /** 
  * Gets inews raw story and returns parsed attachments.

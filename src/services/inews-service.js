@@ -4,7 +4,7 @@ import hebDecoder from "../utilities/hebrew-decoder.js";
 import sqlService from "./sql-service.js";
 import inewsCache from "../1-dal/inews-cache.js";
 import xmlParser from "../utilities/xml-parser.js";
-import { logger, warn, greenLogger } from "../utilities/logger.js";
+import logger from "../utilities/logger.js";
 import itemsService from "./items-service.js";
 import lastUpdateService from "../utilities/rundown-update-debouncer.js";
 import cache from "../1-dal/inews-cache.js";
@@ -25,7 +25,6 @@ class RundownProcessor {
     }
 
     async initialize() {
-        greenLogger(`[SYSTEM] Starting Inews-connect ${appConfig.version}...`);
         await sqlService.initialize();
         this.rundownsObj = await inewsCache.getRundownsObj();
         this.rundowns = Object.keys(this.rundownsObj);
@@ -45,57 +44,18 @@ class RundownProcessor {
         
         setTimeout(() => this.rundownIterator(), appConfig.pullInterval);
     }
-    // Need refactor skipping logic here
+    
     async processRundown(rundownStr) {
         try {
-            const listItems = await conn.list(rundownStr);
-            const filteredListItems = listItems.filter(item => item.fileType === 'STORY');
+
+            const listItems = (await conn.list(rundownStr)).filter(item => item.fileType === 'STORY');
             const cachedLength = await inewsCache.getRundownLength(rundownStr);
             
-            // If there is new stories in rundown
-            if(cachedLength<filteredListItems.length){
-                
-                // If it first iteration - set counter to 2 and return
-                if(this.skippedRundowns[rundownStr] === false){
-                    this.skippedRundowns[rundownStr] = 2;
-                    greenLogger(`[SYSTEM] Noticed new stories in rundown ${rundownStr}. Skipping for now.`);
-                    return;
-                }
-                // If there is already counter - decrease and return
-                if(this.skippedRundowns[rundownStr]>0){
-                    this.skippedRundowns[rundownStr]--;
-                    greenLogger(`[SYSTEM] Noticed new stories in rundown ${rundownStr}. Skipping for now.`);
-                    return;
-                }
-                
-                // If we are here then counter is 0, so reset state and keep process.
-                this.skippedRundowns[rundownStr] = false;
-            }
+            if(this._shouldSkipRundown(rundownStr, cachedLength, listItems.length)) return;
+            
+            await Promise.all(this.processStories(rundownStr, listItems));
+            await this.handleDeletedStories(rundownStr, listItems);
 
-            // If there is more than 5 stories deleted - delay twice
-            if(cachedLength> 5+filteredListItems.length ){
-                
-                // If it first iteration - set counter to 1 and return
-                if(this.skippedRundowns[rundownStr] === false){
-                    this.skippedRundowns[rundownStr] = 1;
-                    greenLogger(`[SYSTEM] Noticed batch delete in rundown ${rundownStr}. Skipping for now.`);
-                    return;
-                }
-                // If there is already counter - decrease and return
-                if(this.skippedRundowns[rundownStr]>0){
-                    this.skippedRundowns[rundownStr]--;
-                    greenLogger(`[SYSTEM] Noticed batch delete in rundown ${rundownStr}. Skipping for now.`);
-                    return;
-                }
-                
-                // If we are here then counter is 0, so reset state and keep process.
-                this.skippedRundowns[rundownStr] = false;
-            }
-
-            const storyPromises = this.processStories(rundownStr, filteredListItems);
-            await Promise.all(storyPromises);
-            await this.handleDeletedStories(rundownStr, filteredListItems);
-            this.skippedRundowns[rundownStr] = false;
         } catch (error) {
             console.error("Error fetching and processing stories:", error);
         } 
@@ -123,6 +83,8 @@ class RundownProcessor {
     async handleNewStory(rundownStr, listItem, index) {
         // Get story string obj
         const story = await this.getStory(rundownStr, listItem.fileName);
+        
+        console.log(Object.keys(story.attachments).length === 0);
         
         // Add parsed attachments 
         listItem.attachments = xmlParser.parseAttachments(story);
@@ -268,9 +230,8 @@ class RundownProcessor {
         return this.rundownsObj[rundownStr].uid;
     }
 
-    // Except: {identifier:rundownStr} obj
-    setSyncStory(storiesMap) {
-        // Iterate over the entries of the storyMap and update this.syncStories
+    
+    setSyncStory(storiesMap) {// Except: {identifier:rundownStr} obj
         for (const [identifier, rundownStr] of Object.entries(storiesMap)) {
             this.syncStories.set(identifier, {rundownStr, counter:3});
         }
@@ -293,6 +254,39 @@ class RundownProcessor {
         }
     }
 
+    _shouldSkipRundown(rundownStr, cachedLength, listItemsLength,){
+        
+        // If there is new stories in rundown
+        if(cachedLength < listItemsLength){
+            const skip = this._skipHandler(rundownStr, 2, `[SKIPPER] Noticed new stories in rundown ${rundownStr}. Skipping..`);
+            if(skip) return true;
+        } 
+
+        // If there is more than 5 stories deleted - delay twice
+        if(cachedLength> 5+listItemsLength ){
+            const skip = this._skipHandler(rundownStr, 1, `[SKIPPER] Noticed batch delete in rundown ${rundownStr}. Skipping...`);
+            if(skip) return true;
+        }
+         
+        this.skippedRundowns[rundownStr] = false;
+        return false;
+
+    }
+
+    _skipHandler(rundownStr, skipCounter, logMessage){
+        
+        if(this.skippedRundowns[rundownStr] === false){
+            this.skippedRundowns[rundownStr] = skipCounter;
+            logger(logMessage,"green");
+            return true;
+        }
+        
+        if(this.skippedRundowns[rundownStr]>0){
+            this.skippedRundowns[rundownStr]--;
+            return true;
+        }
+
+    }
 }
 
 const processor = new RundownProcessor();

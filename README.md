@@ -25,6 +25,11 @@ It will increase hdd load when users opens plugin, but reduce memory usage of se
 
 **LOGS:**
 
+2.0.9
+
+- Refactored skipping login to private methods within inews service.
+- Improved color logger.
+
 2.0.8
 
 - Implemented skipping mechanisms for batch added and batch deleted stories.

@@ -4,7 +4,8 @@ import express from "express";
 import cors from "cors";
 import getServerIP from "./src/utilities/host-ip.js";
 import bodyParser from 'body-parser';
-import { logger, warn } from "./src/utilities/logger.js";
+import logger from "./src/utilities/logger.js";
+import appConfig from "./src/utilities/app-config.js";
 const app = express(); 
 
 app.use(cors({origin: '*'}));
@@ -21,8 +22,10 @@ app.use(express.static('plugin'));
 const port = 3000;
 app.listen(port, () => {
     const host = getServerIP();
-    logger(`[SYSTEM] Server service running on port ${port}`);
-    logger(`[SYSTEM] Plugin url: http://${host}:${port}/index.html`)
-    
+    logger(`***************************************************************`,"blue");
+    logger(`[SYSTEM] Starting INEWS-CONNECT App Version: ${appConfig.version}...`, "green");
+    logger(`[SYSTEM] Server service running on port ${port}`,"green");
+    logger(`[SYSTEM] Plugin url: http://${host}:${port}/index.html`,"green")
+    logger(`***************************************************************`,"blue");
     processor.startMainProcess();
 });

@@ -5,7 +5,7 @@ import JobsQueue from "./JobsQueue.js";
 import parseNsml from "./inewsStoryParser.js";
 import NestedMap from "./NestedMap.js";
 import appConfig from "../utilities/app-config.js";
-import { logger, warn } from "../utilities/logger.js";
+import logger from "../utilities/logger.js";
 
 Promise.config({
 	cancellation: true

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import sqlService from '../services/sql-service.js';
-import { logger, warn } from '../utilities/logger.js';
+import logger from '../utilities/logger.js';
 
 class ItemsHashmap {
     
@@ -104,7 +104,7 @@ class ItemsHashmap {
                 storyId:value.storyId
             }
             if(key === "null"){
-                warn(`[ITEM] Duplicate cache has invalid data, skipping..`);
+                logger(`[ITEM] Duplicate cache has invalid data, skipping..`,"red");
                 continue;
             }
             await sqlService.deleteItem(value.rundownStr, item);

@@ -1,6 +1,6 @@
 import sqlService from "./sql-service.js";
 import itemsHash from "../1-dal/items-hashmap.js";
-import { logger, warn } from "../utilities/logger.js";
+import logger from "../utilities/logger.js";
 import processor from "./inews-service.js";
 import appConfig from "../utilities/app-config.js";
 import inewsCache from "../1-dal/inews-cache.js";
@@ -36,7 +36,7 @@ class DeleteService {
             if (result.success) {
                 logger(`[ITEM] Duplicate in {${rundownStr}}, story {${story.storyName}} deleted.`);
             } else {
-                warn(`[SQL] Error on delete duplicate ${item.itemId} in {${rundownStr}}, story {${story.storyName}}. Reason: ${result.message}`);
+                logger(`[SQL] Error on delete duplicate ${item.itemId} in {${rundownStr}}, story {${story.storyName}}. Reason: ${result.message}`,"red");
             }
             return;
         }
@@ -75,7 +75,7 @@ class DeleteService {
             if (result.success) {
                 logger(`[ITEM] Duplicate in {${props.rundownStr}}, story {${storyName}} deleted.`);
             } else {
-                warn(`[SQL] Error on delete duplicate ${itemId} in {${props.rundownStr}}, story {${storyName}}. Reason: ${result.message}`);
+                logger(`[SQL] Error on delete duplicate ${itemId} in {${props.rundownStr}}, story {${storyName}}. Reason: ${result.message}`,"red");
             }
         }
         
@@ -87,7 +87,7 @@ class DeleteService {
         if (result.success) {
             logger(`[ITEM] Item in ${this.rundownStr}, story ${storyName} has been disabled.`);
         } else {
-            warn(`[SQL] Update error. Item ${this.item.itemId} in ${this.rundownStr}, story {${storyName}}. Reason: ${result.message}`);
+            logger(`[SQL] Update error. Item ${this.item.itemId} in ${this.rundownStr}, story {${storyName}}. Reason: ${result.message}`,"red");
         }
 
     }
@@ -104,7 +104,7 @@ class DeleteService {
             if (result.success) {
                 logger(`[ITEM] Item in {${rundownStr}}, story {${storyName}} deleted.`);
             } else {
-                warn(`[SQL] Error on delete item ${item.itemId} in {${rundownStr}}, story {${storyName}}. Reason: ${result.message}`);
+                logger(`[SQL] Error on delete item ${item.itemId} in {${rundownStr}}, story {${storyName}}. Reason: ${result.message}`,red);
             }
             
         }

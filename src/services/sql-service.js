@@ -2,10 +2,9 @@ import appConfig from "../utilities/app-config.js";
 import db from "../1-dal/sql.js";
 import processAndWriteFiles from "../utilities/file-processor.js";
 import inewsCache from "../1-dal/inews-cache.js";
-import itemsService from "./items-service.js";
 import itemsHash from "../1-dal/items-hashmap.js";
 import createTick from "../utilities/time-tick.js";
-import { logger, warn } from "../utilities/logger.js";
+import logger from "../utilities/logger.js";
 import lastUpdateService from "../utilities/rundown-update-debouncer.js";
 
 class SqlService {
@@ -487,7 +486,6 @@ class SqlService {
 // ********************* LAST UPDATE && ORD LAST UPDATE FUNCTIONS ********************** //
     
     async rundownLastUpdate(rundownStr, msg=""){
-        //logger(`Rundown update: ${rundownStr} from ${msg}`)
             const rundownMeta = await inewsCache.getRundownList(rundownStr);
             try {
                 const values = {

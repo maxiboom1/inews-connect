@@ -1,29 +1,41 @@
-function logger(msg, err = false){
-    if (err) {
-        console.error(msg);
-        // Write to log file etc...
+const colors = {
+    reset: "\x1b[0m",
+    bold: "\x1b[1m",
+    dim: "\x1b[2m",
+    underlined: "\x1b[4m",
+    blinking: "\x1b[5m",
+    reverse: "\x1b[7m",
+    hidden: "\x1b[8m",
+    strike: "\x1b[9m",
+    black: "\x1b[30m",
+    red: "\x1b[31m",
+    green: "\x1b[32m",
+    yellow: "\x1b[33m",
+    blue: "\x1b[34m",
+    magenta: "\x1b[35m",
+    cyan: "\x1b[36m",
+    white: "\x1b[37m",
+    dimmed: "\x1b[38;5;244m"
+};
+
+/**
+ * Logs a message to the console with an optional color.
+ * 
+ * @param {string} msg - The message to log.
+ * @param {string} [color='white'] - The color to print the message in. 
+ *                                   Supported colors: 'reset', 'bold', 'dim', 'underlined', 
+ *                                   'blinking', 'reverse', 'hidden', 'strike', 'black', 'red', 
+ *                                   'green', 'yellow', 'blue', 'magenta', 'cyan', 'white'.
+ *                                   If the color is not recognized, the message will be logged without any color.
+ */
+function logger(msg, color = "white"){
+    
+    if (colors[color] === undefined) { // If color arg wrong or unsupported
+        console.log(`${getCurrentDateTime()}  ${msg}`);
     } else {
-        console.log(`${getCurrentDateTime()}:  ${msg}`);
+        console.log(`${getCurrentDateTime()} ${colors[color]}%s${colors.reset}`,`${msg}`);
     }
     
-}
-
-function warn(msg){
-    const colors = {
-        reset: "\x1b[0m",
-        red: "\x1b[31m",
-        green: "\x1b[32m",
-    };
-
-    console.log(`${colors.red}%s${colors.reset}`,`${getCurrentDateTime()}:  ${msg}`);
-}
-
-function greenLogger(msg){
-    const colors = {
-        reset: "\x1b[0m",
-        green: "\x1b[32m",
-    };
-    console.log(`${colors.green}%s${colors.reset}`,`${getCurrentDateTime()}:  ${msg}`);
 }
 
 function getCurrentDateTime() {
@@ -38,4 +50,4 @@ function getCurrentDateTime() {
     return `${day}/${month}/${year} ${hour}:${min}:${sec}`;
 }
 
-export { logger, warn ,greenLogger};
+export default logger;
