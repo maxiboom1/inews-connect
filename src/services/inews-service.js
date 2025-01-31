@@ -31,20 +31,41 @@ class RundownProcessor {
         for(const rundown of this.rundowns){
             this.skippedRundowns[rundown] = false;
         }
-        this.rundownIterator();
+        const boot = true;
+        this.rundownIterator(boot);
     }
 
-    async rundownIterator() {
-       
+    async rundownIterator(boot = false) {
         for (const rundownStr of this.rundowns) {
-            await this.processRundown(rundownStr);
+            
+            if(boot){
+                await this.processRundownParallel(rundownStr);
+            } else {
+                await this.processRundown(rundownStr);
+            }
+            
         }
         
         this.updateSyncStoriesMap();        
         
         setTimeout(() => this.rundownIterator(), appConfig.pullInterval);
     }
-    
+ 
+    async processRundownParallel(rundownStr) {
+        try {
+            const listItems = (await conn.list(rundownStr)).filter(item => item.fileType === 'STORY');
+            await Promise.all(listItems.map((listItem, index) => this.processStory(rundownStr, listItem, index)));
+            await this.handleDeletedStories(rundownStr, listItems);
+
+        } catch (error) {
+            console.error("Error fetching and processing stories:", error);
+        } 
+    }    
+
+    processStories(rundownStr, listItems) {
+        return listItems.map((listItem, index) => this.processStory(rundownStr, listItem, index));
+    }
+
     async processRundown(rundownStr) {
         try {
 
@@ -53,16 +74,18 @@ class RundownProcessor {
             
             if(this._shouldSkipRundown(rundownStr, cachedLength, listItems.length)) return;
             
-            await Promise.all(this.processStories(rundownStr, listItems));
+            // Change to sequential processing
+            // let index = 0;
+            // for (const listItem of listItems) {
+            //     await this.processStory(rundownStr, listItem, index);
+            //     index++;
+            // }
+            await Promise.all(listItems.map((listItem, index) => this.processStory(rundownStr, listItem, index)));
             await this.handleDeletedStories(rundownStr, listItems);
 
         } catch (error) {
             console.error("Error fetching and processing stories:", error);
         } 
-    }
-
-    processStories(rundownStr, listItems) {
-        return listItems.map((listItem, index) => this.processStory(rundownStr, listItem, index));
     }
 
     async processStory(rundownStr, listItem, index) {
@@ -83,9 +106,7 @@ class RundownProcessor {
     async handleNewStory(rundownStr, listItem, index) {
         // Get story string obj
         const story = await this.getStory(rundownStr, listItem.fileName);
-        
-        console.log(Object.keys(story.attachments).length === 0);
-        
+                
         // Add parsed attachments 
         listItem.attachments = xmlParser.parseAttachments(story);
         
@@ -229,7 +250,6 @@ class RundownProcessor {
     getRundownUid(rundownStr){
         return this.rundownsObj[rundownStr].uid;
     }
-
     
     setSyncStory(storiesMap) {// Except: {identifier:rundownStr} obj
         for (const [identifier, rundownStr] of Object.entries(storiesMap)) {
@@ -239,7 +259,6 @@ class RundownProcessor {
 
     updateSyncStoriesMap() {
         const toDelete = [];
-        
         for (const [identifier, data] of this.syncStories.entries()) {
             if (data.counter > 0) {
                 data.counter--;
@@ -260,12 +279,14 @@ class RundownProcessor {
         if(cachedLength < listItemsLength){
             const skip = this._skipHandler(rundownStr, 2, `[SKIPPER] Noticed new stories in rundown ${rundownStr}. Skipping..`);
             if(skip) return true;
+            logger(`[SKIPPER] Starting processing new stories in ${rundownStr}`, "blue");
         } 
 
         // If there is more than 5 stories deleted - delay twice
         if(cachedLength> 5+listItemsLength ){
             const skip = this._skipHandler(rundownStr, 1, `[SKIPPER] Noticed batch delete in rundown ${rundownStr}. Skipping...`);
             if(skip) return true;
+            logger(`[SKIPPER] Starting processing deleted stories in ${rundownStr}`, "blue");
         }
          
         this.skippedRundowns[rundownStr] = false;
@@ -286,6 +307,7 @@ class RundownProcessor {
             return true;
         }
 
+        return false;
     }
 }
 

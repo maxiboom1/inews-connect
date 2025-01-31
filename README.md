@@ -23,7 +23,17 @@ Possible optimizations:
 It will increase hdd load when users opens plugin, but reduce memory usage of server.
 - Avoid to write non-item stories to db 
 
+Testing:
+
+Rundown with 50 items in hebrew. it original id is  66792 - 66826
+
 **LOGS:**
+
+
+2.1.0
+
+- Parallel stories handling is wonderful, but I have to avoid it because of duplicates. So on load i fetch the first time the rundowns parallely, and then i switch to one-by-one approach. This is slowest, but keep data constancy.
+- Some advanced config was moved from user scope to internal app code (pullInterval and ftpSiteFormat).
 
 2.0.9
 

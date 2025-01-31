@@ -104,7 +104,7 @@ class DeleteService {
             if (result.success) {
                 logger(`[ITEM] Item in {${rundownStr}}, story {${storyName}} deleted.`);
             } else {
-                logger(`[SQL] Error on delete item ${item.itemId} in {${rundownStr}}, story {${storyName}}. Reason: ${result.message}`,red);
+                logger(`[SQL] Error on delete item ${item.itemId} in {${rundownStr}}, story {${storyName}}. Reason: ${result.message}`,"red");
             }
             
         }
