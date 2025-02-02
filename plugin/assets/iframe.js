@@ -39,6 +39,7 @@ async function setCopyBuffer(gfxItem){
 function createMosMessage1(gfxItem){
     const templateId = document.body.getAttribute('data-template');
     const productionId = document.body.getAttribute('data-production');
+    const item = getItemData();//item{name,data,scripts,templateId,productionId}
     let itemID = "";
     if(document.body.hasAttribute("data-itemID")){
         itemID = document.body.getAttribute('data-itemID');
@@ -57,9 +58,11 @@ function createMosMessage1(gfxItem){
                 <gfxItem>${gfxItem}</gfxItem>
                 <gfxTemplate>${templateId}</gfxTemplate>
                 <gfxProduction>${productionId}</gfxProduction>
+                <gfxData>${item.data}</gfxData>
+                <gfxScripts>${item.scripts}</gfxScripts>
             </item>
         </ncsItem>
-    </mos>`;
+    </mos>`; 
 }
 // returns item{name,data,scripts,templateId,productionId}
 function getItemData(){
