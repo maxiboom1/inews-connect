@@ -9,6 +9,8 @@ import itemsService from "./items-service.js";
 import lastUpdateService from "../utilities/rundown-update-debouncer.js";
 import cache from "../1-dal/inews-cache.js";
 import deleteService from "./delete-service.js";
+import timeMeasure from "../utilities/time-measure.js";
+import logMessages from "../utilities/logger-messages.js";
 
 class RundownProcessor {
     
@@ -18,9 +20,12 @@ class RundownProcessor {
         this.rundowns = [];
         this.syncStories = new Map(); // {identifier: {rundownStr, counter}, ...}
         this.skippedRundowns = {}; // {rundownStr:counter, ...}
+        this.loading = false;
     }
     
     async startMainProcess() {
+        this.loading = true;
+        timeMeasure.start();
         await this.initialize();
     }
 
@@ -31,39 +36,23 @@ class RundownProcessor {
         for(const rundown of this.rundowns){
             this.skippedRundowns[rundown] = false;
         }
-        const boot = true;
-        this.rundownIterator(boot);
+        this.rundownIterator();
     }
 
-    async rundownIterator(boot = false) {
+    async rundownIterator() {
+        
         for (const rundownStr of this.rundowns) {
-            
-            if(boot){
-                await this.processRundownParallel(rundownStr);
-            } else {
-                await this.processRundown(rundownStr);
-            }
-            
+            await this.processRundown(rundownStr);  
         }
         
         this.updateSyncStoriesMap();        
         
         setTimeout(() => this.rundownIterator(), appConfig.pullInterval);
-    }
- 
-    async processRundownParallel(rundownStr) {
-        try {
-            const listItems = (await conn.list(rundownStr)).filter(item => item.fileType === 'STORY');
-            await Promise.all(listItems.map((listItem, index) => this.processStory(rundownStr, listItem, index)));
-            await this.handleDeletedStories(rundownStr, listItems);
 
-        } catch (error) {
-            console.error("Error fetching and processing stories:", error);
-        } 
-    }    
-
-    processStories(rundownStr, listItems) {
-        return listItems.map((listItem, index) => this.processStory(rundownStr, listItem, index));
+        if (this.loading) {
+            logMessages.appLoadedMessage(this.rundowns);
+            this.loading = false;
+        }
     }
 
     async processRundown(rundownStr) {
@@ -72,15 +61,14 @@ class RundownProcessor {
             const listItems = (await conn.list(rundownStr)).filter(item => item.fileType === 'STORY');
             const cachedLength = await inewsCache.getRundownLength(rundownStr);
             
-            if(this._shouldSkipRundown(rundownStr, cachedLength, listItems.length)) return;
+            if(this.loading === false && this._shouldSkipRundown(rundownStr, cachedLength, listItems.length)) return;
             
-            // Change to sequential processing
-            // let index = 0;
-            // for (const listItem of listItems) {
-            //     await this.processStory(rundownStr, listItem, index);
-            //     index++;
-            // }
-            await Promise.all(listItems.map((listItem, index) => this.processStory(rundownStr, listItem, index)));
+            let index = 0;
+            for (const listItem of listItems) {
+                await this.processStory(rundownStr, listItem, index);
+                index++;
+            }
+            
             await this.handleDeletedStories(rundownStr, listItems);
 
         } catch (error) {

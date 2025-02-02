@@ -29,6 +29,12 @@ Rundown with 50 items in hebrew. it original id is  66792 - 66826
 
 **LOGS:**
 
+2.1.1
+
+- No-parallel stories handling anymore, even on app load.
+- New "time-measure" utility - to measure load time.
+- this.loading in inews-service constructor to handle loading loop.
+- New "logger-messages" utility, that concentrate the boot message in console.
 
 2.1.0
 
