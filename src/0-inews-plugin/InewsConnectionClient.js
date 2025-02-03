@@ -142,9 +142,8 @@ class InewsConnectionClient extends EventEmitter {
 					}
 			  });
 			});
-		  };
+		};
 		  
-
 		const connectFtp = (ftpConnConfig) => {
 			this.status = 'connecting';
 
@@ -224,7 +223,6 @@ class InewsConnectionClient extends EventEmitter {
 				reject('max_reconnect_attempts');
 			}
 		});
-
 
 	}
 

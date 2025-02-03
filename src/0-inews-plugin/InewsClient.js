@@ -1,8 +1,10 @@
 import EventEmitter from "events";
 import InewsConnectionClient from "./InewsConnectionClient.js";
 import NestedMap from "./NestedMap.js";
+import logger from "../utilities/logger.js";
 
 class InewsClient extends EventEmitter {
+	
 	constructor(config = {}) {
 		super();
 		this._connectionClients = new Set();
@@ -33,6 +35,11 @@ class InewsClient extends EventEmitter {
             throw new Error(`Missing user option`);
         if(!this.config.hasOwnProperty('password'))
             throw new Error(`Missing password option`);
+		
+		// Global error handler for the InewsClient
+		this.on('error', (error) => {
+			logger(`[FTP] InewsClient FTP Error ${error.message}`, "red" );
+		});
 	}
 
 	get connections() {

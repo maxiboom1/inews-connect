@@ -29,6 +29,10 @@ Rundown with 50 items in hebrew. it original id is  66792 - 66826
 
 **LOGS:**
 
+2.1.3
+
+- Error handling on FTP connection err/timeout.
+
 2.1.2
 
 - Added storing to inews gfxData and GfxScripts. If I really want to be able restore items from inews - i need to add also uuid and disconnect from sql id. Otherwise, its not allowed to restore auto-incremented sql id's. Need to plan it carefully.
