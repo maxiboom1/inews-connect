@@ -64,6 +64,7 @@ function createMosMessage1(gfxItem){
         </ncsItem>
     </mos>`; 
 }
+
 // returns item{name,data,scripts,templateId,productionId}
 function getItemData(){
         const _NA_Values = __NA_GetValues();

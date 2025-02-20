@@ -156,7 +156,7 @@ class RundownProcessor {
         
         if(listItem.enabled || cachedAttachments){            
             
-            listItem.attachments = await itemsService.itemProcessor(rundownStr, this.getRundownUid(rundownStr), listItem); // Process attachments
+            await itemsService.itemProcessor(rundownStr, this.getRundownUid(rundownStr), listItem); // Process attachments
         }
         const storyId = await inewsCache.getStoryUid(rundownStr,listItem.identifier);
         await sqlService.modifyDbStory(listItem, storyId);

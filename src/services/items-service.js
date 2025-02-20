@@ -46,7 +46,7 @@ class StoryItemManager {
         }
     
         await this.removeUnusedItems();
-        return story.attachments;
+
     }
     
     // Here we know that item coming from new story - so all items are new.
