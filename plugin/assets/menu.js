@@ -160,7 +160,11 @@ async function mosMsgFromHost(event) {
         const templateId = extractTagContent(message, "gfxTemplate");
         const gfxItem = extractTagContent(message, "gfxItem");
         const itemID = extractTagContent(message, "itemID");
-        renderItem(templateId, gfxItem,itemID);
+        
+        //Sending also "data" and itemName from NRCS story - so if rundown is offline (un-monitored), user still can open and edit it
+        const cachedData = extractTagContent(message, "data");
+        const cachedName = extractTagContent(message, "itemSlug");
+        renderItem(templateId, gfxItem,itemID, cachedData,cachedName);
     }
     
     // User click apply/ok
@@ -214,7 +218,7 @@ function renderTemplate(templateId) {
 }
 
 // User loaded exists item in inews
-async function renderItem(templateId,gfxItem, itemID){
+async function renderItem(templateId, gfxItem, itemID, cachedData, cachedName){
     const itemObj = await fetchData(`${originUrl}/api/get-item-data/${gfxItem}`, "GET");
     const itemData = itemObj.data.replace(/\\'/g, '%27'); // Fix " ' " single quote bug
     const itemName = itemObj.name;

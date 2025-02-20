@@ -29,8 +29,12 @@ Rundown with 50 items in hebrew. it original id is  66792 - 66826
 
 **LOGS:**
 
-2.1.3
+2.1.4
 
+- Added gfxData and gfxScripts to xml parser.
+- Added _clearAttachments to inews cache - to clear data and scripts before saving them in cache.
+
+2.1.3
 - Error handling on FTP connection err/timeout.
 
 2.1.2

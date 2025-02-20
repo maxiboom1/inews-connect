@@ -31,7 +31,9 @@ function parseAttachments(story) {
         gfxTemplate: item.gfxTemplate,
         gfxProduction: item.gfxProduction,
         itemSlug: item.itemSlug,
-        ord: a
+        ord: a,
+        gfxData:item.gfxData,
+        gfxScripts: item.gfxScripts
       };
 
     }
