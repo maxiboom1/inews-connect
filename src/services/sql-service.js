@@ -6,6 +6,7 @@ import itemsHash from "../1-dal/items-hashmap.js";
 import createTick from "../utilities/time-tick.js";
 import logger from "../utilities/logger.js";
 import lastUpdateService from "../utilities/rundown-update-debouncer.js";
+import { v4 as uuid } from 'uuid';
 
 class SqlService {
 
@@ -373,11 +374,12 @@ class SqlService {
             scripts: item.scripts,
             enabled: 1,
             tag: "",
+            uuid:uuid()
         };
         const sqlQuery = `
-            INSERT INTO ngn_inews_items (name, lastupdate, production, rundown, story, ord, ordupdate, template, data, scripts, enabled, tag)
+            INSERT INTO ngn_inews_items (name, lastupdate, production, rundown, story, ord, ordupdate, template, data, scripts, enabled, tag, uuid)
             OUTPUT INSERTED.uid
-            VALUES (@name, @lastupdate, @production, @rundown, @story, @ord, @ordupdate,@template, @data, @scripts, @enabled, @tag);`;
+            VALUES (@name, @lastupdate, @production, @rundown, @story, @ord, @ordupdate,@template, @data, @scripts, @enabled, @tag, @uuid);`;
     
         try {
             const result = await db.execute(sqlQuery, values);
