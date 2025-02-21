@@ -17,7 +17,7 @@ class SqlService {
     async initialize(){
         try {
             // Delete stories table in mssql 
-            await this.deleteDBStories();
+            await this.resetDB();
             for (const [rundownStr] of Object.entries(appConfig.rundowns)) {
                 const assertedRDUid = await this.addDbRundown(rundownStr);
                 await inewsCache.initializeRundown(rundownStr,assertedRDUid, appConfig.rundowns[rundownStr].production);
@@ -31,13 +31,15 @@ class SqlService {
         }
     }
 
-    async deleteDBStories() {
+    async resetDB() {
+        const deleteStories = `DELETE FROM ngn_inews_stories`;
+        const deleteItems = `DELETE FROM ngn_inews_items`;
         try {
-            const sql = `DELETE FROM ngn_inews_stories`;
-            await db.execute(sql);
-            logger(`[SQL] ngn_inews_stories cleared....`);
+            await db.execute(deleteStories);
+            await db.execute(deleteItems)
+            logger(`[SQL] ngn_inews_stories and ngn_inews_items cleared....`);
         } catch (error) {
-            console.error('Error deleting stories from SQL:', error);
+            console.error('Error deleting stories/items from SQL:', error);
             throw error;
         }
     }
@@ -356,6 +358,25 @@ class SqlService {
 
     } 
 
+    async deleteItemById(uid){ //Item: {itemId, rundownId, storyId}
+        const values = {uid};
+        const sqlQuery = `DELETE FROM ngn_inews_items WHERE uid = @uid;`;
+    
+        try {
+            const result =await db.execute(sqlQuery, values);
+            if(result.rowsAffected[0] > 0){
+                return { success: true, message: "Item deleted successfully" };
+            } else {
+                return { success: false, message: "No rows affected" };            
+            }
+
+        } catch (error) {
+            console.error('Error deleting GFX item:', error);
+            return { success: false, message: "Database error", error: error.message };
+        }
+
+    } 
+
     async disableItem(item){ //Item: {itemId, rundownId, storyId}
 
         const values = {uid: item.itemId};
@@ -379,27 +400,6 @@ class SqlService {
         }
 
     }
-    
-    async getFullItem(itemUid){
-        const values = {
-            uid:itemUid
-        };
-    
-        const sqlQuery = `
-            SELECT * FROM ngn_inews_items WHERE uid = @uid;
-        `;
-    
-        try {
-            const result = await db.execute(sqlQuery, values);
-            if(result.rowsAffected[0] === 0) return null;
-            
-            return result.recordset[0];
- 
-        } catch (error) {
-            console.error('Error on fetching item data:', error);
-            return null;
-        }
-    }
 
     async getItemData(uuid){
         const values = {uuid};
@@ -420,6 +420,37 @@ class SqlService {
             } 
         } catch (error) {
             console.error('Error on fetching item data:', error);
+            return null;
+        }
+    }
+
+    async saveDuplicateItem(item) { 
+        const values = {
+            name: item.name,
+            lastupdate: createTick(),
+            production: item.production,
+            rundown: item.rundown,
+            story: item.story,
+            ord: item.ord,
+            ordupdate: createTick(),
+            template: item.template,
+            data: item.data,
+            scripts: item.scripts,
+            enabled: 1,
+            tag: "",
+            uuid:item.uuid
+        };
+
+        const sqlQuery = `
+            INSERT INTO ngn_inews_items (name, lastupdate, production, rundown, story, ord, ordupdate, template, data, scripts, enabled, tag, uuid)
+            OUTPUT INSERTED.uid
+            VALUES (@name, @lastupdate, @production, @rundown, @story, @ord, @ordupdate,@template, @data, @scripts, @enabled, @tag, @uuid);`;
+    
+        try {
+            const result = await db.execute(sqlQuery, values);
+            return result.recordset[0].uid;
+        } catch (error) {
+            console.error('storeNewItem:Error on storing GFX item:', error);
             return null;
         }
     }

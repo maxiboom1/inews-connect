@@ -2,6 +2,7 @@ import inewsCache from "../1-dal/inews-cache.js";
 import itemsHash from "../1-dal/items-hashmap.js";
 import sqlService from "./sql-service.js";
 import logger from "../utilities/logger.js";
+import duplicateService from "./duplicates-service.js";
 
 class StoryItemManager {
     constructor() {
@@ -39,29 +40,32 @@ class StoryItemManager {
         }
   
         for (const [uuid, item] of Object.entries(this.storyAttachments)) {
-            await this.processStoryItem(uuid, item);
+            item.rundown = this.rundownId;
+            item.story = this.storyId;
+            await this.processStoryItem(item);
         }
     
         await this.removeUnusedItems();
 
     }
-    
-    async registerStoryItems() {
 
-        for (const [uuid, item] of Object.entries(this.storyAttachments)) {
-            if (itemsHash.isUsed(uuid)) {
-                //await this.createDuplicate(this.rundownId, this.story, uuid, item.ord, this.rundownStr);
-            } else {
-                await this.registerNewItem(uuid, item);
-            }
+    async processStoryItem(item) {
+        
+        // Is this item has duplicates?
+        if(itemsHash.hasDuplicates(item.uuid) && !this.cacheAttachmentsIds.includes(item.uuid)){
+            duplicateService.createDuplicate(item);
+        }
+
+        // New item in existing modified story
+        if (!this.cacheAttachmentsIds.includes(item.uuid)) {
+            await this.registerNewItem(item);
+        } else  {
+            await this.updateExistingItem(item);
         }
     }
 
-    async registerNewItem(uuid, item) {
-        itemsHash.add(uuid);
-        item.rundown = this.rundownId;
-        item.story = this.storyId;
-
+    async registerNewItem(item) {
+        itemsHash.add(item.uuid);
         const result = await sqlService.upsertItem(item);
         if (result.success) {
             logger(`[ITEM] New item registered in ${this.rundownStr}, story ${this.story.storyName}`);
@@ -70,26 +74,36 @@ class StoryItemManager {
         }
         
     }
-
-    async processStoryItem(uuid, item) {
        
-        // New item in existing modified story
-        if (!this.cacheAttachmentsIds.includes(uuid)) {
-            await this.registerNewItem(uuid, item);
-        } else {
-            await this.updateExistingItem(uuid, item);
-        }
+    async updateExistingItem(item) {
+        await sqlService.updateItemDataOrdName(item);
     }
-    
-    async updateExistingItem(uuid, item) {
 
-       await sqlService.updateItemDataOrdName(item);
+    async registerStoryItems() {
+
+        for (const [uuid, item] of Object.entries(this.storyAttachments)) {
+            item.rundown = this.rundownId;
+            item.story = this.storyId;
+            if (itemsHash.isUsed(item.uuid)) {
+                await duplicateService.createDuplicate(item);
+            } else {
+                await this.registerNewItem(item);
+            }
+        }
     }
     
     async removeUnusedItems() {
         if (this.cacheAttachmentsIds.length > this.storyAttachmentsIds.length) { 
             await Promise.all(this.cacheAttachmentsIds.map(async uuid => {
+                
                 if (!this.storyAttachmentsIds.includes(uuid)) {
+                    if(itemsHash.hasDuplicates(uuid)){
+                        const uid = itemsHash.getDuplicateId(this.storyId, this.rundownId);
+                        await sqlService.deleteItemById(uid);
+                        itemsHash.removeDuplicate(uid);
+                        return;
+                    }
+
                     await sqlService.deleteItem(this.rundownStr, uuid);
                     itemsHash.remove(uuid);
                 }
