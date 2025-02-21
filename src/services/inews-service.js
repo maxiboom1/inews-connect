@@ -114,7 +114,7 @@ class RundownProcessor {
         // Save this story to cache
         await inewsCache.saveStory(rundownStr, listItem, index);
 
-        await itemsService.itemProcessor(rundownStr,this.rundownsObj[rundownStr].uid, listItem, {newStory:true});
+        await itemsService.itemProcessor(rundownStr, this.rundownsObj[rundownStr].uid, listItem, {newStory:true});
 
         lastUpdateService.triggerRundownUpdate(rundownStr)
 

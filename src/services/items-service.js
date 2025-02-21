@@ -52,74 +52,27 @@ class StoryItemManager {
     // Here we know that item coming from new story - so all items are new.
     async registerStoryItems() {
 
-        for (const [itemId, itemProp] of Object.entries(this.story.attachments)) {
-            if (itemsHash.isUsed(itemId)) {
-                await this.createDuplicate(this.rundownId, this.story, itemId, itemProp.ord, this.rundownStr);
+        for (const [uuid, item] of Object.entries(this.storyAttachments)) {
+            if (itemsHash.isUsed(uuid)) {
+                //await this.createDuplicate(this.rundownId, this.story, uuid, item.ord, this.rundownStr);
             } else {
-                await this.registerNewItem(itemId, itemProp);
+                await this.registerNewItem(uuid, item);
             }
         }
     }
- 
-    async createDuplicate(rundownId, story, referenceItemId, ord, rundownStr) {
-        let uid = await inewsCache.getStoryUid(rundownStr, story.identifier);
-        const referenceItem = await sqlService.getFullItem(referenceItemId);
-        if(referenceItem){
-            referenceItem.rundown = rundownId;
-            referenceItem.story = uid;
-            referenceItem.ord = ord;
-            referenceItem.lastupdate = createTick();
-            referenceItem.ordupdate = createTick();
-    
-            const duplicateItemUid = await sqlService.storeDuplicateItem(referenceItem);
-            itemsHash.addDuplicate(referenceItemId, duplicateItemUid, rundownStr, story.identifier, story.uid, story.fileName);
-    
-            const storyAttachments = await inewsCache.getStoryAttachments(rundownStr, story.identifier);
-            delete storyAttachments[referenceItemId];
-            const newItem = {
-                gfxTemplate: referenceItem.template,
-                gfxProduction: referenceItem.production,
-                itemSlug: referenceItem.name,
-                ord: referenceItem.ord
-            }
-            storyAttachments[duplicateItemUid] = newItem;
-            await inewsCache.setStoryAttachments(rundownStr, story.identifier, storyAttachments);
-            logger(`[ITEM] New duplicate item in ${rundownStr}, story ${story.storyName}`);
-        } else {
-            logger(`[ITEM] New duplicate item in ${rundownStr}, story ${story.storyName} has no master in SQL`,"red");
-        }
 
-    }
+    async registerNewItem(uuid, item) {
+        itemsHash.add(uuid);
+        item.rundown = this.rundownId;
+        item.story = this.storyId;
 
-    async registerNewItem(itemId, itemProp) {
-        itemsHash.add(itemId);
-        const item = {
-            itemId: itemId,
-            rundownId: this.rundownId,
-            storyId: this.storyId,
-            ord: itemProp.ord
-        }
-        const result = await sqlService.updateItem(this.rundownStr, item);
+        const result = await sqlService.upsertItem(item);
         if (result.success) {
             logger(`[ITEM] New item registered in ${this.rundownStr}, story ${this.story.storyName}`);
         } else {
-            logger(`[SQL] Update error. Item ${item.itemId} in ${this.rundownStr}, story {${this.story.storyName}}. Reason: ${result.message}`,"red");
+            logger(`[SQL] Update error. Item in ${this.rundownStr}, story {${this.story.storyName}}. Reason: ${result.message}`,"red");
         }
         
-    }
-    
-    async processStoryItem(itemId, itemProp) {
-        const dupId = this.isAlreadyRegistered(itemId, this.cacheAttachmentsIds);
-    
-        if (dupId) {
-            await this.handleDuplicateItem(itemId, dupId, itemProp);
-        } else if (!this.cacheAttachmentsIds.includes(itemId) && itemsHash.isUsed(itemId)) {
-            await this.handleNewItem(itemId, itemProp);
-        } else if (!this.cacheAttachmentsIds.includes(itemId)) {
-            await this.registerNewItem(itemId, itemProp);
-        } else {
-            await this.updateExistingItem(itemId, itemProp);
-        }
     }
     
     async handleDuplicateItem(itemId, dupId, itemProp) {
@@ -132,11 +85,6 @@ class StoryItemManager {
             storyId: this.storyId,
             ord: itemProp.ord
         });
-    }
-    
-    async handleNewItem(itemId, itemProp) {
-        this.story.attachments = await this.createDuplicateOnExistStory(this.rundownId, this.story, itemId, itemProp.ord, this.rundownStr);
-        itemsHash.add(itemId);
     }
     
     async updateExistingItem(itemId, itemProp) {

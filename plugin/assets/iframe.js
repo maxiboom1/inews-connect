@@ -1,11 +1,19 @@
-// window.parent.funcName()
-// Show/Hide buttons logic
+const originUrl = window.location.origin;
+document.getElementById("save").addEventListener('click', clickOnSave);
+document.querySelector("#navigateBack").addEventListener('click', ()=>{
+    window.parent.hideIframe();
+});
+function showSaveButton(){document.getElementById("save").style.display = 'block'; hideDragButton();}
+function hideSaveButton(){document.getElementById("save").style.display = 'none';}
+function hideBackButton(){document.getElementById("navigateBack").style.display = 'none';}
+
+
 async function clickOnSave(){
     try{
         const values = getItemData(); // returns item{name,data,scripts,templateId,productionId}       
-        const gfxItem = await window.parent.fetchData(`${originUrl}/api/set-item`,"POST",JSON.stringify(values));
-        setGfxItem(gfxItem);
-        await setCopyBuffer(gfxItem);
+        const uuid = await window.parent.fetchData(`${originUrl}/api/set-item`,"POST",JSON.stringify(values));
+        setUuid(uuid);
+        await setCopyBuffer(uuid);
         const promptSpan = document.getElementById('promptSpan');
         promptSpan.style.display = "block";
         promptSpan.style.color = "green";
@@ -19,15 +27,30 @@ async function clickOnSave(){
         console.error("Failed to post data");
     }
 }
+// returns item{name,data,scripts,templateId,productionId}
+function getItemData(){
+    const _NA_Values = __NA_GetValues();
+    const _NA_Scripts = __NA_GetScripts();
+    const template = document.body.getAttribute('data-template');
+    const production = document.body.getAttribute('data-production');
+
+    return values = {
+        name:document.getElementById("nameInput").value,
+        data: _NA_Values,
+        scripts: _NA_Scripts,
+        template: template,
+        production: production
+    }        
+}
 
 async function setCopyBuffer(gfxItem){
     // Try copying with Clipboard API
     if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(createMosMessage1(gfxItem));
+        await navigator.clipboard.writeText(createMosMessage(gfxItem));
     } else {
         // Fallback method
         const tempTextarea = document.createElement("textarea");
-        tempTextarea.value = createMosMessage1(gfxItem);
+        tempTextarea.value = createMosMessage(gfxItem);
         document.body.appendChild(tempTextarea);
         tempTextarea.select();
         document.execCommand("copy");
@@ -36,18 +59,12 @@ async function setCopyBuffer(gfxItem){
     }
 }
 
-function createMosMessage1(gfxItem){
-    const templateId = document.body.getAttribute('data-template');
-    const productionId = document.body.getAttribute('data-production');
+function createMosMessage(uuid){
     const item = getItemData();//item{name,data,scripts,templateId,productionId}
-    let itemID = "";
-    if(document.body.hasAttribute("data-itemID")){
-        itemID = document.body.getAttribute('data-itemID');
-    }
     return `<mos>
         <ncsItem>
             <item>
-                <itemID>${itemID}</itemID>
+                <itemID></itemID>
                 <itemSlug>${document.getElementById("nameInput").value.replace(/'/g, "")}</itemSlug>
                 <objID></objID>
                 <mosID>iNEWSMOS1</mosID>
@@ -55,70 +72,20 @@ function createMosMessage1(gfxItem){
                 <mosItemEditorProgID>alexE</mosItemEditorProgID>
                 <mosAbstract></mosAbstract>
                 <group>1</group>
-                <gfxItem>${gfxItem}</gfxItem>
-                <gfxTemplate>${templateId}</gfxTemplate>
-                <gfxProduction>${productionId}</gfxProduction>
-                <gfxData>${item.data}</gfxData>
-                <gfxScripts>${item.scripts}</gfxScripts>
+                <mosExternalMetadata>
+                    <uuid>${uuid}</uuid>
+                    <template>${item.template}</template>
+                    <production>${item.production}</production>
+                    <data>${item.data}</data>
+                    <scripts>${item.scripts}</scripts>
+                </mosExternalMetadata>
             </item>
         </ncsItem>
     </mos>`; 
 }
 
-// returns item{name,data,scripts,templateId,productionId}
-function getItemData(){
-        const _NA_Values = __NA_GetValues();
-        const _NA_Scripts = __NA_GetScripts();
-        const templateId = document.body.getAttribute('data-template');
-        const productionId = document.body.getAttribute('data-production');
-
-        return values = {
-            name:document.getElementById("nameInput").value,
-            data: _NA_Values,
-            scripts: _NA_Scripts,
-            templateId: templateId,
-            productionId: productionId
-        }        
-}
-
-function drag(event) { 
-    const msg = createMosMessage(); // Returns well-formatted <mos> message as string
-    event.dataTransfer.setData("text",msg);
-}
-
-function drop() {
-    showSaveButton();
-}
-
-function createMosMessage(){
-    const templateId = document.body.getAttribute('data-template');
-    const productionId = document.body.getAttribute('data-production');
-    const gfxItem = document.body.getAttribute('data-gfxItem');
-    let itemID = "";
-    if(document.body.hasAttribute("data-itemID")){
-        itemID = document.body.getAttribute('data-itemID');
-    }
-    return `<mos>
-        <ncsItem>
-            <item>
-                <itemID>${itemID}</itemID>
-                <itemSlug>${document.getElementById("nameInput").value.replace(/'/g, "")}</itemSlug>
-                <objID></objID>
-                <mosID>iNEWSMOS1</mosID>
-                <mosItemBrowserProgID>alex</mosItemBrowserProgID>
-                <mosItemEditorProgID>alexE</mosItemEditorProgID>
-                <mosAbstract></mosAbstract>
-                <group>1</group>
-                <gfxItem>${gfxItem}</gfxItem>
-                <gfxTemplate>${templateId}</gfxTemplate>
-                <gfxProduction>${productionId}</gfxProduction>
-            </item>
-        </ncsItem>
-    </mos>`;
-}
-
-function setGfxItem(gfxItem){
-    document.body.setAttribute("data-gfxItem",gfxItem);
+function setUuid(uuid){
+    document.body.setAttribute("data-uuid",uuid);
 }
 
 function setDuplicateStatus(bool,itemData){
@@ -136,38 +103,9 @@ function getDuplicateStatus(){
     return document.body.getAttribute("data-hasDuplicate");
 }
 
-function getGfxItem(){
-    return document.body.getAttribute("data-gfxItem");
+function getUuid(){
+    return document.body.getAttribute("data-uuid");
 }
-// Internal inews id
-function setItemID(itemID){
-    document.body.setAttribute("data-itemID",itemID);
-}
-// Internal inews id
-function getItemID(){
-    return document.body.getAttribute("data-itemID");
-}
-
-function showSaveButton(){document.getElementById("save").style.display = 'block'; hideDragButton();}
-function hideSaveButton(){document.getElementById("save").style.display = 'none';}
-function showDragButton(){document.getElementById("drag").style.display = 'block'; hideSaveButton();}
-function hideDragButton(){document.getElementById("drag").style.display = 'none';}
-function hideBackButton(){document.getElementById("navigateBack").style.display = 'none';}
-
-
-const originUrl = window.location.origin;
-document.getElementById("drag").style.display = 'none';
-document.getElementById("save").addEventListener('click', clickOnSave);
-
-document.getElementById('drag').addEventListener('dragstart', drag);
-document.getElementById('drag').addEventListener('dragend', drop);
-document.getElementById('drag').addEventListener('click', async ()=>{
-    await navigator.clipboard.writeText(createMosMessage());
-    hideDragButton();
-});
-document.querySelector("#navigateBack").addEventListener('click', ()=>{
-    window.parent.hideIframe();
-});
 
 // ========================================= Preview server ========================================= \\
 document.getElementById('preview').addEventListener('click', async ()=>{

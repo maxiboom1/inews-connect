@@ -29,13 +29,19 @@ Rundown with 50 items in hebrew. it original id is  66792 - 66826
 
 **LOGS:**
 
-2.1.4
+3.0.0
 
 - Added gfxData and gfxScripts to xml parser.
 - Added _clearAttachments to inews cache - to clear data and scripts before saving them in cache.
 - No need to itemProcessor to return attachments.
 - Added uuid library to generate unique uuid's for items
 - Added "uuid" column in "ngn_inews_items" of type "uniqueidentifier", with nulls allow.
+- Storing uuid in inews instead uid.
+- Cleanups in iframe.js and menu.js, implementing new data type handling.
+- Implemented ItemModel, and ItemConstructor, that complete missing fields and perform types check.
+- We assign to item uniq uuid only in routes/set-new-item
+- In sql service - removed old methods and left with the new main "upsert" item.
+- XML-parser adjusted to return item according new item datatype.
 
 2.1.3
 - Error handling on FTP connection err/timeout.

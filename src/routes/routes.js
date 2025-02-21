@@ -4,6 +4,10 @@ import inewsCache from "../1-dal/inews-cache.js";
 import itemsService from "../services/items-service.js";
 import itemsHash from "../1-dal/items-hashmap.js";
 import appConfig from "../utilities/app-config.js";
+import { v4 as uuid } from 'uuid';
+import itemConstructor from "../utilities/item-constructor.js";
+
+
 const router = express.Router();
 
 const showDuplicatesStatus = appConfig.showDuplicatesStatus;
@@ -22,19 +26,9 @@ router.get('/templates/:uid', async (req, res) => {
 });
 
 // Get http://serverAddr:4001/api/get-item-data
-router.get('/get-item-data/:uid', async (req, res) => {
-  const itemUid = req.params.uid;
-  const itemData = await sqlService.getItemData(itemUid);
-  
-  // If item has duplicates, fetch and set hasDuplicate,rundown, story to itemData 
-  if(itemsHash.hasDuplicates(itemUid) && showDuplicatesStatus){
-    const meta = await inewsCache.getRundownStrAndStoryName(itemData.rundown, itemData.story);
-    itemData.hasDuplicate = true;
-    itemData.rundown = meta.rundown;
-    itemData.story = meta.storyName;
-  } else {
-    itemData.hasDuplicate = false;
-  }
+router.get('/get-item-data/:uuid', async (req, res) => {
+  const uuid = req.params.uuid;
+  const itemData = await sqlService.getItemData(uuid);
   res.json(itemData);
 });
 
@@ -42,8 +36,11 @@ router.get('/get-item-data/:uid', async (req, res) => {
 router.post('/set-item', async (req, res) => {
   try {
       const item = req.body;
-      const uid = await sqlService.storeNewItem(item);
-      res.json(uid);
+      const constructedItem = itemConstructor(item);
+      constructedItem.uuid = generateUuid();
+      console.log(constructedItem);
+      await sqlService.upsertItem(constructedItem);
+      res.json(constructedItem.uuid);
   } catch (error) {
       console.error('Error processing JSON data:', error);
       res.status(400).json("Error processing JSON data");
@@ -77,5 +74,10 @@ router.get('/getitems', async (req, res) => {
   const data = itemsHash.getData();
   res.json(data);
 });
+
+
+function generateUuid(){
+  return uuid();
+}
 
 export default router;
