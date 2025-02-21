@@ -27,7 +27,7 @@ async function clickOnSave(){
         console.error("Failed to post data");
     }
 }
-// returns item{name,data,scripts,templateId,productionId}
+// returns item{name,data,scripts,template,production}
 function getItemData(){
     const _NA_Values = __NA_GetValues();
     const _NA_Scripts = __NA_GetScripts();
@@ -43,14 +43,14 @@ function getItemData(){
     }        
 }
 
-async function setCopyBuffer(gfxItem){
+async function setCopyBuffer(uuid){
     // Try copying with Clipboard API
     if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(createMosMessage(gfxItem));
+        await navigator.clipboard.writeText(createMosMessage(uuid));
     } else {
         // Fallback method
         const tempTextarea = document.createElement("textarea");
-        tempTextarea.value = createMosMessage(gfxItem);
+        tempTextarea.value = createMosMessage(uuid);
         document.body.appendChild(tempTextarea);
         tempTextarea.select();
         document.execCommand("copy");

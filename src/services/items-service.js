@@ -2,9 +2,6 @@ import inewsCache from "../1-dal/inews-cache.js";
 import itemsHash from "../1-dal/items-hashmap.js";
 import sqlService from "./sql-service.js";
 import logger from "../utilities/logger.js";
-import createTick from "../utilities/time-tick.js";
-import lastUpdateService from "../utilities/rundown-update-debouncer.js";
-import deleteService from "./delete-service.js"
 
 class StoryItemManager {
     constructor() {
@@ -41,15 +38,14 @@ class StoryItemManager {
             return;
         }
   
-        for (const [itemId, itemProp] of Object.entries(this.storyAttachments)) {
-            await this.processStoryItem(itemId, itemProp);
+        for (const [uuid, item] of Object.entries(this.storyAttachments)) {
+            await this.processStoryItem(uuid, item);
         }
     
         await this.removeUnusedItems();
 
     }
     
-    // Here we know that item coming from new story - so all items are new.
     async registerStoryItems() {
 
         for (const [uuid, item] of Object.entries(this.storyAttachments)) {
@@ -74,127 +70,33 @@ class StoryItemManager {
         }
         
     }
-    
-    async handleDuplicateItem(itemId, dupId, itemProp) {
-        this.story.attachments[dupId] = this.story.attachments[itemId];
-        delete this.story.attachments[itemId];
-    
-        await sqlService.updateItemOrd(this.rundownStr, {
-            itemId: dupId,
-            rundownId: this.rundownId,
-            storyId: this.storyId,
-            ord: itemProp.ord
-        });
+
+    async processStoryItem(uuid, item) {
+       
+        // New item in existing modified story
+        if (!this.cacheAttachmentsIds.includes(uuid)) {
+            await this.registerNewItem(uuid, item);
+        } else {
+            await this.updateExistingItem(uuid, item);
+        }
     }
     
-    async updateExistingItem(itemId, itemProp) {
-        if (itemProp.ord !== this.cachedAttachments[itemId].ord) {
-            await sqlService.updateItemOrd(this.rundownStr, {
-                itemId: itemId,
-                rundownId: this.rundownId,
-                storyId: this.storyId,
-                ord: itemProp.ord
-            });
-            logger(`[ITEM] Item reordered in ${this.rundownStr}, story ${this.story.storyName}`);
-        }
-    
-        if (itemProp.itemSlug !== this.cachedAttachments[itemId].itemSlug) {
-            await sqlService.updateItemSlug(this.rundownStr, {
-                itemId: itemId,
-                rundownId: this.rundownId,
-                storyId: this.storyId,
-                itemSlug: itemProp.itemSlug
-            });
-            logger(`[ITEM] Item ${itemProp.itemSlug} modified in ${this.rundownStr}, story ${this.story.storyName}`);
-        }
+    async updateExistingItem(uuid, item) {
+
+       await sqlService.updateItemDataOrdName(item);
     }
     
     async removeUnusedItems() {
-        if (this.cacheAttachmentsIds.length > this.storyAttachmentsIds.length) {
-            
-            await Promise.all(this.cacheAttachmentsIds.map(async key => {
-                
-                if (!this.storyAttachmentsIds.includes(key)) {
-                    
-                    const itemToDelete = {
-                        itemId: key,
-                        rundownId: this.rundownId,
-                        storyId: this.storyId,
-                    };
-                    
-                    await deleteService.triggerDeleteItem(this.rundownStr, itemToDelete, this.story.identifier);
+        if (this.cacheAttachmentsIds.length > this.storyAttachmentsIds.length) { 
+            await Promise.all(this.cacheAttachmentsIds.map(async uuid => {
+                if (!this.storyAttachmentsIds.includes(uuid)) {
+                    await sqlService.deleteItem(this.rundownStr, uuid);
+                    itemsHash.remove(uuid);
                 }
             }));
         }
     }
 
-    isAlreadyRegistered(itemId, itemsArr) {
-        const matchingItem = itemsArr.find(item => itemsHash.getReferenceItem(item) === itemId);
-        return matchingItem ? matchingItem : null; // Return the matching itemId or null if no match found
-    }
-
-    async createDuplicateOnExistStory(rundownId, story, referenceItemId, ord, rundownStr) {
-        let uid = await inewsCache.getStoryUid(rundownStr, story.identifier);
-        const referenceItem = await sqlService.getFullItem(referenceItemId);
-        if(referenceItem){
-            referenceItem.rundown = rundownId;
-            referenceItem.story = uid;
-            referenceItem.ord = ord;
-            referenceItem.lastupdate = createTick();
-            referenceItem.ordupdate = createTick();
-    
-            const duplicateItemUid = await sqlService.storeDuplicateItem(referenceItem);
-            itemsHash.addDuplicate(referenceItemId, duplicateItemUid, rundownStr, story.identifier, uid, story.fileName);
-
-            delete story.attachments[referenceItemId];
-            const newItem = {
-                gfxTemplate: referenceItem.template,
-                gfxProduction: referenceItem.production,
-                itemSlug: referenceItem.name,
-                ord: referenceItem.ord
-            };
-            story.attachments[duplicateItemUid] = newItem;
-    
-            
-    
-            return story.attachments;
-        } else {
-            logger(`[ITEM] New duplicate item in ${rundownStr}, story ${story.storyName} has no master in SQL`,"red");
-        }
-
-    }
-    
-    async updateDuplicates(item) {
-        if (itemsHash.hasDuplicates(item.gfxItem)) {
-            const referenceItem = await sqlService.getFullItem(item.gfxItem);
-            const masterItemRundownStr = await inewsCache.getRundownStr(referenceItem.rundown); // Get original item rundownStr by rundown uid
-            const rundownsToUpdateArr = [masterItemRundownStr]; // Add original item rundown to array of rundowns that will be rundownLastUpdate'd
-            const storiesToUpdateArr = [];
-            const duplicates = itemsHash.getDuplicatesByReference(item.gfxItem);
-            if (duplicates === null) return;
-
-            for (const [id, value] of Object.entries(duplicates)) {
-                rundownsToUpdateArr.push(value.rundownStr);
-                storiesToUpdateArr.push(value.storyId);
-                await sqlService.updateItemFromItemsService({
-                    "name": referenceItem.name,
-                    "data": referenceItem.data,
-                    "scripts": referenceItem.scripts,
-                    "templateId": referenceItem.template,
-                    "productionId": referenceItem.production,
-                    "gfxItem": id
-                });
-            }
-
-            await Promise.all([...new Set(rundownsToUpdateArr)].map(async rundownStr => {
-                lastUpdateService.triggerRundownUpdate(rundownStr);
-            }));
-
-            await Promise.all([...new Set(storiesToUpdateArr)].map(async storyId => {
-                await sqlService.storyLastUpdate(storyId);
-            }));
-        }
-    }
 }
 
 const itemsService = new StoryItemManager();

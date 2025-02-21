@@ -168,12 +168,11 @@ async function mosMsgFromHost(event) {
     }
     
     // User click apply/ok
-    // we should get from iframe  
     if (message.indexOf('<ncsItemRequest/>') !== -1){
         const values = iframe.contentWindow.getItemData();
-        values.gfxItem = iframe.contentWindow.getGfxItem();
+        values.uuid = iframe.contentWindow.getUuid();
         await fetchData(`${originUrl}/api/update-item`, "POST", JSON.stringify(values));
-        const updatedMosMsg = iframe.contentWindow.createMosMessage();
+        const updatedMosMsg = iframe.contentWindow.createMosMessage(values.uuid);
         event.source.postMessage(updatedMosMsg, event.origin);
         console.log("got item request. Collected data from iframe: ", values);
     }

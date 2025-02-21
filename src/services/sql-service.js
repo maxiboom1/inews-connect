@@ -6,7 +6,6 @@ import itemsHash from "../1-dal/items-hashmap.js";
 import createTick from "../utilities/time-tick.js";
 import logger from "../utilities/logger.js";
 import lastUpdateService from "../utilities/rundown-update-debouncer.js";
-import { v4 as uuid } from 'uuid';
 import itemConstructor from "../utilities/item-constructor.js";
 
 class SqlService {
@@ -26,7 +25,6 @@ class SqlService {
             await this.getAndStoreProductions();
             await this.getAndStoreTemplates();
             await this.hideUnwatchedRundowns();
-            await itemsHash.resetDuplicates();
         }        
         catch (error) {
             throw error;
@@ -253,8 +251,8 @@ class SqlService {
 
         const sqlQuery = `
             MERGE INTO ngn_inews_items AS target
-            USING (VALUES (@uid, @name, @lastupdate, @production, @rundown, @story, @ord, @ordupdate, @template, @data, @scripts, @enabled, @tag, @uuid)) 
-            AS source (uid, name, lastupdate, production, rundown, story, ord, ordupdate, template, data, scripts, enabled, tag, uuid)
+            USING (VALUES (@name, @lastupdate, @production, @rundown, @story, @ord, @ordupdate, @template, @data, @scripts, @enabled, @tag, @uuid)) 
+            AS source (name, lastupdate, production, rundown, story, ord, ordupdate, template, data, scripts, enabled, tag, uuid)
             ON target.uuid = source.uuid
             WHEN MATCHED THEN
                 UPDATE SET 
@@ -284,9 +282,64 @@ class SqlService {
         }
     }
 
-    async deleteItem(rundownStr, item){ //Item: {itemId, rundownId, storyId}
-        const values = {uid: item.itemId};
-        const sqlQuery = `DELETE FROM ngn_inews_items WHERE uid = @uid;`;
+    async updateItemData(item) { // item{uuid,name,data,scripts,template,production}
+        item = itemConstructor(item);
+        const {uuid,name,data,scripts} = {...item};
+        const values = {
+            uuid,
+            name,
+            data,
+            scripts,
+            lastupdate: createTick()
+        };
+        const sqlQuery = `
+            UPDATE ngn_inews_items SET 
+            lastupdate = @lastupdate, name = @name, data = @data, scripts = @scripts
+            WHERE uuid = @uuid;`;
+        try {
+            const result = await db.execute(sqlQuery, values);
+            if (result.rowsAffected[0] > 0) {
+                return { success: true, message: "Item updated successfully" };
+            } else {
+                return { success: false, message: "No rows affected" };
+            }
+        } catch (error) {
+            console.error('updateItem:Error on storing GFX item:', error);
+            return { success: false, message: "Database error", error: error.message };
+        }
+    }
+
+    async updateItemDataOrdName(item) { // item{uuid,name,data,scripts,template,production}
+        item = itemConstructor(item);
+        const {uuid,name,data,ord} = {...item};
+        const values = {
+            uuid,
+            name,
+            data,
+            ord,
+            lastupdate: createTick(),
+            ordupdate:createTick()
+        };
+        const sqlQuery = `
+            UPDATE ngn_inews_items SET 
+            lastupdate = @lastupdate, name = @name, data = @data, ord = @ord, ordupdate = @ordupdate
+            WHERE uuid = @uuid;`;
+        try {
+            const result = await db.execute(sqlQuery, values);
+            if (result.rowsAffected[0] > 0) {
+                return { success: true, message: "Item updated successfully" };
+            } else {
+                return { success: false, message: "No rows affected" };
+            }
+        } catch (error) {
+            console.error('updateItem: Error on updating item:', error);
+            return { success: false, message: "Database error", error: error.message };
+        }
+    }
+
+    async deleteItem(rundownStr, uuid){ //Item: {itemId, rundownId, storyId}
+        const values = {uuid};
+        const sqlQuery = `DELETE FROM ngn_inews_items WHERE uuid = @uuid;`;
     
         try {
             const result =await db.execute(sqlQuery, values);

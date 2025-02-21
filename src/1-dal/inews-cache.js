@@ -204,12 +204,12 @@ class InewsCache {
     // Remove gfxData and gfxScripts from attachments
     _cleanAttachments(attachments){
         const att = {};
-        for(const [id,item] of Object.entries(attachments)){
-            att[id] = {};
-            att[id].gfxTemplate = item.gfxTemplate,
-            att[id].gfxProduction = item.gfxProduction,
-            att[id].itemSlug = item.itemSlug,
-            att[id].ord = item.ord
+        for(const [uuid,item] of Object.entries(attachments)){
+            att[uuid] = {};
+            att[uuid].template = item.template,
+            att[uuid].production = item.production,
+            att[uuid].name = item.name,
+            att[uuid].ord = item.ord
         }
         return att;
         
