@@ -1,6 +1,9 @@
 const originUrl = window.location.origin;
 document.getElementById("save").addEventListener('click', clickOnSave);
-function hideBackButton(){document.getElementById("navigateBack").style.display = 'none';}
+function hideSaveButton(){
+    console.log("XXXXXXXX")
+    document.getElementById("save").style.display = 'none';
+}
 document.querySelector("#navigateBack").addEventListener('click', ()=>{
     window.parent.hideIframe();
 });

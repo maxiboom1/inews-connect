@@ -407,7 +407,6 @@ class SqlService {
     
         try {
             const result = await db.execute(sqlQuery, values);
-            itemsHash.addUnlinked(result.recordset[0].uid);
             return uuid; // We return it to front page and its stored in mos obj as gfxItem
         } catch (error) {
             console.error('storeNewItem:Error on storing GFX item:', error);

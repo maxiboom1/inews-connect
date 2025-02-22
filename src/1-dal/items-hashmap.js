@@ -7,48 +7,19 @@ class ItemsHashmap {
     
     constructor() {
         this.map = {}; 
-        this.unlinked = {};
         this.duplicates = {}; // {itemId:{referenceItemId,rundownStr, storyIdentifier, storyId} ...}
-        this.cacheFilePath = path.join(path.resolve(), 'unlinkedItemsCache.json');
         this.duplicatesFilePath = path.join(path.resolve(), 'duplicatesCache.json');            
-        
-        // Ensure cache files exist on load
-        this.ensureCacheFileExists(this.cacheFilePath, {});
         this.ensureCacheFileExists(this.duplicatesFilePath, {});
-        
-        this.loadUnlinkedFromCache();
-        setInterval(() => this.updateCacheFile(), 60000); 
     }
 
-    // Ensure the cache file exists or create it with default content
     ensureCacheFileExists(filePath, defaultContent) {
         if (!fs.existsSync(filePath)) {
             fs.writeFileSync(filePath, JSON.stringify(defaultContent), 'utf8');
         }
     }
 
-    loadUnlinkedFromCache() {
-        try {
-            const data = fs.readFileSync(this.cacheFilePath, 'utf8');
-            this.unlinked = JSON.parse(data);
-        } catch (err) {
-            console.error('Error reading from cache file:', err);
-            this.unlinked = {};
-        }
-    }
-
-    updateCacheFile() {
-        try {
-            const data = JSON.stringify(this.unlinked);
-            fs.writeFileSync(this.cacheFilePath, data, 'utf8');
-        } catch (err) {
-            console.error('Error writing to cache file:', err);
-        }
-    }
-
     async add(gfxItem) {
         this.map[gfxItem] = 1;
-        delete this.unlinked[gfxItem];
         return;
     }
 
@@ -65,14 +36,6 @@ class ItemsHashmap {
     isUsed(gfxItem) {
         const result = this.map[gfxItem]>0;
         return result;
-    }
-
-    get(){
-        return this.unlinked;
-    }
-
-    addUnlinked(gfxItem){
-        this.unlinked[gfxItem] = "";
     }
 
     /* - - - - - - - - - - DUPLICATES - - - - - - - - - - */
@@ -148,18 +111,7 @@ class ItemsHashmap {
         // Return null if the object is empty
         return Object.keys(duplicatesObj).length === 0 ? null : duplicatesObj;
     }
-    
-    // Not used in branch anymore
-    getDuplicatesStoryFileNames(referenceItemId) {
-        return [
-            ...new Set(
-                Object.values(this.duplicates)
-                    .filter(duplicate => duplicate.referenceItemId === referenceItemId)
-                    .map(duplicate => duplicate.storyFileName)
-            )
-        ];
-    }
-    
+   
     // Returns {identifier:rundownStr} pairs 
     getDuplicateStoryIdentifiers(referenceItemId) {
         const uniquePairs = {};
