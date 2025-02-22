@@ -159,8 +159,11 @@ async function mosMsgFromHost(event) {
         setTimeout(()=>{blocked = false;},50);
         const templateId = extractTagContent(message, "gfxTemplate");
         const gfxItem = extractTagContent(message, "gfxItem");
-        const itemID = extractTagContent(message, "itemID");
-        renderItem(templateId, gfxItem,itemID);
+        
+        // We sending local item data jic the user open while it offline 
+        const cachedData = extractTagContent(message, "gfxData");//.slice(1,-1);
+        const cachedName = extractTagContent(message, "itemSlug");
+        renderItem(templateId, gfxItem, cachedData, cachedName);
     }
     
     // User click apply/ok
@@ -213,45 +216,44 @@ function renderTemplate(templateId) {
     }, 500);
 }
 
-// User loaded exists item in inews
-async function renderItem(templateId,gfxItem, itemID){
-    const itemObj = await fetchData(`${originUrl}/api/get-item-data/${gfxItem}`, "GET");
-    const itemData = itemObj.data.replace(/\\'/g, '%27'); // Fix " ' " single quote bug
-    const itemName = itemObj.name;
-
-    if(itemData !== "N/A"){
-        let url = `${originUrl}/templates/${templateId}.html`;
-        const iframe = document.getElementById('contentIframe');
-        iframe.src = url; // Set the source of the iframe to the URL  
-        
-        iframe.onload = function() {
+// User loaded exist item in inews
+async function renderItem(templateId, gfxItem, cachedData, cachedName){
     
-            try {
-                // Set item values in template
-                iframe.contentWindow.__NA_SetValues(itemData);   
-            } catch (error) {
-                console.log("Failed to complete __NA_SetValues", error);
-            }
+    const itemObj = await fetchData(`${originUrl}/api/get-item-data/${gfxItem}`, "GET");
+    console.log(itemObj)
+    // Here, we set item data depends of fetched from our sql - if no data in sql - we load data from NRCS story
+    const itemData = itemObj.data === "N/A" ? cachedData.replace(/\\'/g, '%27') : itemObj.data.replace(/\\'/g, '%27');
+    const itemName = itemObj.data === "N/A" ? cachedName :itemObj.name;
 
-            // Set item values
-            iframe.contentWindow.setGfxItem(gfxItem); // Set gfxItemId in iframe head as "data-gfxitem"
-            iframe.contentWindow.setItemID(itemID); // Set itemID in iframe head as "data-itemID"
-            iframe.contentWindow.nameInputUpdate(itemName,true);
-            console.log('x', itemObj);
-            if(itemObj.hasDuplicate) {
-                iframe.contentWindow.setDuplicateStatus(true, itemObj);
-            }
-            // Show iframe
-            iframe.style.display = 'block'; // Show the iframe
-            iframe.contentWindow.selectFirstTextField();
-            
-        };
-    } else {
-        showPopup(`Error! This element was deleted. Close this window and delete the element from Inews story`);
-        document.getElementById("productionContainer").style.display = "none";
+    let url = `${originUrl}/templates/${templateId}.html`;
+    const iframe = document.getElementById('contentIframe');
+    iframe.src = url; // Set the source of the iframe to the URL  
+    
+    iframe.onload = function() {
+
+        try {
+            // Set item values in template
+            iframe.contentWindow.__NA_SetValues(itemData);   
+        } catch (error) {
+            console.log("Failed to complete __NA_SetValues", error);
+        }
+
+        // Set item values
+        iframe.contentWindow.setGfxItem(gfxItem); // Set gfxItemId in iframe head as "data-gfxitem"
+        iframe.contentWindow.nameInputUpdate(itemName,true);
+        if(!(itemObj.data === "N/A") && itemObj.hasDuplicate) {
+            iframe.contentWindow.setDuplicateStatus(true, itemObj);
+        }
+        // In case we work locally, hide save btb (no reason to use it)
+        if(itemObj.data === "N/A"){iframe.contentWindow.hideSaveButton();}
+
+        // Show iframe
+        iframe.style.display = 'block'; // Show the iframe
+        iframe.contentWindow.selectFirstTextField();
     }
+        
+};
 
-}
 
 // Iframe calls that when user click "back"
 function hideIframe() {

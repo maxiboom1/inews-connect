@@ -138,12 +138,13 @@ class InewsCache {
     }
 
     async saveStory(rundownStr, story, ord) {
+        const clearedAttachments = this._cleanAttachments(story.attachments);
         this.stories[rundownStr][story.identifier] = {
             fileName:story.fileName,
             storyName: story.storyName,
             locator: story.locator,
             flags: story.flags,
-            attachments: story.attachments,
+            attachments: clearedAttachments,
             ord: ord,
             uid:story.uid,
             enabled:story.enabled,
@@ -158,11 +159,12 @@ class InewsCache {
     }
 
     async modifyStory(rundownStr, story) {
+        const clearedAttachments = this._cleanAttachments(story.attachments);
         this.stories[rundownStr][story.identifier].fileName = story.fileName;
         this.stories[rundownStr][story.identifier].storyName = story.storyName;
         this.stories[rundownStr][story.identifier].locator = story.locator;
         this.stories[rundownStr][story.identifier].flags = story.flags;
-        this.stories[rundownStr][story.identifier].attachments = story.attachments;
+        this.stories[rundownStr][story.identifier].attachments = clearedAttachments;
         this.stories[rundownStr][story.identifier].pageNumber = story.pageNumber;
         this.stories[rundownStr][story.identifier].enabled = story.enabled;    
     }
@@ -263,7 +265,18 @@ class InewsCache {
     async getData() {
         return this.stories;
     }
-
+    // Remove gfxData and gfxScripts from attachments
+    _cleanAttachments(attachments){
+        const att = {};
+        for(const [id,item] of Object.entries(attachments)){
+            att[id] = {};
+            att[id].gfxTemplate = item.gfxTemplate,
+            att[id].gfxProduction = item.gfxProduction,
+            att[id].name = item.name,
+            att[id].ord = item.ord
+        }
+        return att;
+    }
 
     
 }

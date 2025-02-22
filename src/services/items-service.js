@@ -15,7 +15,6 @@ class StoryItemManager {
         this.storyId = null;
         this.cachedAttachments = {};
         this.storyAttachments = {};
-        this.storyAttachmentsIds = [];
         this.cacheAttachmentsIds = [];
     }
 
@@ -27,20 +26,17 @@ class StoryItemManager {
         this.storyId = this.cachedStory.uid;
         this.cachedAttachments = this.cachedStory.attachments;
         this.storyAttachments = this.story.attachments;
-        this.storyAttachmentsIds = Object.keys(this.storyAttachments);
         this.cacheAttachmentsIds = Object.keys(this.cachedAttachments);
         return;
     }
 
     async itemProcessor(rundownStr, rundownId, story, options={}) {
-
         await this.setGlobalValues(rundownStr, rundownId, story);
-        
         if (options.newStory) {
             await this.registerStoryItems();
             return;
         }
-  
+
         for (const [itemId, itemProp] of Object.entries(this.storyAttachments)) {
             await this.processStoryItem(itemId, itemProp);
         }
@@ -52,11 +48,11 @@ class StoryItemManager {
     // Here we know that item coming from new story - so all items are new.
     async registerStoryItems() {
 
-        for (const [itemId, itemProp] of Object.entries(this.story.attachments)) {
-            if (itemsHash.isUsed(itemId)) {
-                await this.createDuplicate(this.rundownId, this.story, itemId, itemProp.ord, this.rundownStr);
+        for (const [itemId, item] of Object.entries(this.story.attachments)) {
+            if (itemsHash.isUsed(item.uuid)) {
+                await this.createDuplicate(this.rundownId, this.story, itemId, item.ord, this.rundownStr);
             } else {
-                await this.registerNewItem(itemId, itemProp);
+                await this.registerNewItem(itemId, item);
             }
         }
     }
@@ -91,38 +87,40 @@ class StoryItemManager {
 
     }
 
-    async registerNewItem(itemId, itemProp) {
-        itemsHash.add(itemId);
-        const item = {
-            itemId: itemId,
-            rundownId: this.rundownId,
-            storyId: this.storyId,
-            ord: itemProp.ord
-        }
-        const result = await sqlService.updateItem(this.rundownStr, item);
+    async registerNewItem(itemId, item) {
+        itemsHash.add(item.uuid);
+        item.rundown = Number(this.rundownId);
+        item.story = Number(this.storyId);
+        
+        const result = await sqlService.upsertItem(item);
         if (result.success) {
-            logger(`[ITEM] New item registered in ${this.rundownStr}, story ${this.story.storyName}`);
+            logger(`[ITEM] New item restored in ${this.rundownStr}, story ${this.story.storyName}`);
         } else {
-            logger(`[SQL] Update error. Item ${item.itemId} in ${this.rundownStr}, story {${this.story.storyName}}. Reason: ${result.message}`,"red");
+            logger(`[SQL] Update error. Item ${item.uuid} in ${this.rundownStr}, story {${this.story.storyName}}. Reason: ${result.message}`,"red");
         }
         
     }
     
     async processStoryItem(itemId, itemProp) {
         const dupId = this.isAlreadyRegistered(itemId, this.cacheAttachmentsIds);
-    
+        //case-1
         if (dupId) {
             await this.handleDuplicateItem(itemId, dupId, itemProp);
+        //case-2
         } else if (!this.cacheAttachmentsIds.includes(itemId) && itemsHash.isUsed(itemId)) {
             await this.handleNewItem(itemId, itemProp);
+        //case-3
         } else if (!this.cacheAttachmentsIds.includes(itemId)) {
             await this.registerNewItem(itemId, itemProp);
+        //case-4
         } else {
             await this.updateExistingItem(itemId, itemProp);
         }
     }
     
     async handleDuplicateItem(itemId, dupId, itemProp) {
+        
+        // This insertion swaps the id from inews to its dupId, and returns in the end for duplicate caching 
         this.story.attachments[dupId] = this.story.attachments[itemId];
         delete this.story.attachments[itemId];
     
@@ -139,34 +137,26 @@ class StoryItemManager {
         itemsHash.add(itemId);
     }
     
-    async updateExistingItem(itemId, itemProp) {
-        if (itemProp.ord !== this.cachedAttachments[itemId].ord) {
-            await sqlService.updateItemOrd(this.rundownStr, {
-                itemId: itemId,
-                rundownId: this.rundownId,
-                storyId: this.storyId,
-                ord: itemProp.ord
-            });
+    async updateExistingItem(itemId, item) {
+        item.rundown = this.rundownId;
+        item.story = this.storyId;
+
+        if (item.ord !== this.cachedAttachments[itemId].ord) {
+            await sqlService.updateItemOrd(this.rundownStr,item);
             logger(`[ITEM] Item reordered in ${this.rundownStr}, story ${this.story.storyName}`);
         }
-    
-        if (itemProp.itemSlug !== this.cachedAttachments[itemId].itemSlug) {
-            await sqlService.updateItemSlug(this.rundownStr, {
-                itemId: itemId,
-                rundownId: this.rundownId,
-                storyId: this.storyId,
-                itemSlug: itemProp.itemSlug
-            });
-            logger(`[ITEM] Item ${itemProp.itemSlug} modified in ${this.rundownStr}, story ${this.story.storyName}`);
+
+        if (item.name !== this.cachedAttachments[itemId].name) {
+            await sqlService.updateItemSlug(this.rundownStr, item);
+            logger(`[ITEM] Item ${item.name} modified in ${this.rundownStr}, story ${this.story.storyName}`);
         }
     }
     
     async removeUnusedItems() {
-        if (this.cacheAttachmentsIds.length > this.storyAttachmentsIds.length) {
-            
+        if (this.cacheAttachmentsIds.length > Object.keys(this.storyAttachments).length) {
             await Promise.all(this.cacheAttachmentsIds.map(async key => {
                 
-                if (!this.storyAttachmentsIds.includes(key)) {
+                if (!Object.keys(this.storyAttachments).includes(key)) {
                     
                     const itemToDelete = {
                         itemId: key,
