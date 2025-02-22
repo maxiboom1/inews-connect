@@ -29,6 +29,14 @@ Rundown with 50 items in hebrew. it original id is  66792 - 66826
 
 **LOGS:**
 
+3.0.0
+
+- Added ability of restoring items from inews, and edit items in inews while they not monitored by inews-connect.
+- Added items model and items-constructor (type setter).
+- Added new column to ngn_inews_items - uuid [nvarchar 36, allow nulls]
+- Installed uuid library to generate uniq identifiers to items and break the foolish dependency of SQL primary key uid.
+- Added install sql file to update ngn_inews_items (Docs&&Database/db/add uuid command.txt). Before running it, delete the existing items table. It will also reset the uid number, and break all existing items. This upgrade will make all existing items broken!
+
 2.1.3
 
 - Error handling on FTP connection err/timeout.
