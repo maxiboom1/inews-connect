@@ -28,11 +28,11 @@ async function clickOnSave(){
 async function setCopyBuffer(gfxItem){
     // Try copying with Clipboard API
     if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(createMosMessage1(gfxItem));
+        await navigator.clipboard.writeText(createMosMessage(gfxItem));
     } else {
         // Fallback method
         const tempTextarea = document.createElement("textarea");
-        tempTextarea.value = createMosMessage1(gfxItem);
+        tempTextarea.value = createMosMessage(gfxItem);
         document.body.appendChild(tempTextarea);
         tempTextarea.select();
         document.execCommand("copy");
@@ -41,7 +41,7 @@ async function setCopyBuffer(gfxItem){
     }
 }
 
-function createMosMessage1(gfxItem){
+function createMosMessage(gfxItem){
     const templateId = document.body.getAttribute('data-template');
     const productionId = document.body.getAttribute('data-production');
     const item = getItemData();//item{name,data,scripts,templateId,productionId}
