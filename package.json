@@ -23,7 +23,8 @@
     "jsdom": "^23.0.1",
     "mssql": "^10.0.1",
     "unescape": "^1.0.1",
-    "utf-8-validate": "^6.0.3"
+    "utf-8-validate": "^6.0.3",
+    "uuid": "^11.1.0"
   },
   "scripts": {
     "start": "nodemon --ignore unlinkedItemsCache.json --ignore duplicatesCache.json app.js"

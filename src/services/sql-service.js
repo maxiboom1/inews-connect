@@ -6,6 +6,7 @@ import itemsHash from "../1-dal/items-hashmap.js";
 import createTick from "../utilities/time-tick.js";
 import logger from "../utilities/logger.js";
 import lastUpdateService from "../utilities/rundown-update-debouncer.js";
+import { v4 as generateId } from 'uuid';
 
 class SqlService {
 
@@ -238,14 +239,14 @@ class SqlService {
             story: item.storyId,
             ord: item.ord,
             ordupdate: createTick(),
-            uid: item.itemId,
+            uuid: item.itemId,
             enabled: 1
         };
         const sqlQuery = `
             UPDATE ngn_inews_items SET 
             lastupdate = @lastupdate, rundown = @rundown, story = @story, ord = @ord, ordupdate = @ordupdate, enabled = @enabled
             OUTPUT INSERTED.*
-            WHERE uid = @uid;`;
+            WHERE uuid = @uuid;`;
 
         try {
             const result = await db.execute(sqlQuery, values);
@@ -264,13 +265,13 @@ class SqlService {
         const values = {
             ord: item.ord,
             ordupdate: createTick(),
-            uid: item.itemId
+            uuid: item.itemId
         };
         const sqlQuery = `
             UPDATE ngn_inews_items SET 
             ord = @ord, ordupdate = @ordupdate
             OUTPUT INSERTED.*
-            WHERE uid = @uid;`;
+            WHERE uuid = @uuid;`;
     
         try {
             const result =await db.execute(sqlQuery, values);
@@ -288,13 +289,13 @@ class SqlService {
         const values = {
             lastupdate: createTick(),
             name:item.itemSlug,
-            uid: item.itemId
+            uuid: item.itemId
         };
         const sqlQuery = `
             UPDATE ngn_inews_items SET 
             lastupdate = @lastupdate, name = @name
             OUTPUT INSERTED.*
-            WHERE uid = @uid;`;
+            WHERE uuid = @uuid;`;
     
         try {
             const result =await db.execute(sqlQuery, values);
@@ -312,9 +313,9 @@ class SqlService {
     }
 
     async deleteItem(rundownStr, item){ //Item: {itemId, rundownId, storyId}
-        const values = {uid: item.itemId};
-        const sqlQuery = `DELETE FROM ngn_inews_items WHERE uid = @uid;`;
-    
+        const values = {uuid: item.itemId};
+        const sqlQuery = `DELETE FROM ngn_inews_items WHERE uuid = @uuid;`;
+        console.log("From Delete: " + item.itemId)
         try {
             const result =await db.execute(sqlQuery, values);
             if(result.rowsAffected[0] > 0){
@@ -332,11 +333,11 @@ class SqlService {
 
     async disableItem(item){ //Item: {itemId, rundownId, storyId}
 
-        const values = {uid: item.itemId};
+        const values = {uuid: item.itemId};
         const sqlQuery = `
             UPDATE ngn_inews_items 
             SET enabled = 0
-            WHERE uid = @uid;`;
+            WHERE uuid = @uuid;`;
     
         try {
             const result =await db.execute(sqlQuery, values);
@@ -360,6 +361,7 @@ class SqlService {
     //We don't save it to cache! It will be updated from inews-service modify story event.  
     
     async storeNewItem(item) { // Expect: {name, data, scripts, templateId,productionId}
+        const uuid = generateId();
         const values = {
             name: item.name,
             lastupdate: createTick(),
@@ -373,16 +375,17 @@ class SqlService {
             scripts: item.scripts,
             enabled: 1,
             tag: "",
+            uuid:uuid
         };
         const sqlQuery = `
-            INSERT INTO ngn_inews_items (name, lastupdate, production, rundown, story, ord, ordupdate, template, data, scripts, enabled, tag)
+            INSERT INTO ngn_inews_items (uuid, name, lastupdate, production, rundown, story, ord, ordupdate, template, data, scripts, enabled, tag)
             OUTPUT INSERTED.uid
-            VALUES (@name, @lastupdate, @production, @rundown, @story, @ord, @ordupdate,@template, @data, @scripts, @enabled, @tag);`;
+            VALUES (@uuid, @name, @lastupdate, @production, @rundown, @story, @ord, @ordupdate,@template, @data, @scripts, @enabled, @tag);`;
     
         try {
             const result = await db.execute(sqlQuery, values);
             itemsHash.addUnlinked(result.recordset[0].uid);
-            return result.recordset[0].uid; // We return it to front page and its stored in mos obj as gfxItem
+            return uuid; // We return it to front page and its stored in mos obj as gfxItem
         } catch (error) {
             console.error('storeNewItem:Error on storing GFX item:', error);
             return null;
@@ -391,11 +394,11 @@ class SqlService {
 
     async getItemData(itemUid){
         const values = {
-            uid:itemUid
+            uuid:itemUid
         };
     
         const sqlQuery = `
-            SELECT data,name,rundown,story FROM ngn_inews_items WHERE uid = @uid;
+            SELECT data,name,rundown,story FROM ngn_inews_items WHERE uuid = @uuid;
         `;
     
         try {
@@ -425,7 +428,7 @@ class SqlService {
             scripts: item.scripts,
             enabled: 1,
             tag: "", 
-            uid: item.gfxItem
+            uuid: item.gfxItem
         };
 
         const sqlQuery = `
@@ -438,7 +441,7 @@ class SqlService {
                 scripts = @scripts,
                 enabled = @enabled,
                 tag = @tag
-            WHERE uid = @uid;`;
+            WHERE uuid = @uuid;`;
 
         try {
             // Execute the update query with the provided values
@@ -459,7 +462,7 @@ class SqlService {
             scripts: item.scripts,
             enabled: 1,
             tag: "", 
-            uid: item.gfxItem
+            uuid: item.gfxItem
         };
 
         const sqlQuery = `
@@ -472,7 +475,7 @@ class SqlService {
                 scripts = @scripts,
                 enabled = @enabled,
                 tag = @tag
-            WHERE uid = @uid;`;
+            WHERE uuid = @uuid;`;
 
         try {
             // Execute the update query with the provided values
@@ -524,11 +527,11 @@ class SqlService {
 
     async getFullItem(itemUid){
         const values = {
-            uid:itemUid
+            uuid:itemUid
         };
     
         const sqlQuery = `
-            SELECT * FROM ngn_inews_items WHERE uid = @uid;
+            SELECT * FROM ngn_inews_items WHERE uuid = @uuid;
         `;
     
         try {
@@ -544,14 +547,16 @@ class SqlService {
     }
 
     async storeDuplicateItem(item) { // Expect: {name, data, scripts, templateId,productionId}
+        item.uuid = generateId();
+        
         const sqlQuery = `
-            INSERT INTO ngn_inews_items (name, lastupdate, production, rundown, story, ord, ordupdate, template, data, scripts, enabled, tag)
+            INSERT INTO ngn_inews_items (uuid, name, lastupdate, production, rundown, story, ord, ordupdate, template, data, scripts, enabled, tag)
             OUTPUT INSERTED.uid
-            VALUES (@name, @lastupdate, @production, @rundown, @story, @ord, @ordupdate,@template, @data, @scripts, @enabled, @tag);`;
+            VALUES (@uuid, @name, @lastupdate, @production, @rundown, @story, @ord, @ordupdate,@template, @data, @scripts, @enabled, @tag);`;
     
         try {
             const result = await db.execute(sqlQuery, item);
-            return result.recordset[0].uid; // We return it to front page and its stored in mos obj as gfxItem
+            return item.uuid; 
         } catch (error) {
             console.error('storeDuplicateItem:Error on storing GFX item:', error);
             return null;
