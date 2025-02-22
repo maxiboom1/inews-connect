@@ -1,14 +1,7 @@
 import { XMLParser } from "fast-xml-parser";
+import itemConstructor from "./item-constructor.js";
 
-/** 
- * Gets inews raw story and returns parsed attachments.
- * @returns - {"ItemId":{
- * gfxTemplate,
- * gfxProduction,
- * itemSlug,
- * ord}
- * }
- */
+
 function parseAttachments(story) {
   const attachments = story.attachments;
   const obj = {};
@@ -27,12 +20,15 @@ function parseAttachments(story) {
         item = jObj.AttachmentContent.mos;
       }
       // Create a new object with only the specified properties
-      obj[item.gfxItem] = {
+      obj[item.gfxItem] = itemConstructor({
         gfxTemplate: item.gfxTemplate,
         gfxProduction: item.gfxProduction,
-        itemSlug: item.itemSlug,
-        ord: a
-      };
+        name: item.itemSlug,
+        ord: a,
+        gfxData: item.gfxData,
+        gfxScripts: item.gfxScripts,
+        uuid:item.gfxItem
+      });
 
     }
   }
@@ -42,45 +38,3 @@ function parseAttachments(story) {
 
 export default { parseAttachments };
 
-
-/*
-Example attachment:
-
-<AttachmentContent><mos>
-                <ncsItem>
-                        <item>
-                                <itemID>1</itemID>
-                                <itemSlug>asd</itemSlug>
-                                <objID>12345</objID>
-                                <mosID>iNEWSMOS1</mosID>
-                                <mosItemBrowserProgID>alex</mosItemBrowserProgID>
-                                <mosItemEditorProgID>alexE</mosItemEditorProgID>
-                                <mosAbstract>asd</mosAbstract>
-                                <group>1</group>
-                                <gfxItem>102</gfxItem>
-                                <gfxTemplate>10005</gfxTemplate>
-                                <gfxProduction>2</gfxProduction>
-                        </item>
-                </ncsItem>
-        </mos></AttachmentContent>
-
-
-
-
-// Example for edited attachment
-{
-  '1': '<AttachmentContent><mos>\r\n' +
-    '\t\t<itemID>1</itemID>\r\n' +
-    '\t\t<itemSlug>eee123</itemSlug>\r\n' +
-    '\t\t<objID>12345</objID>\r\n' +
-    '\t\t<mosID>iNEWSMOS1</mosID>\r\n' +
-    '\t\t<mosItemBrowserProgID>alex</mosItemBrowserProgID>\r\n' +
-    '\t\t<mosItemEditorProgID>alexE</mosItemEditorProgID>\r\n' +
-    '\t\t<mosAbstract/>\r\n' +
-    '\t\t<group>1</group>\r\n' +
-    '\t\t<gfxItem>143</gfxItem>\r\n' +
-    '\t\t<gfxTemplate>10005</gfxTemplate>\r\n' +
-    '\t\t<gfxProduction>2</gfxProduction>\r\n' +
-    '\t</mos></AttachmentContent>'
-}        
-*/

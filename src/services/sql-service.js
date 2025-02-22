@@ -17,7 +17,7 @@ class SqlService {
     async initialize(){
         try {
             // Delete stories table in mssql 
-            await this.deleteDBStories();
+            await this.resetDB();
             for (const [rundownStr] of Object.entries(appConfig.rundowns)) {
                 const assertedRDUid = await this.addDbRundown(rundownStr);
                 await inewsCache.initializeRundown(rundownStr,assertedRDUid, appConfig.rundowns[rundownStr].production);
@@ -32,13 +32,15 @@ class SqlService {
         }
     }
 
-    async deleteDBStories() {
+    async resetDB() {
+        const deleteStories = `DELETE FROM ngn_inews_stories`;
+        const deleteItems = `DELETE FROM ngn_inews_items`;
         try {
-            const sql = `DELETE FROM ngn_inews_stories`;
-            await db.execute(sql);
-            logger(`[SQL] ngn_inews_stories cleared....`);
+            await db.execute(deleteStories);
+            await db.execute(deleteItems)
+            logger(`[SQL] ngn_inews_stories and ngn_inews_items cleared....`);
         } catch (error) {
-            console.error('Error deleting stories from SQL:', error);
+            console.error('Error deleting stories/items from SQL:', error);
             throw error;
         }
     }
@@ -232,40 +234,62 @@ class SqlService {
 
 // ********************* ITEMS FUNCTIONS ********************** //
 
-    async updateItem(rundownStr, item) { // Item: {itemId, rundownId, storyId, ord}
+    async upsertItem(item) { // Item: <ItemModel>
         const values = {
+            name: item.name,
             lastupdate: createTick(),
-            rundown: item.rundownId,
-            story: item.storyId,
+            production: item.gfxProduction,
+            rundown: item.rundown,
+            story: item.story,
             ord: item.ord,
             ordupdate: createTick(),
-            uuid: item.itemId,
-            enabled: 1
+            template: item.gfxTemplate,
+            data: item.gfxData,
+            scripts: item.gfxScripts,
+            enabled: 1,
+            tag: item.tag,
+            uuid:item.uuid
         };
+
         const sqlQuery = `
-            UPDATE ngn_inews_items SET 
-            lastupdate = @lastupdate, rundown = @rundown, story = @story, ord = @ord, ordupdate = @ordupdate, enabled = @enabled
-            OUTPUT INSERTED.*
-            WHERE uuid = @uuid;`;
+            MERGE INTO ngn_inews_items AS target
+            USING (VALUES (@name, @lastupdate, @production, @rundown, @story, @ord, @ordupdate, @template, @data, @scripts, @enabled, @tag, @uuid)) 
+            AS source (name, lastupdate, production, rundown, story, ord, ordupdate, template, data, scripts, enabled, tag, uuid)
+            ON target.uuid = source.uuid
+            WHEN MATCHED THEN
+                UPDATE SET 
+                    name = source.name,
+                    lastupdate = source.lastupdate,
+                    rundown = source.rundown,
+                    story = source.story,
+                    ord = source.ord,
+                    ordupdate = source.ordupdate,
+                    enabled = source.enabled
+            WHEN NOT MATCHED THEN
+                INSERT (name, lastupdate, production, rundown, story, ord, ordupdate, template, data, scripts, enabled, tag, uuid)
+                VALUES (source.name, source.lastupdate, source.production, source.rundown, source.story, source.ord, source.ordupdate, source.template, source.data, source.scripts, source.enabled, source.tag, source.uuid);
+            `;
 
         try {
             const result = await db.execute(sqlQuery, values);
             if (result.rowsAffected[0] > 0) {
-                return { success: true, message: "Item updated successfully" };
+                logger(`[SQL] Item in story {${item.story}} restored`);
+                return {success:true};
             } else {
-                return { success: false, message: "No rows affected" };
+                logger(`[SQL] Item in {} story {${item.story}} failed to update or insert`, "red");
+                return {success:false};
             }
         } catch (error) {
-            console.error('updateItem:Error on storing GFX item:', error);
-            return { success: false, message: "Database error", error: error.message };
+            console.error('Error on storing GFX item:', error);
+            return {success:false, event:"error", error:error};
         }
     }
 
-    async updateItemOrd(rundownStr, item) { // Item: {itemId, rundownId, storyId, ord}
+    async updateItemOrd(rundownStr, item) { // Item: <ItemModel>
         const values = {
             ord: item.ord,
             ordupdate: createTick(),
-            uuid: item.itemId
+            uuid: item.uuid
         };
         const sqlQuery = `
             UPDATE ngn_inews_items SET 
@@ -285,11 +309,11 @@ class SqlService {
         }
     }
 
-    async updateItemSlug(rundownStr, item){// Item: {itemId, rundownId, storyId, itemSlug}
+    async updateItemSlug(rundownStr, item){// Item: <ItemModel>
         const values = {
             lastupdate: createTick(),
-            name:item.itemSlug,
-            uuid: item.itemId
+            name:item.name,
+            uuid: item.uuid
         };
         const sqlQuery = `
             UPDATE ngn_inews_items SET 
@@ -301,7 +325,7 @@ class SqlService {
             const result =await db.execute(sqlQuery, values);
             // ADD HERE STORY UPDATE
             if(result.rowsAffected[0] > 0){
-                logger("Registered new GFX item ");
+                logger("Items slug updated");
             } else {
                 logger(`WARNING! GFX ${item.itemId} [${item.ord}] in ${rundownStr}, story num ${item.ord} doesn't exists in DB`);
             }

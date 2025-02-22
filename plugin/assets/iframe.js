@@ -45,14 +45,11 @@ function createMosMessage(gfxItem){
     const templateId = document.body.getAttribute('data-template');
     const productionId = document.body.getAttribute('data-production');
     const item = getItemData();//item{name,data,scripts,templateId,productionId}
-    let itemID = "";
-    if(document.body.hasAttribute("data-itemID")){
-        itemID = document.body.getAttribute('data-itemID');
-    }
+
     return `<mos>
         <ncsItem>
             <item>
-                <itemID>${itemID}</itemID>
+                <itemID></itemID>
                 <itemSlug>${document.getElementById("nameInput").value.replace(/'/g, "")}</itemSlug>
                 <objID></objID>
                 <mosID>iNEWSMOS1</mosID>

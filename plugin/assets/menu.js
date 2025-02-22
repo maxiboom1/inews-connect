@@ -159,8 +159,7 @@ async function mosMsgFromHost(event) {
         setTimeout(()=>{blocked = false;},50);
         const templateId = extractTagContent(message, "gfxTemplate");
         const gfxItem = extractTagContent(message, "gfxItem");
-        const itemID = extractTagContent(message, "itemID");
-        renderItem(templateId, gfxItem,itemID);
+        renderItem(templateId, gfxItem);
     }
     
     // User click apply/ok
@@ -214,7 +213,7 @@ function renderTemplate(templateId) {
 }
 
 // User loaded exists item in inews
-async function renderItem(templateId,gfxItem, itemID){
+async function renderItem(templateId,gfxItem){
     const itemObj = await fetchData(`${originUrl}/api/get-item-data/${gfxItem}`, "GET");
     const itemData = itemObj.data.replace(/\\'/g, '%27'); // Fix " ' " single quote bug
     const itemName = itemObj.name;

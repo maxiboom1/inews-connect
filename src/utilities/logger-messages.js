@@ -7,7 +7,7 @@ class Messages {
 
     appLoadedMessage(rundowns){
         const host = getServerIP();
-        console.clear();
+        //console.clear();
         logger(`**********************************************************************`,"blue");
         logger(`[SYSTEM] Inews-Connect, App Version: ${appConfig.version}, loaded in ${timeMeasure.end()} seconds`,"green");
         logger(`[SYSTEM] Plugin url: http://${host}:${appConfig.pluginPort}/index.html`,"green")
