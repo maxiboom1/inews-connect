@@ -192,7 +192,6 @@ document.addEventListener('UpdateNameEvent', function(event) {nameInputUpdate(ev
 document.addEventListener('DOMContentLoaded', () => {
     const linkButton = document.getElementById('linkButton');
     const popover = document.getElementById('pluginPopover');
-    const duplicateStatus = getDuplicateStatus();
     
     linkButton.addEventListener('mouseover', (e) => {
         const rect = linkButton.getBoundingClientRect();
