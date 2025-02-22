@@ -1,5 +1,10 @@
-// window.parent.funcName()
-// Show/Hide buttons logic
+const originUrl = window.location.origin;
+document.getElementById("save").addEventListener('click', clickOnSave);
+function hideBackButton(){document.getElementById("navigateBack").style.display = 'none';}
+document.querySelector("#navigateBack").addEventListener('click', ()=>{
+    window.parent.hideIframe();
+});
+
 async function clickOnSave(){
     try{
         const values = getItemData(); // returns item{name,data,scripts,templateId,productionId}       
@@ -64,7 +69,7 @@ function createMosMessage1(gfxItem){
         </ncsItem>
     </mos>`; 
 }
-// returns item{name,data,scripts,templateId,productionId}
+
 function getItemData(){
         const _NA_Values = __NA_GetValues();
         const _NA_Scripts = __NA_GetScripts();
@@ -78,46 +83,6 @@ function getItemData(){
             templateId: templateId,
             productionId: productionId
         }        
-}
-
-function drag(event) { 
-    const msg = createMosMessage(); // Returns well-formatted <mos> message as string
-    event.dataTransfer.setData("text",msg);
-}
-
-function drop() {
-    showSaveButton();
-}
-
-function createMosMessage(){
-    const templateId = document.body.getAttribute('data-template');
-    const productionId = document.body.getAttribute('data-production');
-    const gfxItem = document.body.getAttribute('data-gfxItem');
-    let itemID = "";
-    if(document.body.hasAttribute("data-itemID")){
-        itemID = document.body.getAttribute('data-itemID');
-    }
-    return `<mos>
-        <ncsItem>
-            <item>
-                <itemID>${itemID}</itemID>
-                <itemSlug>${document.getElementById("nameInput").value.replace(/'/g, "")}</itemSlug>
-                <objID></objID>
-                <mosID>iNEWSMOS1</mosID>
-                <mosItemBrowserProgID>alex</mosItemBrowserProgID>
-                <mosItemEditorProgID>alexE</mosItemEditorProgID>
-                <mosAbstract></mosAbstract>
-                <group>1</group>
-                <gfxItem>${gfxItem}</gfxItem>
-                <gfxTemplate>${templateId}</gfxTemplate>
-                <gfxProduction>${productionId}</gfxProduction>
-            </item>
-        </ncsItem>
-    </mos>`;
-}
-
-function setGfxItem(gfxItem){
-    document.body.setAttribute("data-gfxItem",gfxItem);
 }
 
 function setDuplicateStatus(bool,itemData){
@@ -135,38 +100,13 @@ function getDuplicateStatus(){
     return document.body.getAttribute("data-hasDuplicate");
 }
 
+function setGfxItem(gfxItem){
+    document.body.setAttribute("data-gfxItem",gfxItem);
+}
+
 function getGfxItem(){
     return document.body.getAttribute("data-gfxItem");
 }
-// Internal inews id
-function setItemID(itemID){
-    document.body.setAttribute("data-itemID",itemID);
-}
-// Internal inews id
-function getItemID(){
-    return document.body.getAttribute("data-itemID");
-}
-
-function showSaveButton(){document.getElementById("save").style.display = 'block'; hideDragButton();}
-function hideSaveButton(){document.getElementById("save").style.display = 'none';}
-function showDragButton(){document.getElementById("drag").style.display = 'block'; hideSaveButton();}
-function hideDragButton(){document.getElementById("drag").style.display = 'none';}
-function hideBackButton(){document.getElementById("navigateBack").style.display = 'none';}
-
-
-const originUrl = window.location.origin;
-document.getElementById("drag").style.display = 'none';
-document.getElementById("save").addEventListener('click', clickOnSave);
-
-document.getElementById('drag').addEventListener('dragstart', drag);
-document.getElementById('drag').addEventListener('dragend', drop);
-document.getElementById('drag').addEventListener('click', async ()=>{
-    await navigator.clipboard.writeText(createMosMessage());
-    hideDragButton();
-});
-document.querySelector("#navigateBack").addEventListener('click', ()=>{
-    window.parent.hideIframe();
-});
 
 // ========================================= Preview server ========================================= \\
 document.getElementById('preview').addEventListener('click', async ()=>{
@@ -253,7 +193,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const linkButton = document.getElementById('linkButton');
     const popover = document.getElementById('pluginPopover');
     const duplicateStatus = getDuplicateStatus();
-    console.log("dup: "+ duplicateStatus);
     
     linkButton.addEventListener('mouseover', (e) => {
         const rect = linkButton.getBoundingClientRect();

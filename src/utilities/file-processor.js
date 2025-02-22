@@ -86,10 +86,6 @@ function createPluginPanel(document) {
     const previewButton = createButton(document,"button","Reset Preview","preview","pluginPanelBtn");
     previewButton.setAttribute("data-preview-host", appConfig.previewServer);
     previewButton.setAttribute("data-preview-port", appConfig.previewPort);
-
-    // Create drag btn
-    const dragButton = createButton(document,"button","Drag","drag","pluginPanelBtn");
-    dragButton.draggable = true;
     
     // Create Link btn
     const linkButton = createButton(document,"button","Favorites","linkButton","pluginPanelBtn");
@@ -104,7 +100,6 @@ function createPluginPanel(document) {
     // Append buttons to the "pluginPanel" div
     pluginPanelDiv.appendChild(backButton);
     // pluginPanelDiv.appendChild(saveButton);
-    pluginPanelDiv.appendChild(dragButton);
     pluginPanelDiv.appendChild(previewButton);
     pluginPanelDiv.appendChild(linkButton);
     // Create label

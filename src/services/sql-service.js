@@ -315,7 +315,6 @@ class SqlService {
     async deleteItem(rundownStr, item){ //Item: {itemId, rundownId, storyId}
         const values = {uuid: item.itemId};
         const sqlQuery = `DELETE FROM ngn_inews_items WHERE uuid = @uuid;`;
-        console.log("From Delete: " + item.itemId)
         try {
             const result =await db.execute(sqlQuery, values);
             if(result.rowsAffected[0] > 0){

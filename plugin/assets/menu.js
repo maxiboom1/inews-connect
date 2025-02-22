@@ -235,9 +235,7 @@ async function renderItem(templateId,gfxItem, itemID){
 
             // Set item values
             iframe.contentWindow.setGfxItem(gfxItem); // Set gfxItemId in iframe head as "data-gfxitem"
-            iframe.contentWindow.setItemID(itemID); // Set itemID in iframe head as "data-itemID"
             iframe.contentWindow.nameInputUpdate(itemName,true);
-            console.log('x', itemObj);
             if(itemObj.hasDuplicate) {
                 iframe.contentWindow.setDuplicateStatus(true, itemObj);
             }
