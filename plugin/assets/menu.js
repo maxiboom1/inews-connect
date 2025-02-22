@@ -172,7 +172,7 @@ async function mosMsgFromHost(event) {
         const values = iframe.contentWindow.getItemData();
         values.gfxItem = iframe.contentWindow.getGfxItem();
         await fetchData(`${originUrl}/api/update-item`, "POST", JSON.stringify(values));
-        const updatedMosMsg = iframe.contentWindow.createMosMessage();
+        const updatedMosMsg = iframe.contentWindow.createMosMessage(values.gfxItem);
         event.source.postMessage(updatedMosMsg, event.origin);
         console.log("got item request. Collected data from iframe: ", values);
     }
