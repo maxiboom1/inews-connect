@@ -15,7 +15,6 @@ class StoryItemManager {
         this.storyId = null;
         this.cachedAttachments = {};
         this.storyAttachments = {};
-        this.storyAttachmentsIds = [];
         this.cacheAttachmentsIds = [];
     }
 
@@ -27,7 +26,6 @@ class StoryItemManager {
         this.storyId = this.cachedStory.uid;
         this.cachedAttachments = this.cachedStory.attachments;
         this.storyAttachments = this.story.attachments;
-        this.storyAttachmentsIds = Object.keys(this.storyAttachments);
         this.cacheAttachmentsIds = Object.keys(this.cachedAttachments);
         return;
     }
@@ -35,12 +33,11 @@ class StoryItemManager {
     async itemProcessor(rundownStr, rundownId, story, options={}) {
 
         await this.setGlobalValues(rundownStr, rundownId, story);
-        
         if (options.newStory) {
             await this.registerStoryItems();
             return;
         }
-  
+
         for (const [itemId, itemProp] of Object.entries(this.storyAttachments)) {
             await this.processStoryItem(itemId, itemProp);
         }
@@ -110,19 +107,28 @@ class StoryItemManager {
     
     async processStoryItem(itemId, itemProp) {
         const dupId = this.isAlreadyRegistered(itemId, this.cacheAttachmentsIds);
-    
+        //case-1
         if (dupId) {
+            console.log("case-1");
             await this.handleDuplicateItem(itemId, dupId, itemProp);
+        //case-2
         } else if (!this.cacheAttachmentsIds.includes(itemId) && itemsHash.isUsed(itemId)) {
+            console.log("case-2");
             await this.handleNewItem(itemId, itemProp);
+        //case-3
         } else if (!this.cacheAttachmentsIds.includes(itemId)) {
+            console.log("case-3");
             await this.registerNewItem(itemId, itemProp);
+        //case-4
         } else {
+            console.log("case-4");
             await this.updateExistingItem(itemId, itemProp);
         }
     }
     
     async handleDuplicateItem(itemId, dupId, itemProp) {
+        
+        // This insertion swaps the id from inews to its dupId, and returns in the end for duplicate caching 
         this.story.attachments[dupId] = this.story.attachments[itemId];
         delete this.story.attachments[itemId];
     
@@ -162,11 +168,10 @@ class StoryItemManager {
     }
     
     async removeUnusedItems() {
-        if (this.cacheAttachmentsIds.length > this.storyAttachmentsIds.length) {
-            
+        if (this.cacheAttachmentsIds.length > Object.keys(this.storyAttachments).length) {
             await Promise.all(this.cacheAttachmentsIds.map(async key => {
                 
-                if (!this.storyAttachmentsIds.includes(key)) {
+                if (!Object.keys(this.storyAttachments).includes(key)) {
                     
                     const itemToDelete = {
                         itemId: key,

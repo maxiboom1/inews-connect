@@ -276,7 +276,7 @@ class SqlService {
         try {
             const result =await db.execute(sqlQuery, values);
             if(result.rowsAffected[0] > 0){
-                logger("Item Reordered event registered");
+                logger("[SQL] Item Reordered event registered");
             }
 
         } catch (error) {
