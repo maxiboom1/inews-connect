@@ -182,170 +182,138 @@ Inews-Connect is a service that retrieves rundown data from Avid iNews, caches i
     ]
   }
 
-### v1.8.5
+### Version 1.8.5
+- Added Bootstrap spinner with a fixed 500ms timeout (adjustable in `renderTemplate`).
 
-Implemented bootstrap spinner with fixed show time (500). Timeout can be adjusted in renderTemplate function.
-### v1.8.4
+### Version 1.8.4
+- Renamed function to `"Favorites"`.
+- Implemented keyboard key-trigger (skips input fields).
+- Updated `config.json` for favorites:
+  ```json
+  "favorites": [
+    {"name": "אצבע", "id": 10003, "key": "1"},
+    {"name": "סופר אישיות", "id": 10004, "key": "2"},
+    {"name": "2סופר אישיות", "id": 60032, "key": "3"}
+  ]
+  ```
 
-Renamed the new function to "Favorites"
+### Version 1.8.3
+- Added link button with popular template links from `config.json`:
+  ```json
+  "templatesLinks": [
+    {"templateName": "אצבע", "templateId": 10003},
+    {"templateName": "סופר אישיות", "templateId": 10004},
+    {"templateName": "2סופר אישיות", "templateId": 60032}
+  ]
+  ```
 
-Implemented keyboard key-trigger (skips all "input fields).
+### Version 1.8.2
+- Increased payload size limit to 50 MB.
+- Removed Bootstrap from iframe and unused modal.
 
-New config.json struct for favorites:   "favorites":[ {"name":"אצבע","id":10003, "key": "1"}, {"name":"סופר אישיות","id":10004, "key": "2"}, {"name":"2סופר אישיות","id":60032, "key": "3"} ]
+### Version 1.8.1
+- Set 40-character limit for item names.
 
-Data is fetched from config.json: "templatesLinks":[ {"templateName":"אצבע","templateId":10003}, {"templateName":"סופר אישיות","templateId":10004}, {"templateName":"2סופר אישיות","templateId":60032} ]
+### Version 1.8.0
+- Added modal with predefined item links.
 
-### v1.8.3
+### Version 1.7.9
+- Cleared unused build tools.
+- Added 50ms block mechanism to filter duplicate iNews messages.
+- Implemented `UpdateNameEvent` listener for header updates from `template.updateName()`.
 
-Added link button with links to popular templates
-Data is fetched from config.json: "templatesLinks":[ {"templateName":"אצבע","templateId":10003}, {"templateName":"סופר אישיות","templateId":10004}, {"templateName":"2סופר אישיות","templateId":60032} ]
-### v1.8.2
+### Version 1.7.8
+- Added page number column handling.
 
-Payload size limit increased to 50 MB.
-Bootstrap removed from iframe (and also unused modal).
-### v1.8.1
+### Version 1.7.5
+- Fixed item reorder with counter in `xmlToJson.js` and parser.
 
-Limit for 40 chars at item name
-### v1.8.0
+### Version 1.7.4
+- Added `stor` method in iNews library (`inewsClient.js`, `inewsConnectionClient.js`).
 
-Modal with predefined items links added.
-### v1.7.9
+### Version 1.7.3
+- Wrapped `NA_setValue` in try-catch to avoid crashes from script conflicts.
 
-Cleared from unused build tools installations
-Implemented block mechanism to filter same 2 messages from inews (50 ms block)
-Implemented UpdateNameEvent listener to trigger header name update from template updateName() event dispatch. Now, the problem with "what is the right input field for item name?" is solved - i just got trigger from template.
-Focus on item load is partially solved.
-### v1.7.8
+### Version 1.7.2
+- Fixed single-quote data input.
 
-Implemented page number column handling
-### v1.7.5
+### Version 1.7.1
+- Added input field updating on `keyup`, stored as name on save.
 
-Fixed item reorder (implemented counter in xmlToJson.js in inews library, and in my parser).
-### v1.7.4
+### Version 1.7.0
+- Added static header to item name (configurable via `addItemCategoryName`).
 
-Added stor method in inews library (in both inewsClient.js and inewsConnectionClient.js).
-### v1.7.3
+### Version 1.6.9
+- Ignored disabled templates.
+- Added debounced `onChange` listener for preview server.
+- Added "reset prw" button.
 
-Wrapping NA_setValue in try catch, to avoid crushing in some minor cases (my scripts conflicting with template embedded scripts)
-Maybe the better way is to inject my script file before template embedded scripts..
+### Version 1.6.6
+- Hid unwatched rundowns (`enabled=0`) on load.
+- Added `floating` column in `ngn_inews_stories`.
+- Added "Make copy" button on plugin panel.
+- FTP client now sets `SITE FORMAT` (optimal: `"3nsml"`, configurable in `config.json`).
+- Hid "back" button in edit mode.
+- Added error message for deleted items (`sql getItemData` returns `"N/A"`).
+- Implemented items hashmap for global item use tracking.
 
-### v1.7.2
+### Version 1.6.5
+- Added `hasAttachments()` in `inews-cache`.
+- Removed `lineupExist()` check for performance.
+- Handled two MOS message types in attachments parser.
+- Renamed iframe JS to `iframe.js`.
+- Added copy-to-clipboard and float story handling.
 
-Fix for single quote data input
-### v1.7.1
+### Version 1.6.4
+- Stored parsed attachments as:  
+  ```json
+  attachments { gfxItem {gfxTemplate, gfxProduction, itemSlug, ord} }
+  ```
+- Added `getStoryAttachments` in `inews-service` and `parseAttachments` in `xmlParser`.
 
-Added input field that updates onKeyup, and when user hit "save" actually its value will be stored as name. When user open item, sql service will return this name, so we will see it. On any change, it will be automatically returned to static header+ first input field. So, the only thing that i have to add here, is some lock btn to disable name change, in case the name is custom and user still want to edit some gfx data on item
-### v1.7.0
+### Version 1.6.3
+- Switched to `config.yaml` from JSON.
 
-Added static header to item name (can be seated in addItemCategoryName config)
-### v1.6.9
+### Version 1.6.2
+- Refactored item storage and handling to `sql-service`.
 
-Ignore not enabled templates
-onChange listener with debounce for preview server
-Removed un-necessary "make-copy".
-Added "reset prw" button.
-### v1.6.6
+### Version 1.6.1
+- Implemented `inews-cache` module with full caching support.
 
-Hide un-watched rundowns (enabled=0) on app load.
-Implement new column "floating" in ngn_inews_stories.
-"Make copy" button added on plugin-panel.
-FTP client can set SITE FORMAT now, so its independent from inews site config. The optimal for us is "3nsml". The setting can be changed in config.json
-In edit mode, "back" button is hidden.
-When user try to open item that was deleted in db, he got error message (sql getItemData method returns "N/A" in this case).
-Implemented new items hashmap to handle in use items globally in all watched rundowns. So, if user duplicate story, with the same items, and then delete one of those stories, inews-connect wont delete the item in the deleted stories, because in hash we count item use. It will delete the item only of its count will be 0. To handle it, hash class has add, remove, and isUsed methods.
-We add to hash in items service => create item event, and in sql service => addDbStory.
-We remove from cache in sql service => deleteItem.
-We use isUsed method to check if item can be deleted in sql service => deleteItem.
-Implemented handling for "unlinked items" - those who has been saved in db but not inews. Unlinked item-list backed up in json file. Scheduled task updates the json file every 10 mins. On load, inews-connect loads those items from cache file. In future, its possible to clear db based on unlinked list.
-### v1.6.5
+### Version 1.6.0
+- Added parallel FTP connections and rebuilt caching mechanism.
 
-Plugin works.
-hasAttachments() method added in inews-cache class.
-We don't perform lineupExist() check anymore (increase performance).
-Attachments parser can handle 2 types of MOS messages (edited item has different structure).
-Iframe js file renamed to "iframe.js".
-Handle "enabled" based on attachments. Still write all stories to db.
-Added copy to clipboard option to copy items from stand-alone browser into inews.
-Added float story handling
-### v1.6.4
+### Version 1.5.0
+- Integrated with MS-SQL, fetching and caching stories iteratively.
 
-Storing parsed attachments as : attachments{ gfxItem {gfxTemplate, gfxProduction, itemSlug, ord} }.
-Item service handles create andd reorder items. then, its call sql updateItem/updateItemOrd to update item in db. Then, cache the story.
-Added getStoryAttachments in inews-service.
-Sql-service func ordered by categories.
-Added parseAttachments in xmlParser utility module.
-Returned config.json and deleted yaml kombina.
-### v1.6.3
+### Version 1.2
+- Served plugin webpage at `http://server-ip-addr:3000/index.html`.
 
-Config.yaml instead json
-### v1.6.2
+### Version 1.1.1
+- Fixed lineup validation; story changes now use `story locator`.
 
-Store item refactor
-Item handling moved to sql-service and chained to story events
-Added handling for attachment type .includes("").
-Items processor. Handles item create, modify, reorder and delete actions.
-### v1.6.1
+### Version 1.1
+- Introduced layered architecture with DAL layer.
 
-The Inews-cache module has been implemented with support for all caching stores and methods.
-Conducted horizontal development across the project, including module renaming and file deletions.
-Cache data structures documented.
-### v1.6.0
+### Version 1.0.2
+- Added `lineup-validator.js` to fix FTP path access bug.
 
-Implemented parallel ftp connections
-Caching mechanism from scratch rebuild.
-HTML injector for templates, merge plugin js with templates js automatically by link js files(utilities/file-processor.js).
-REST routes for plugin.
-Bootstrap grid implemented.
-Many other structure and code changes, merges and improvements.
-### v1.5.0
+### Version 1.0.1
+- Fixed Hebrew string conversion with `hebrew-decoder.js`.
 
-Inews-connect works with mssql.
-I fetching the whole stories table once on each rundowns iteration, store it in storiesCache (overwrite), then compare stories from inews to the cache.
-CheckStory is checking if its new story/reorder/modify.
-Sql service have simplified methods to mssql (I avoided complicated merges and joins...).
-config.json including now production value and uid placeholder for each rundown (Data structure change).
-Added storiesCache module with single setter and getter.
-Stories cache structure: [ { uid: '3124', name: '4', lastupdate: '1702161927',
-rundown: '1091', production: '1', ord: 0, ordupdate: '1702161927',
-enabled: true, tag: '', identifier: '046B337E',
-locator: '0002B980:6574ECB8' }, . . . ]
-Rundowns structure (from config.json): { 'SHOW.ALEX.RUNDOWN': { production: 1, uid: '1097' }, 'SHOW.ALEX.RUNDOWN2': { production: 1, uid: '1098' } }
-### v1.2
+### Version 1.0
+- Initialized app with FTP client plugin, config file, and basic REST API.
 
-Inews-connect now serving plugin webpage on http://server-ip-addr:3000/index.html
-Data are stored in gfx server - inews storing only the ids. When open item from inews, the plugin receive element id => send this id to gfx server (now its emulator), and receives the element that user see on page.
-Plugin interacts with with db-emulator (that emulate gfx elements play-out server) in those schemas:
-Open gfx item from Inews:
+---
 
+## REST API
 
+- **Set Active Lineup**:  
+  `POST: localhost:3000/api/services/set-watcher/path-to-needed-lineup`  
+  *(Note: Crashes if lineup doesn’t exist; needs fixing.)*
 
-Save gfx item to Inews (drag&drop/ apply/ ok):
+- **Get Current Watched Lineup**:  
+  `GET: localhost:3000/api/watcher`
 
- ### v### v1.1.1
-
-Fixed lineup validation
-Story changes now based on story locator (and not on modified date)
-### v1.1
-
-Layered architecture:
-Dal layer - inews-ftp and local-store class with datastore methods (including activeLineup).
-Separated App config that loads config.json
-No globals anymore
-Cleanups
-### v1.0.2
-
-Added utilities/lineup-validator.js script that fix the bug related to inews ftp plugin, that if user try to access path that does"t exists, its crush the process.
-Separate inews service and rest service.
-### v1.0.1
-
-Fixed conversion of Hebrew string (added utilities/hebrew-decoder.js)
-### v1.0.0
-Init app with ftp client plugin, config file and basic REST API func.
-
-REST API:
-
-User can set active lineup (if lineup doesn't exists, app crushes, need bo be fixed), POST: localhost:3000/api/services/set-watcher/path-to-needed-lineup
-
-Get current watched lineup in json format: GET: localhost:3000/api/watcher
-
-Get folders list: GET: localhost:3000/api/services/get-dir/path-to-folder
+- **Get Folders List**:  
+  `GET: localhost:3000/api/services/get-dir/path-to-folder`
