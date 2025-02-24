@@ -28,6 +28,17 @@ Inews-Connect is a service that retrieves rundown data from Avid iNews, caches i
 
 ## Logs
 
+### Version 3.0.1
+- Fixed a bug when - on user apply changes we didn't passed to createMosMsg() the gfxItem arg.
+- Added ability of restoring items from inews, and edit items in inews while they not monitored by inews-connect.
+
+### Version 3.0.0
+- Added ability to restore items from Inews and edit items in Inews while they are not monitored by Inews-Connect.
+- Added items model and items-constructor (type setter).
+- Added new column to ngn_inews_items - uuid `nvarchar 36, allow nulls`
+- Installed uuid library to generate uniq identifiers to items and break the foolish dependency of SQL primary key uid.
+- Added install sql file to update `ngn_inews_items` (Docs&&Database/db/add uuid command.txt). Before running it, delete the existing items table. It will also reset the uid number, and break all existing items. This upgrade will make all existing items broken!
+
 ### Version 2.1.3
 - Added error handling for FTP connection errors/timeouts.
 
