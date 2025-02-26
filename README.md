@@ -17,6 +17,7 @@ Inews-Connect is a service that retrieves rundown data from Avid iNews, caches i
 
 - Cache template icons (base64) on HDD instead of in memory. This increases HDD load when users open the plugin but reduces server memory usage.
 - Avoid writing non-item stories to the database.
+- Create a build - currently I running this as is - and I need to check the way to build it.
 
 ---
 
