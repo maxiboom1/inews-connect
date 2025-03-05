@@ -29,6 +29,9 @@ Inews-Connect is a service that retrieves rundown data from Avid iNews, caches i
 
 ## Logs
 
+### Version 3.0.2
+- Fixed Favorites tab css direction property.
+
 ### Version 3.0.1
 - Fixed a bug when - on user apply changes we didn't passed to createMosMsg() the gfxItem arg.
 - Added ability of restoring items from inews, and edit items in inews while they not monitored by inews-connect.
