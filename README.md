@@ -29,6 +29,9 @@ Inews-Connect is a service that retrieves rundown data from Avid iNews, caches i
 
 ## Logs
 
+### Version 3.0.3
+- Clear template folder on load.
+
 ### Version 3.0.2
 - Fixed Favorites tab css direction property.
 

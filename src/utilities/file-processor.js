@@ -20,6 +20,11 @@ async function processAndWriteFiles(templates) {
     const templatesFolder = path.resolve(__dirname, "../../plugin/templates");
     try {
         await fsPromises.access(templatesFolder);
+        
+        // Read existing files and delete them
+        const files = await fsPromises.readdir(templatesFolder);
+        await Promise.all(files.map(file => fsPromises.unlink(path.join(templatesFolder, file))));
+        logger(`[TEMPLATES] Cache folder cleared.`, "green"); 
     } catch (error) {
         await fsPromises.mkdir(templatesFolder);
     }
