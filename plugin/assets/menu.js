@@ -161,7 +161,7 @@ async function mosMsgFromHost(event) {
         const gfxItem = extractTagContent(message, "gfxItem");
         
         // We sending local item data jic the user open while it offline 
-        const cachedData = extractTagContent(message, "gfxData");//.slice(1,-1);
+        const cachedData = extractTagContent(message, "gfxData").replace(/__APOSTROPHE__/g, "'");// Decode apostrophe from inews data
         const cachedName = extractTagContent(message, "itemSlug");
         renderItem(templateId, gfxItem, cachedData, cachedName);
     }

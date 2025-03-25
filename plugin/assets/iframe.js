@@ -63,8 +63,8 @@ function createMosMessage(gfxItem){
                 <gfxItem>${gfxItem}</gfxItem>
                 <gfxTemplate>${templateId}</gfxTemplate>
                 <gfxProduction>${productionId}</gfxProduction>
-                <gfxData>${item.data}</gfxData>
-                <gfxScripts>${item.scripts}</gfxScripts>
+                <gfxData>${item.data.replace(/'/g, '__APOSTROPHE__')}</gfxData>
+                <gfxScripts>${item.scripts.replace(/'/g, '__APOSTROPHE__')}</gfxScripts>
             </item>
         </ncsItem>
     </mos>`; 
