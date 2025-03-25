@@ -220,7 +220,7 @@ function renderTemplate(templateId) {
 async function renderItem(templateId, gfxItem, cachedData, cachedName){
     
     const itemObj = await fetchData(`${originUrl}/api/get-item-data/${gfxItem}`, "GET");
-    console.log(itemObj)
+    
     // Here, we set item data depends of fetched from our sql - if no data in sql - we load data from NRCS story
     const itemData = itemObj.data === "N/A" ? cachedData.replace(/\\'/g, '%27') : itemObj.data.replace(/\\'/g, '%27');
     const itemName = itemObj.data === "N/A" ? cachedName :itemObj.name;
