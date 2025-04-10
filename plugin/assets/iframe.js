@@ -72,10 +72,13 @@ function createMosMessage(gfxItem){
 
 function getItemData(){
         const _NA_Values = __NA_GetValues();
-        const _NA_Scripts = __NA_GetScripts();
+        let _NA_Scripts = __NA_GetScripts();
         const templateId = document.body.getAttribute('data-template');
         const productionId = document.body.getAttribute('data-production');
-
+        
+        // Fallback for "no scripts" from template
+        if(_NA_Scripts === undefined){ _NA_Scripts = "No scripts provided";}
+        
         return values = {
             name:document.getElementById("nameInput").value,
             data: _NA_Values,
