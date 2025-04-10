@@ -29,6 +29,10 @@ Inews-Connect is a service that retrieves rundown data from Avid iNews, caches i
 
 ## Logs
 
+### Version 3.0.5
+- Added fallback for case that template don't provide any scripts.
+
+
 ### Version 3.0.4
 - Added apostrophe decoder at data load from inews, and encode in createMosMessage().
 - I use "__APOSTROPHE__" placeholder before saving it in inews. On app start, i use to replace those placeholders in xml-parser data and scripts.
