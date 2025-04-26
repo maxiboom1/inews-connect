@@ -154,19 +154,17 @@ class StoryItemManager {
     
     async removeUnusedItems() {
         if (this.cacheAttachmentsIds.length > Object.keys(this.storyAttachments).length) {
-            await Promise.all(this.cacheAttachmentsIds.map(async key => {
-                
+            for (const key of this.cacheAttachmentsIds) {
                 if (!Object.keys(this.storyAttachments).includes(key)) {
-                    
                     const itemToDelete = {
                         itemId: key,
                         rundownId: this.rundownId,
                         storyId: this.storyId,
                     };
-                    
+    
                     await deleteService.triggerDeleteItem(this.rundownStr, itemToDelete, this.story.identifier);
                 }
-            }));
+            }
         }
     }
 

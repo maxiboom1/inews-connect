@@ -29,6 +29,9 @@ Inews-Connect is a service that retrieves rundown data from Avid iNews, caches i
 
 ## Logs
 
+### Version 3.0.7
+- Fixed bug when user delete more than 1 item in story - it was fired in parallel before - caused only 1 item to be actually deleted. Switched to for in loop to ensure sequence behavior.
+
 ### Version 3.0.6
 - Added handling for case that user opens existing item, click "save" (create empty item in DB), and then click "apply" in plugin UI.
  This causing logic error and data override. 

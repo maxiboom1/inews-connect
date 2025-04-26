@@ -21,7 +21,7 @@ class DeleteService {
     }
 
     async triggerDeleteItem(rundownStr, item, storyIdentifier){ // Item {itemId,rundownId,storyId}
-        
+
         await this.setGlobals(rundownStr, item, storyIdentifier);
         
         // In case This item already been cleared before
@@ -43,7 +43,7 @@ class DeleteService {
         
         let duplicateFileNames = {};
         
-        // If hasDuplicates, collect duplicates for resync, and delete them
+        // If hasDuplicates, collect duplicates for resync, and delete them 
         if(itemsHash.hasDuplicates(this.item.itemId)){
             duplicateFileNames = itemsHash.getDuplicateStoryIdentifiers(this.item.itemId);
             await this.deleteDuplicates(this.item.itemId);
@@ -85,7 +85,7 @@ class DeleteService {
         const result = await sqlService.disableItem(this.item);
         const storyName = await inewsCache.getStoryName(this.rundownStr, this.storyIdentifier);
         if (result.success) {
-            logger(`[ITEM] Item in ${this.rundownStr}, story ${storyName} has been disabled.`);
+            logger(`[ITEM] Item ${this.item.itemId} in ${this.rundownStr}, story ${storyName} has been disabled.`);
         } else {
             logger(`[SQL] Update error. Item ${this.item.itemId} in ${this.rundownStr}, story {${storyName}}. Reason: ${result.message}`,"red");
         }
@@ -118,7 +118,7 @@ class DeleteService {
             logger(`[ITEM] Item ${itemId} revoked! Probably due to cut/paste.`);
         }
     }
-
+ 
     async deleteItemCache(rundownStr = this.rundownStr, itemId = this.item.itemId, storyIdentifier = this.storyIdentifier){
         await inewsCache.deleteSingleAttachment(rundownStr,storyIdentifier,itemId);
         await itemsHash.deleteDuplicate(itemId);
