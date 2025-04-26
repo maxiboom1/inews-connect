@@ -171,10 +171,17 @@ async function mosMsgFromHost(event) {
     if (message.indexOf('<ncsItemRequest/>') !== -1){
         const values = iframe.contentWindow.getItemData();
         values.gfxItem = iframe.contentWindow.getGfxItem();
-        await fetchData(`${originUrl}/api/update-item`, "POST", JSON.stringify(values));
+        const response = await fetchData(`${originUrl}/api/update-item`, "POST", JSON.stringify(values));
+        
+        // This handles case when user open existing item, then click "save", and apply
+        // This causes bug. In this case servers returns error. We handle this error her.
+        if(response.error !== undefined){
+            showError(response.error);
+            return;
+        }
+        
         const updatedMosMsg = iframe.contentWindow.createMosMessage(values.gfxItem);
         event.source.postMessage(updatedMosMsg, event.origin);
-        console.log("got item request. Collected data from iframe: ", values);
     }
 
 }
@@ -331,4 +338,19 @@ if (window.addEventListener) {
     console.log("window.attachEvent");
     window.attachEvent('onmessage', mosMsgFromHost, false);
 }
+
+function showError(message) {
+    const container = document.getElementById('err-container');
+    const messageSpan = document.getElementById('err-message');
+
+    messageSpan.textContent = message || 'Something went wrong';
+    container.classList.remove('hidden');
+    container.classList.add('show');
+
+    setTimeout(() => {
+        container.classList.remove('show');
+        container.classList.add('hidden');
+    }, 3000);
+}
+
 getProductions();

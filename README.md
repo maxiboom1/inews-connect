@@ -29,6 +29,13 @@ Inews-Connect is a service that retrieves rundown data from Avid iNews, caches i
 
 ## Logs
 
+### Version 3.0.6
+- Added handling for case that user opens existing item, click "save" (create empty item in DB), and then click "apply" in plugin UI.
+ This causing logic error and data override. 
+- Now, in this case once user sends "apply" request - the server checks if this item id is registered first.
+If not - it returns "save error" - and in page we print error message using "show error" function.
+
+
 ### Version 3.0.5
 - Added fallback for case that template don't provide any scripts.
 

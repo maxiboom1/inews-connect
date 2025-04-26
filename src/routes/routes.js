@@ -54,9 +54,17 @@ router.post('/set-item', async (req, res) => {
 router.post('/update-item', async (req, res) => {
   try {
       const item = req.body;
-      await sqlService.updateItemFromFront(item);
-      await itemsService.updateDuplicates(item);
-      res.json("");
+      
+      // We check here if the item that should be modified registered in the system
+      //If not, we not proceed, and return save error
+      if(itemsHash.isUsed(item.gfxItem)){
+        await sqlService.updateItemFromFront(item);
+        await itemsService.updateDuplicates(item);
+        res.json("");
+      } else {
+        res.json({error:"Save error. Item not registered."});
+      }
+      
   } catch (error) {
       console.error('Error processing JSON data:', error);
       res.status(400).json("Error processing JSON data");
