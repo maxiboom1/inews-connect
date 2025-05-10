@@ -29,6 +29,9 @@ Inews-Connect is a service that retrieves rundown data from Avid iNews, caches i
 
 ## Logs
 
+### Version 3.0.8
+- UI: Modified error notification in case of apply not-registered item - now we show modal with "Error! Item not registered", and "ok" button. HTML, CSS and JS handler modifications.
+
 ### Version 3.0.7
 - Fixed bug when user delete more than 1 item in story - it was fired in parallel before - caused only 1 item to be actually deleted. Switched to for in loop to ensure sequence behavior.
 

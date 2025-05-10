@@ -174,7 +174,7 @@ async function mosMsgFromHost(event) {
         const response = await fetchData(`${originUrl}/api/update-item`, "POST", JSON.stringify(values));
         
         // This handles case when user open existing item, then click "save", and apply
-        // This causes bug. In this case servers returns error. We handle this error her.
+        // This causes bug. In this case servers returns error. We handle this error here.
         if(response.error !== undefined){
             showError(response.error);
             return;
@@ -342,15 +342,14 @@ if (window.addEventListener) {
 function showError(message) {
     const container = document.getElementById('err-container');
     const messageSpan = document.getElementById('err-message');
+    const okButton = document.getElementById('err-ok-button');
 
     messageSpan.textContent = message || 'Something went wrong';
     container.classList.remove('hidden');
-    container.classList.add('show');
 
-    setTimeout(() => {
-        container.classList.remove('show');
+    okButton.onclick = () => {
         container.classList.add('hidden');
-    }, 3000);
+    };
 }
 
 getProductions();

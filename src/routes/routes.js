@@ -62,7 +62,7 @@ router.post('/update-item', async (req, res) => {
         await itemsService.updateDuplicates(item);
         res.json("");
       } else {
-        res.json({error:"Save error. Item not registered."});
+        res.json({error:"Error!\nItem not registered."});
       }
       
   } catch (error) {
