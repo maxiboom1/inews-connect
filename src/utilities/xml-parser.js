@@ -25,8 +25,8 @@ function parseAttachments(story) {
         gfxProduction: item.gfxProduction,
         name: item.itemSlug,
         ord: a,
-        gfxData: item.gfxData.replace(/__APOSTROPHE__/g, "'").replace(/__AMP__/g, "&"), // Replace "__APOSTROPHE__" placeholder with actual apostrophe char,
-        gfxScripts: item.gfxScripts.replace(/__APOSTROPHE__/g, "'").replace(/__AMP__/g, "&"), // Replace "__APOSTROPHE__" placeholder with actual apostrophe char,
+        gfxData: mosUnescape(item.gfxData),
+        gfxScripts: mosUnescape(item.gfxScripts),
         uuid:item.gfxItem
       });
 
@@ -35,6 +35,12 @@ function parseAttachments(story) {
 
   return obj;
 }
+
+const mosUnescape = (str) => { 
+  return str
+      .replace(/__AMP__/g, '&')
+      .replace(/__APOSTROPHE__/g, "'")
+};
 
 export default { parseAttachments };
 

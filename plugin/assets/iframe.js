@@ -48,18 +48,14 @@ function createMosMessage(gfxItem){
     const templateId = document.body.getAttribute('data-template');
     const productionId = document.body.getAttribute('data-production');
     const item = getItemData();//item{name,data,scripts,templateId,productionId}
-    
-    item.data = item.data
-        .replace(/'/g, '__APOSTROPHE__')
-        .replace(/%26/g, '__AMP__');
 
-    item.scripts = item.scripts
-        .replace(/'/g, '__APOSTROPHE__')
-        .replace(/%26/g, '__AMP__');
-
-    const slug = document.getElementById("nameInput").value
-        .replace(/'/g, "")
-        .replace(/&/g, '');
+    const slug = document.getElementById("nameInput").value.replace(/'/g, "").replace(/&/g, '');
+ 
+    const mosEscape = (str) => {
+        return str
+            .replace(/%26/g, '__AMP__')
+            .replace(/'/g, '__APOSTROPHE__')
+    }; 
 
     return `<mos>
         <ncsItem>
@@ -75,8 +71,8 @@ function createMosMessage(gfxItem){
                 <gfxItem>${gfxItem}</gfxItem>
                 <gfxTemplate>${templateId}</gfxTemplate>
                 <gfxProduction>${productionId}</gfxProduction>
-                <gfxData>${item.data}</gfxData>
-                <gfxScripts>${item.scripts}</gfxScripts>
+                <gfxData>${mosEscape(item.data)}</gfxData>
+                <gfxScripts>${mosEscape(item.scripts)}</gfxScripts>
             </item>
         </ncsItem>
     </mos>`; 
@@ -87,7 +83,6 @@ function getItemData(){
         let _NA_Scripts = __NA_GetScripts();
         const templateId = document.body.getAttribute('data-template');
         const productionId = document.body.getAttribute('data-production');
-        console.log(_NA_Values)
         // Fallback for "no scripts" from template
         if(_NA_Scripts === undefined){ _NA_Scripts = "No scripts provided";}
         
@@ -280,3 +275,4 @@ document.addEventListener('DOMContentLoaded', () => {
 function handleLinksButtonsClick(){
     window.parent.renderTemplate(this.id);
 }
+

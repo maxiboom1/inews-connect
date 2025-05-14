@@ -29,6 +29,11 @@ Inews-Connect is a service that retrieves rundown data from Avid iNews, caches i
 
 ## Logs
 
+### Version 3.1.0
+- Created mosEscape func on front, and mosUnescape func on backend xmlparser - to centralize the decode/encode functionality.
+Therefore, if we need to add new char to escape - we update only there.
+- The slugName escapes only once in createMosMessage, inline for now.
+
 ### Version 3.0.9
 - Added ampersand decoder at data load from inews, and encode in createMosMessage().
 - I use "__AMP__" placeholder before saving it in inews. On app start, i use to replace those placeholders in xml-parser data and scripts.
