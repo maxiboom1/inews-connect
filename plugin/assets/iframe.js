@@ -48,12 +48,24 @@ function createMosMessage(gfxItem){
     const templateId = document.body.getAttribute('data-template');
     const productionId = document.body.getAttribute('data-production');
     const item = getItemData();//item{name,data,scripts,templateId,productionId}
+    
+    item.data = item.data
+        .replace(/'/g, '__APOSTROPHE__')
+        .replace(/%26/g, '__AMP__');
+
+    item.scripts = item.scripts
+        .replace(/'/g, '__APOSTROPHE__')
+        .replace(/%26/g, '__AMP__');
+
+    const slug = document.getElementById("nameInput").value
+        .replace(/'/g, "")
+        .replace(/&/g, '');
 
     return `<mos>
         <ncsItem>
             <item>
                 <itemID></itemID>
-                <itemSlug>${document.getElementById("nameInput").value.replace(/'/g, "")}</itemSlug>
+                <itemSlug>${slug}</itemSlug> 
                 <objID></objID>
                 <mosID>iNEWSMOS1</mosID>
                 <mosItemBrowserProgID>alex</mosItemBrowserProgID>
@@ -63,8 +75,8 @@ function createMosMessage(gfxItem){
                 <gfxItem>${gfxItem}</gfxItem>
                 <gfxTemplate>${templateId}</gfxTemplate>
                 <gfxProduction>${productionId}</gfxProduction>
-                <gfxData>${item.data.replace(/'/g, '__APOSTROPHE__')}</gfxData>
-                <gfxScripts>${item.scripts.replace(/'/g, '__APOSTROPHE__')}</gfxScripts>
+                <gfxData>${item.data}</gfxData>
+                <gfxScripts>${item.scripts}</gfxScripts>
             </item>
         </ncsItem>
     </mos>`; 
@@ -75,7 +87,7 @@ function getItemData(){
         let _NA_Scripts = __NA_GetScripts();
         const templateId = document.body.getAttribute('data-template');
         const productionId = document.body.getAttribute('data-production');
-        
+        console.log(_NA_Values)
         // Fallback for "no scripts" from template
         if(_NA_Scripts === undefined){ _NA_Scripts = "No scripts provided";}
         

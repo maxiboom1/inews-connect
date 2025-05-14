@@ -25,8 +25,8 @@ function parseAttachments(story) {
         gfxProduction: item.gfxProduction,
         name: item.itemSlug,
         ord: a,
-        gfxData: item.gfxData.replace(/__APOSTROPHE__/g, "'"), // Replace "__APOSTROPHE__" placeholder with actual apostrophe char,
-        gfxScripts: item.gfxScripts.replace(/__APOSTROPHE__/g, "'"), // Replace "__APOSTROPHE__" placeholder with actual apostrophe char,
+        gfxData: item.gfxData.replace(/__APOSTROPHE__/g, "'").replace(/__AMP__/g, "&"), // Replace "__APOSTROPHE__" placeholder with actual apostrophe char,
+        gfxScripts: item.gfxScripts.replace(/__APOSTROPHE__/g, "'").replace(/__AMP__/g, "&"), // Replace "__APOSTROPHE__" placeholder with actual apostrophe char,
         uuid:item.gfxItem
       });
 

@@ -29,6 +29,10 @@ Inews-Connect is a service that retrieves rundown data from Avid iNews, caches i
 
 ## Logs
 
+### Version 3.0.9
+- Added ampersand decoder at data load from inews, and encode in createMosMessage().
+- I use "__AMP__" placeholder before saving it in inews. On app start, i use to replace those placeholders in xml-parser data and scripts.
+
 ### Version 3.0.8
 - UI: Modified error notification in case of apply not-registered item - now we show modal with "Error! Item not registered", and "ok" button. HTML, CSS and JS handler modifications.
 
