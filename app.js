@@ -4,6 +4,8 @@ import express from "express";
 import cors from "cors";
 import bodyParser from 'body-parser';
 import appConfig from "./src/utilities/app-config.js";
+import './src/1-dal/tcp.js'; // just importing starts the listener
+
 const app = express(); 
 
 app.use(cors({origin: '*'}));

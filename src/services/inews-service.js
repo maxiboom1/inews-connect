@@ -261,6 +261,11 @@ class RundownProcessor {
         }
     }
 
+    async resetRundownByUid(rundownUid) {
+        console.log(`Got reset command: ${rundownUid}`);
+        return { ok: true };
+    }
+
     _shouldSkipRundown(rundownStr, cachedLength, listItemsLength,){
         
         // If there is new stories in rundown
