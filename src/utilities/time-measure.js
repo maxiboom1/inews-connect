@@ -4,6 +4,7 @@ class TimeMeasure {
     }
 
     start() {
+        this.startTime = 0;
         this.startTime = performance.now();
     }
 

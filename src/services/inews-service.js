@@ -314,6 +314,7 @@ class RundownProcessor {
             logger(`[SUBSCRIBE] Ignored: Unknown rundown UID ${uid}`,"red");
             return { ok: false, error: `Unknown rundown UID` };
         }
+        timeMeasure.start();
         this.loading = true;
         const existing = this.subscribedRundowns[rundownStr];
         if (existing) {

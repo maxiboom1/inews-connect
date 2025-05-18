@@ -29,6 +29,10 @@ Inews-Connect is a service that retrieves rundown data from Avid iNews, caches i
 
 ## Logs
 
+### Version 3.2.1
+- Fixed time measurement logic.
+
+### Version 3.2.0
 - Major update: Implemented robust TCP communication protocol with N/A client to dynamically manage subscribed rundowns.
 Specs:
 
