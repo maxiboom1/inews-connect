@@ -70,60 +70,6 @@ class RundownProcessor {
             this.loading = false;
         }
     }
-
-    subscribeRundown(uid, onLoadedCallback) {
-        const rundownStr = Object.keys(this.rundownsObj).find(key => Number(this.rundownsObj[key].uid) === Number(uid));
-        if (!rundownStr) {
-            logger(`[SUBSCRIBE] Ignored: Unknown rundown UID ${uid}`,"red");
-            return { ok: false, error: `Unknown rundown UID` };
-        }
-        this.loading = true;
-        const existing = this.subscribedRundowns[rundownStr];
-        if (existing) {
-            existing.clientCount++;
-        } else {
-            this.subscribedRundowns[rundownStr] = {
-                uid: Number(uid),
-                clientCount: 1
-            };
-        }
-    
-        logger(`[SUBSCRIBE] Rundown "${rundownStr}" now has ${this.subscribedRundowns[rundownStr].clientCount} client(s)`,"yellow");
-    
-        if (onLoadedCallback) {
-            if (!this.rundownLoadCallbacks[rundownStr]) {
-                this.rundownLoadCallbacks[rundownStr] = [];
-            }
-            this.rundownLoadCallbacks[rundownStr].push(onLoadedCallback);
-        }
-    
-        return { ok: true };
-    }    
-
-    async unsubscribeRundown(uid) {
-        const rundownStr = Object.keys(this.rundownsObj).find(key => Number(this.rundownsObj[key].uid) === Number(uid));
-        if (!rundownStr || !this.subscribedRundowns[rundownStr]) {
-            logger(`[UNSUBSCRIBE] Rundown UID ${uid} not found or not subscribed`,"yellow");
-            return {ok: false, error: `Rundown not found, or already unsubscribed`};
-        }
-    
-        const current = this.subscribedRundowns[rundownStr];
-        current.clientCount--;
-    
-        if (current.clientCount <= 0) {
-            delete this.subscribedRundowns[rundownStr];
-            logger(`[UNSUBSCRIBE] Rundown "${rundownStr}" removed from active watch`,"yellow");
-            
-            // Completely delete cache and SQL
-            await itemsHash.clearHashForRundown(rundownStr);
-            await inewsCache.deleteRundown(rundownStr);
-            await sqlService.deleteRundown(rundownStr, Number(uid));
-        } else {
-            logger(`[UNSUBSCRIBE] Rundown "${rundownStr}" now has ${current.clientCount} client(s)`, "yellow");
-        }
-        
-        return {ok: true};
-    }
     
     async processRundown(rundownStr) {
         try {
@@ -339,8 +285,10 @@ class RundownProcessor {
 
     async resetRundownByUid(uid, onCompleteCallback) {
         const rundownStr = Object.keys(this.rundownsObj).find(key => Number(this.rundownsObj[key].uid) === Number(uid));
-        if (!rundownStr) {
+        if (!rundownStr || this.subscribedRundowns[rundownStr] === undefined) {
+            logger(`[RESET] Error: Rundown "${rundownStr}" not monitored`, "red");
             return { ok: false, error: "Unknown UID" };
+            
         }
     
         logger(`[RESET] Rundown "${rundownStr}" requested reset`, "blue");
@@ -358,6 +306,60 @@ class RundownProcessor {
         const result = this.subscribeRundown(uid, onCompleteCallback);
     
         return result;
+    }
+
+    subscribeRundown(uid, onLoadedCallback) {
+        const rundownStr = Object.keys(this.rundownsObj).find(key => Number(this.rundownsObj[key].uid) === Number(uid));
+        if (!rundownStr) {
+            logger(`[SUBSCRIBE] Ignored: Unknown rundown UID ${uid}`,"red");
+            return { ok: false, error: `Unknown rundown UID` };
+        }
+        this.loading = true;
+        const existing = this.subscribedRundowns[rundownStr];
+        if (existing) {
+            existing.clientCount++;
+        } else {
+            this.subscribedRundowns[rundownStr] = {
+                uid: Number(uid),
+                clientCount: 1
+            };
+        }
+    
+        logger(`[SUBSCRIBE] Rundown "${rundownStr}" now has ${this.subscribedRundowns[rundownStr].clientCount} client(s)`,"yellow");
+    
+        if (onLoadedCallback) {
+            if (!this.rundownLoadCallbacks[rundownStr]) {
+                this.rundownLoadCallbacks[rundownStr] = [];
+            }
+            this.rundownLoadCallbacks[rundownStr].push(onLoadedCallback);
+        }
+    
+        return { ok: true };
+    }    
+
+    async unsubscribeRundown(uid) {
+        const rundownStr = Object.keys(this.rundownsObj).find(key => Number(this.rundownsObj[key].uid) === Number(uid));
+        if (!rundownStr || !this.subscribedRundowns[rundownStr]) {
+            logger(`[UNSUBSCRIBE] Rundown UID ${uid} not found or not subscribed`,"red");
+            return {ok: false, error: `Rundown not found, or already unsubscribed`};
+        }
+    
+        const current = this.subscribedRundowns[rundownStr];
+        current.clientCount--;
+    
+        if (current.clientCount <= 0) {
+            delete this.subscribedRundowns[rundownStr];
+            logger(`[UNSUBSCRIBE] Rundown "${rundownStr}" removed from active watch`,"yellow");
+            
+            // Completely delete cache and SQL
+            await itemsHash.clearHashForRundown(rundownStr);
+            await inewsCache.deleteRundown(rundownStr);
+            await sqlService.deleteRundown(rundownStr, Number(uid));
+        } else {
+            logger(`[UNSUBSCRIBE] Rundown "${rundownStr}" now has ${current.clientCount} client(s)`, "yellow");
+        }
+        
+        return {ok: true};
     }
 
     _shouldSkipRundown(rundownStr, cachedLength, listItemsLength,){
