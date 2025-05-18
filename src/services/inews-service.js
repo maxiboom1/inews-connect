@@ -11,16 +11,27 @@ import cache from "../1-dal/inews-cache.js";
 import deleteService from "./delete-service.js";
 import timeMeasure from "../utilities/time-measure.js";
 import logMessages from "../utilities/logger-messages.js";
+import { startTcpServer } from "../1-dal/tcp.js";
+import itemsHash from "../1-dal/items-hashmap.js";
+
 
 class RundownProcessor {
     
     constructor() {
-        this.setupConnectionListener();
-        this.rundownsObj = {}; // {rundownStr:{uid:value, production:value}, ...}
-        this.rundowns = [];
+        this.setupConnectionListener(); // Monitor for FTP connections
+        
+        this.rundownsObj = {}; // Config snap {rundownStr:{uid:value, production:value}, ...}
+        
+        this.subscribedRundowns = {}; // {rundownStr: { uid: ..., clientCount: ... }}
+        
         this.syncStories = new Map(); // {identifier: {rundownStr, counter}, ...}
+        
         this.skippedRundowns = {}; // {rundownStr:counter, ...}
-        this.loading = false;
+        
+        this.loading = false; // Flag to measure app load time
+
+        this.rundownLoadCallbacks = {}; // {rundownStr: [callback1, callback2, ...]}
+
     }
     
     async startMainProcess() {
@@ -32,16 +43,21 @@ class RundownProcessor {
     async initialize() {
         await sqlService.initialize();
         this.rundownsObj = await inewsCache.getRundownsObj();
-        this.rundowns = Object.keys(this.rundownsObj);
-        for(const rundown of this.rundowns){
-            this.skippedRundowns[rundown] = false;
+        
+        // Fill skippedRundowns as false to all configured rundowns
+        for (const rundownStr of Object.keys(this.rundownsObj)) {
+            this.skippedRundowns[rundownStr] = false;
         }
+        
+        startTcpServer();
+        
         this.rundownIterator();
     }
 
     async rundownIterator() {
+        const rundownsToMonitor = Object.keys(this.subscribedRundowns);
         
-        for (const rundownStr of this.rundowns) {
+        for (const rundownStr of rundownsToMonitor) {
             await this.processRundown(rundownStr);  
         }
         
@@ -50,11 +66,65 @@ class RundownProcessor {
         setTimeout(() => this.rundownIterator(), appConfig.pullInterval);
 
         if (this.loading) {
-            logMessages.appLoadedMessage(this.rundowns);
+            logMessages.appLoadedMessage(rundownsToMonitor);
             this.loading = false;
         }
     }
 
+    subscribeRundown(uid, onLoadedCallback) {
+        const rundownStr = Object.keys(this.rundownsObj).find(key => Number(this.rundownsObj[key].uid) === Number(uid));
+        if (!rundownStr) {
+            logger(`[SUBSCRIBE] Ignored: Unknown rundown UID ${uid}`,"red");
+            return { ok: false, error: `Unknown rundown UID` };
+        }
+        this.loading = true;
+        const existing = this.subscribedRundowns[rundownStr];
+        if (existing) {
+            existing.clientCount++;
+        } else {
+            this.subscribedRundowns[rundownStr] = {
+                uid: Number(uid),
+                clientCount: 1
+            };
+        }
+    
+        logger(`[SUBSCRIBE] Rundown "${rundownStr}" now has ${this.subscribedRundowns[rundownStr].clientCount} client(s)`,"yellow");
+    
+        if (onLoadedCallback) {
+            if (!this.rundownLoadCallbacks[rundownStr]) {
+                this.rundownLoadCallbacks[rundownStr] = [];
+            }
+            this.rundownLoadCallbacks[rundownStr].push(onLoadedCallback);
+        }
+    
+        return { ok: true };
+    }    
+
+    async unsubscribeRundown(uid) {
+        const rundownStr = Object.keys(this.rundownsObj).find(key => Number(this.rundownsObj[key].uid) === Number(uid));
+        if (!rundownStr || !this.subscribedRundowns[rundownStr]) {
+            logger(`[UNSUBSCRIBE] Rundown UID ${uid} not found or not subscribed`,"yellow");
+            return {ok: false, error: `Rundown not found, or already unsubscribed`};
+        }
+    
+        const current = this.subscribedRundowns[rundownStr];
+        current.clientCount--;
+    
+        if (current.clientCount <= 0) {
+            delete this.subscribedRundowns[rundownStr];
+            logger(`[UNSUBSCRIBE] Rundown "${rundownStr}" removed from active watch`,"yellow");
+            
+            // Completely delete cache and SQL
+            await itemsHash.clearHashForRundown(rundownStr);
+            await inewsCache.deleteRundown(rundownStr);
+            await sqlService.deleteRundown(rundownStr, Number(uid));
+        } else {
+            logger(`[UNSUBSCRIBE] Rundown "${rundownStr}" now has ${current.clientCount} client(s)`, "yellow");
+        }
+        
+        return {ok: true};
+    }
+    
     async processRundown(rundownStr) {
         try {
 
@@ -70,6 +140,12 @@ class RundownProcessor {
             }
             
             await this.handleDeletedStories(rundownStr, listItems);
+            
+            // If rundowns was just subscribed - send ok to the NA client
+            if (this.rundownLoadCallbacks[rundownStr]) {
+                this.rundownLoadCallbacks[rundownStr].forEach(cb => cb());
+                delete this.rundownLoadCallbacks[rundownStr];
+            }
 
         } catch (error) {
             console.error("Error fetching and processing stories:", error);
@@ -261,9 +337,27 @@ class RundownProcessor {
         }
     }
 
-    async resetRundownByUid(rundownUid) {
-        console.log(`Got reset command: ${rundownUid}`);
-        return { ok: true };
+    async resetRundownByUid(uid, onCompleteCallback) {
+        const rundownStr = Object.keys(this.rundownsObj).find(key => Number(this.rundownsObj[key].uid) === Number(uid));
+        if (!rundownStr) {
+            return { ok: false, error: "Unknown UID" };
+        }
+    
+        logger(`[RESET] Rundown "${rundownStr}" requested reset`, "blue");
+    
+        // 1. Unsubscribe first (force delete)
+        if (this.subscribedRundowns[rundownStr]) {
+            delete this.subscribedRundowns[rundownStr];
+        }
+    
+        await itemsHash.clearHashForRundown(rundownStr);
+        await inewsCache.deleteRundown(rundownStr);
+        await sqlService.deleteRundown(rundownStr, Number(uid));
+    
+        // 2. Subscribe again
+        const result = this.subscribeRundown(uid, onCompleteCallback);
+    
+        return result;
     }
 
     _shouldSkipRundown(rundownStr, cachedLength, listItemsLength,){

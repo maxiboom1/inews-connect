@@ -261,6 +261,11 @@ class InewsCache {
         return result;
     }
     
+    async deleteRundown(rundownStr) {
+        if (this.stories[rundownStr]) {
+            this.stories[rundownStr] = {}; //clear, but keep the key
+        }
+    }
 
     async getData() {
         return this.stories;

@@ -584,8 +584,25 @@ class SqlService {
             return null;
         }
     }
-
     
+    // ********************* SUBSCRIBE/UNSUBSCRIBE FUNCTIONS ********************** //
+
+    async deleteRundown(rundownStr, rundownUid) {
+        const deleteItemsQuery = `DELETE FROM ngn_inews_items WHERE rundown = @rundownUid`;
+        const deleteStoriesQuery = `DELETE FROM ngn_inews_stories WHERE rundown = @rundownUid`;
+    
+        try {
+            const values = { rundownUid };
+    
+            await db.execute(deleteItemsQuery, values);
+            await db.execute(deleteStoriesQuery, values);
+    
+            logger(`[SQL] Deleted all items and stories for rundown "${rundownStr}" (UID: ${rundownUid})`);
+    
+        } catch (error) {
+            console.error(`[SQL] Error deleting rundown ${rundownStr}:`, error);
+        }
+    }
 }    
 
 const sqlService = new SqlService();

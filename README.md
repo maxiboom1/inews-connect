@@ -29,6 +29,36 @@ Inews-Connect is a service that retrieves rundown data from Avid iNews, caches i
 
 ## Logs
 
+- Major update: Implemented robust TCP communication protocol with N/A client to dynamically manage subscribed rundowns.
+Specs:
+
+- iNews-Connect acts as a TCP server on port 5431, accepting commands from NA clients.
+
+- Supported protocol commands (null-terminated strings):
+
+  iNewsC-load-<rundownUid> → subscribe to a rundown and process it
+
+  iNewsC-unload-<rundownUid> → unsubscribe and delete associated data
+
+  iNewsC-reset-<rundownUid> → forcefully clear and reload a rundown
+
+- Only subscribed rundowns are actively processed and monitored.
+- Multiple NA clients can subscribe to the same rundown. clientCount is reference-tracked.
+- Rundown processing begins only after load is received.
+- Rundown is marked unsubscribed when:
+  A client sends unload
+  A client disconnects unexpectedly
+- Rundown cleanup includes:
+  SQL delete (ngn_inews_items, ngn_inews_stories)
+  Memory cache cleanup (inewsCache)
+  Attachment hash removal (itemsHash)
+
+Delayed response mechanism: TCP -OK is sent only after rundown is fully loaded and processed.
+
+Reset logic behaves as a chained unsubscribe + subscribe, ensuring clean data reload from source.
+
+New modules are tcp and tcp-router. In main inews-service - I added subscribeRundown, unsubscribeRundown, resetRundownByUid. Those are triggered from tcp-router.
+
 ### Version 3.1.0
 - Created mosEscape func on front, and mosUnescape func on backend xmlparser - to centralize the decode/encode functionality.
 Therefore, if we need to add new char to escape - we update only there.

@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import sqlService from '../services/sql-service.js';
 import logger from '../utilities/logger.js';
+import inewsCache from './inews-cache.js';
 
 class ItemsHashmap {
     
@@ -28,14 +29,26 @@ class ItemsHashmap {
             delete this.map[gfxItem];
         }
     }
-
-    getHashData(gfxItem){
-        return this.map[gfxItem];
-    }
     
     isUsed(gfxItem) {
         const result = this.map[gfxItem]>0;
         return result;
+    }
+
+    async clearHashForRundown(rundownStr) {
+        const rundown = await inewsCache.getRundown(rundownStr);
+        if (!rundown) return;
+    
+        for (const [identifier, story] of Object.entries(rundown)) {
+            if (!story.attachments) continue;
+    
+            for (const gfxId of Object.keys(story.attachments)) {
+                itemsHash.remove(gfxId);
+                this.deleteDuplicate(gfxId);
+            }
+        }
+    
+        logger(`[HASH] Cleared item hash for rundown "${rundownStr}"`);
     }
 
     /* - - - - - - - - - - DUPLICATES - - - - - - - - - - */

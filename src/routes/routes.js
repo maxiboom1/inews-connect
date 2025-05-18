@@ -81,7 +81,7 @@ router.get('/getstories', async (req, res) => {
 });
 
 // Get http://serverAddr:4001/api/getitems
-router.get('/getitems', async (req, res) => {
+router.get('/getdata', async (req, res) => {
   const data = itemsHash.getData();
   res.json(data);
 });
