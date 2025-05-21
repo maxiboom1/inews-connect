@@ -309,15 +309,17 @@ class SqlService {
         }
     }
 
-    async updateItemSlug(rundownStr, item){// Item: <ItemModel>
+    async updateItemSlugAndData(rundownStr, item){// Item: <ItemModel>
         const values = {
             lastupdate: createTick(),
             name:item.name,
-            uuid: item.uuid
+            uuid: item.uuid,
+            data: item.gfxData,
+            scripts: item.gfxScripts
         };
         const sqlQuery = `
             UPDATE ngn_inews_items SET 
-            lastupdate = @lastupdate, name = @name
+            lastupdate = @lastupdate, name = @name, data= @data, scripts = @scripts
             OUTPUT INSERTED.*
             WHERE uuid = @uuid;`;
     
@@ -325,9 +327,9 @@ class SqlService {
             const result =await db.execute(sqlQuery, values);
             // ADD HERE STORY UPDATE
             if(result.rowsAffected[0] > 0){
-                logger("Items slug updated");
+                logger("[SQL] Item updated");
             } else {
-                logger(`WARNING! GFX ${item.itemId} [${item.ord}] in ${rundownStr}, story num ${item.ord} doesn't exists in DB`);
+                logger(`[SQL] WARNING! GFX ${item.itemId} [${item.ord}] in ${rundownStr}, story num ${item.ord} doesn't exists in DB`);
             }
 
         } catch (error) {
@@ -436,41 +438,6 @@ class SqlService {
         } catch (error) {
             console.error('Error on fetching item data:', error);
             return null;
-        }
-    }
-
-    // This func is triggered from a web page, when the user clicks "save" 
-    async updateItemFromFront(item) { // Expect: {name, data, scripts, templateId, productionId, gfxItem}
-        const values = {
-            name: item.name,
-            lastupdate: createTick(),
-            production: item.productionId,
-            template: item.templateId,
-            data: item.data,
-            scripts: item.scripts,
-            enabled: 1,
-            tag: "", 
-            uuid: item.gfxItem
-        };
-
-        const sqlQuery = `
-            UPDATE ngn_inews_items
-            SET name = @name,
-                lastupdate = @lastupdate,
-                production = @production,
-                template = @template,
-                data = @data,
-                scripts = @scripts,
-                enabled = @enabled,
-                tag = @tag
-            WHERE uuid = @uuid;`;
-
-        try {
-            // Execute the update query with the provided values
-            await db.execute(sqlQuery, values);
-            logger(`Item ${item.gfxItem} updated from the plugin`);
-        } catch (error) {
-            console.error('Error on updating GFX item:', error);
         }
     }
 

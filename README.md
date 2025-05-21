@@ -21,13 +21,11 @@ Inews-Connect is a service that retrieves rundown data from Avid iNews, caches i
 
 ---
 
-## Testing
-
-- **Rundown Test**: A rundown with 50 items in Hebrew, with original IDs ranging from `66792` to `66826`.
-
----
-
 ## Logs
+
+### Version 3.2.3
+- updateItemSlug now updates also scripts and data. method name was changed to updateItemSlugAndData.
+- Removed unused method in sql - updateItemFromFront, was used by apply know. Now is unused.
 
 ### Version 3.2.2
 - Fixed bug in removeUnusedItems logic.
