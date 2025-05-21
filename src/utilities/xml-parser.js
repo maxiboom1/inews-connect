@@ -39,7 +39,7 @@ function parseAttachments(story) {
 const mosUnescape = (str) => { 
   return str
       .replace(/__AMP__/g, '&')
-      .replace(/__APOSTROPHE__/g, "'")
+      .replace(/__APOSTROPHE__/g, "'");
 };
 
 export default { parseAttachments };

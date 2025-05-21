@@ -160,10 +160,12 @@ async function mosMsgFromHost(event) {
         const templateId = extractTagContent(message, "gfxTemplate");
         const gfxItem = extractTagContent(message, "gfxItem");
         
-        // We sending local item data jic the user open while it offline 
-        const cachedData = extractTagContent(message, "gfxData").replace(/__APOSTROPHE__/g, "'");// Decode apostrophe from inews data
-        const cachedName = extractTagContent(message, "itemSlug");
-        renderItem(templateId, gfxItem, cachedData, cachedName);
+        // LocalItem object constructor
+        const localItem = {
+            name: extractTagContent(message, "itemSlug"),
+            data: extractTagContent(message, "gfxData").replace(/__APOSTROPHE__/g, "'").replace(/__AMP__/g,"&")
+        }
+        renderItem(templateId, gfxItem, localItem);
     }
     
     // User click apply/ok
@@ -226,13 +228,19 @@ function renderTemplate(templateId) {
 }
 
 // User loaded exist item in inews
-async function renderItem(templateId, gfxItem, cachedData, cachedName){
+async function renderItem(templateId, gfxItem, localItem){
     
-    const itemObj = await fetchData(`${originUrl}/api/get-item-data/${gfxItem}`, "GET");
-    
+    const itemFromDb = await fetchData(`${originUrl}/api/get-item-data/${gfxItem}`, "GET");
+    console.log('Local Item data: ', itemFromDb.data);
+    console.log('SQL Item data: ', localItem.data);
+    if(JSON.stringify(localItem.data) !== JSON.stringify(itemFromDb.data)){
+        console.log('Not Equal!');
+    } else {
+        console.log('Equal!');
+    }
     // Here, we set item data depends of fetched from our sql - if no data in sql - we load data from NRCS story
-    const itemData = itemObj.data === "N/A" ? cachedData.replace(/\\'/g, '%27') : itemObj.data.replace(/\\'/g, '%27');
-    const itemName = itemObj.data === "N/A" ? cachedName :itemObj.name;
+    const itemData = itemFromDb.data === "N/A" ? localItem.data : itemFromDb.data//.replace(/\\'/g, '%27');
+    const itemName = itemFromDb.data === "N/A" ? localItem.name :itemFromDb.name;
 
     let url = `${originUrl}/templates/${templateId}.html`;
     const iframe = document.getElementById('contentIframe');
@@ -250,11 +258,11 @@ async function renderItem(templateId, gfxItem, cachedData, cachedName){
         // Set item values
         iframe.contentWindow.setGfxItem(gfxItem); // Set gfxItemId in iframe head as "data-gfxitem"
         iframe.contentWindow.nameInputUpdate(itemName,true);
-        if(!(itemObj.data === "N/A") && itemObj.hasDuplicate) {
-            iframe.contentWindow.setDuplicateStatus(true, itemObj);
+        if(!(itemFromDb.data === "N/A") && itemFromDb.hasDuplicate) {
+            iframe.contentWindow.setDuplicateStatus(true, itemFromDb);
         }
         // In case we work locally, hide save btb (no reason to use it)
-        if(itemObj.data === "N/A"){iframe.contentWindow.hideSaveButton();}
+        if(itemFromDb.data === "N/A"){iframe.contentWindow.hideSaveButton();}
 
         // Show iframe
         iframe.style.display = 'block'; // Show the iframe

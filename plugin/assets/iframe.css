@@ -29,7 +29,7 @@ button{
 .pluginPanel {
     display: flex;
     flex-direction: row-reverse;
-    background-color: #4c5054;
+    /* background-color: #4c5054; */
     width: 100%;
     direction: rtl; 
     align-items: center; 

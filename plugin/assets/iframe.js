@@ -1,7 +1,6 @@
 const originUrl = window.location.origin;
 document.getElementById("save").addEventListener('click', clickOnSave);
 function hideSaveButton(){
-    console.log("XXXXXXXX")
     document.getElementById("save").style.display = 'none';
 }
 document.querySelector("#navigateBack").addEventListener('click', ()=>{
@@ -53,7 +52,7 @@ function createMosMessage(gfxItem){
  
     const mosEscape = (str) => {
         return str
-            .replace(/%26/g, '__AMP__')
+            .replace(/&/g, '__AMP__')
             .replace(/'/g, '__APOSTROPHE__')
     }; 
 

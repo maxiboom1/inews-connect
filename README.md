@@ -23,6 +23,11 @@ Inews-Connect is a service that retrieves rundown data from Avid iNews, caches i
 
 ## Logs
 
+### Version 3.2.4
+- Aligned all the escaping og apostrophe and AMP in the system.
+- Removed background-color from pluginPanel css.
+- 
+
 ### Version 3.2.3
 - updateItemSlug now updates also scripts and data. method name was changed to updateItemSlugAndData.
 - Removed unused method in sql - updateItemFromFront, was used by apply know. Now is unused.
