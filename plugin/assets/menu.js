@@ -167,18 +167,20 @@ async function mosMsgFromHost(event) {
     }
     
     // User click apply/ok
-    // we should get from iframe  
     if (message.indexOf('<ncsItemRequest/>') !== -1){
         const values = iframe.contentWindow.getItemData();
         values.gfxItem = iframe.contentWindow.getGfxItem();
+        
+        /*  ---- Allow apply/ok keys to update backend instantly (should also enable the route on backend) ---- //
         const response = await fetchData(`${originUrl}/api/update-item`, "POST", JSON.stringify(values));
         
-        // This handles case when user open existing item, then click "save", and apply
-        // This causes bug. In this case servers returns error. We handle this error here.
+        //This handles case when user open existing item, then click "save", and apply
+        //This causes bug. In this case servers returns error. We handle this error here
         if(response.error !== undefined){
-            showError(response.error);
-            return;
+           showError(response.error);
+           return;
         }
+        */
         
         const updatedMosMsg = iframe.contentWindow.createMosMessage(values.gfxItem);
         event.source.postMessage(updatedMosMsg, event.origin);

@@ -50,6 +50,8 @@ router.post('/set-item', async (req, res) => {
   }
 });
 
+/* ---- This route is deprecated - since apply/ok from plugin not triggering it anymore ---- //
+
 // Post http://serverAddr:4001/api/update-item
 router.post('/update-item', async (req, res) => {
   try {
@@ -70,6 +72,7 @@ router.post('/update-item', async (req, res) => {
       res.status(400).json("Error processing JSON data");
   }
 });
+*/
 
 // **************** DEBUGGING *****************/ 
 

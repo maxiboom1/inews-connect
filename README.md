@@ -29,6 +29,11 @@ Inews-Connect is a service that retrieves rundown data from Avid iNews, caches i
 
 ## Logs
 
+### Version 3.2.2
+- Fixed bug in removeUnusedItems logic.
+- Apply/Ok buttons in plugin not updating the backend anymore - only local inews update.
+- Therefore, api/update-item route is disabled, and commented.
+
 ### Version 3.2.1
 - Fixed time measurement logic.
 
