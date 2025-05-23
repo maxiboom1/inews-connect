@@ -16,24 +16,17 @@ import itemsHash from "../1-dal/items-hashmap.js";
 
 
 class RundownProcessor {
-    
+
     constructor() {
-        this.setupConnectionListener(); // Monitor for FTP connections
-        
-        this.rundownsObj = {}; // Config snap {rundownStr:{uid:value, production:value}, ...}
-        
-        this.subscribedRundowns = {}; // {rundownStr: { uid: ..., clientCount: ... }}
-        
+        this.setupConnectionListener();
+        this.rundownsObj = {}; // {rundownStr:{uid:value, production:value}, ...}
+        this.rundowns = [];
         this.syncStories = new Map(); // {identifier: {rundownStr, counter}, ...}
-        
         this.skippedRundowns = {}; // {rundownStr:counter, ...}
-        
-        this.loading = false; // Flag to measure app load time
-
-        this.rundownLoadCallbacks = {}; // {rundownStr: [callback1, callback2, ...]}
-
+        this.loading = false;
+        this.reset = {armed:false, rundownStr:"", callback:null};
     }
-    
+
     async startMainProcess() {
         this.loading = true;
         timeMeasure.start();
@@ -43,30 +36,62 @@ class RundownProcessor {
     async initialize() {
         await sqlService.initialize();
         this.rundownsObj = await inewsCache.getRundownsObj();
-        
-        // Fill skippedRundowns as false to all configured rundowns
-        for (const rundownStr of Object.keys(this.rundownsObj)) {
-            this.skippedRundowns[rundownStr] = false;
+        this.rundowns = Object.keys(this.rundownsObj);
+        for (const rundown of this.rundowns) {
+            this.skippedRundowns[rundown] = false;
         }
-        
-        startTcpServer();
-        
         this.rundownIterator();
     }
 
     async rundownIterator() {
-        const rundownsToMonitor = Object.keys(this.subscribedRundowns);
-        
-        for (const rundownStr of rundownsToMonitor) {
-            await this.processRundown(rundownStr);  
+
+        for (const rundownStr of this.rundowns) {
+            if(this.reset.armed){
+                logger(`[TCP] Got reload command for ${this.reset.rundownStr}. Starting...`,"yellow");
+                await this.resetRundown();
+                logger("[TCP] Rundown reload done.");
+            }
+            await this.processRundown(rundownStr);
         }
-        
-        this.updateSyncStoriesMap();        
-        
+
+        this.updateSyncStoriesMap();
+
         setTimeout(() => this.rundownIterator(), appConfig.pullInterval);
 
         if (this.loading) {
-            logMessages.appLoadedMessage(rundownsToMonitor);
+            logMessages.appLoadedMessage(this.rundowns);
+            this.loading = false;
+            startTcpServer();
+        }
+    }
+    
+    // Arm reset in this.reset
+    setReset(uid, callback){
+        this.reset = {
+            uid: uid,
+            armed:true, 
+            rundownStr:Object.keys(this.rundownsObj).find(key => Number(this.rundownsObj[key].uid) === Number(uid)),
+            callback:callback
+        };
+    }
+
+    async resetRundown() {
+        const { rundownStr, uid, callback } = this.reset;
+        try {
+               
+            await itemsHash.clearHashForRundown(rundownStr);
+            await inewsCache.deleteRundown(rundownStr);
+            await sqlService.deleteRundown(rundownStr, Number(uid));
+            this.loading = true;
+            await this.processRundown(rundownStr);
+            callback(); // OK
+        } catch (err) {
+            logger(`[RESET] Failed to reset rundown ${rundownStr}: ${err.message}`, "red");
+            if (callback) {
+                callback(`iNewsC-reset-${uid}-ERROR-${err.message}\0`);
+            }
+        } finally {
+            this.reset = { armed: false, rundownStr: "", callback: null };
             this.loading = false;
         }
     }
@@ -76,26 +101,20 @@ class RundownProcessor {
 
             const listItems = (await conn.list(rundownStr)).filter(item => item.fileType === 'STORY');
             const cachedLength = await inewsCache.getRundownLength(rundownStr);
-            
-            if(this.loading === false && this._shouldSkipRundown(rundownStr, cachedLength, listItems.length)) return;
-            
+
+            if (this.loading === false && this._shouldSkipRundown(rundownStr, cachedLength, listItems.length)) return;
+
             let index = 0;
             for (const listItem of listItems) {
                 await this.processStory(rundownStr, listItem, index);
                 index++;
             }
-            
+
             await this.handleDeletedStories(rundownStr, listItems);
-            
-            // If rundowns was just subscribed - send ok to the NA client
-            if (this.rundownLoadCallbacks[rundownStr]) {
-                this.rundownLoadCallbacks[rundownStr].forEach(cb => cb());
-                delete this.rundownLoadCallbacks[rundownStr];
-            }
 
         } catch (error) {
             console.error("Error fetching and processing stories:", error);
-        } 
+        }
     }
 
     async processStory(rundownStr, listItem, index) {
@@ -112,31 +131,31 @@ class RundownProcessor {
             console.error(`ERROR at Index ${index}:`, error);
         }
     }
-    
+
     async handleNewStory(rundownStr, listItem, index) {
         // Get story string obj
         const story = await this.getStory(rundownStr, listItem.fileName);
-                
+
         // Add parsed attachments 
         listItem.attachments = xmlParser.parseAttachments(story);
-        
+
         // Add pageNumber
         listItem.pageNumber = story.fields.pageNumber;
-        
+
         // Set enabled to 1 if attachment exists
         listItem.enabled = this.isEmpty(listItem.attachments) ? 0 : 1;
 
         // Store new story (without attachments!) in SQL, and get asserted uid
         const assertedStoryUid = await sqlService.addDbStory(rundownStr, listItem, index);
-        
+
         // Add asserted uid to listItem
         listItem.uid = assertedStoryUid;
-        logger(`[STORY] Registering new story to {${rundownStr}}: {${listItem.storyName}}`); 
-        
+        logger(`[STORY] Registering new story to {${rundownStr}}: {${listItem.storyName}}`);
+
         // Save this story to cache
         await inewsCache.saveStory(rundownStr, listItem, index);
 
-        await itemsService.itemProcessor(rundownStr,this.rundownsObj[rundownStr].uid, listItem, {newStory:true});
+        await itemsService.itemProcessor(rundownStr, this.rundownsObj[rundownStr].uid, listItem, { newStory: true });
 
         lastUpdateService.triggerRundownUpdate(rundownStr)
 
@@ -155,32 +174,32 @@ class RundownProcessor {
             logger(`[STORY] Reorder story in ${rundownStr}: ${listItem.storyName}`);
         } else if (action === "modify") {
             await this.modifyStory(rundownStr, listItem);
-        
+
         } else if (this.syncStories.has(listItem.identifier) && this.syncStories.get(listItem.identifier).rundownStr === rundownStr) {
             await this.modifyStory(rundownStr, listItem);
             logger(`[STORY] Synced duplicate item/s in story [${listItem.storyName}]`);
-            this.syncStories.delete(listItem.identifier); 
+            this.syncStories.delete(listItem.identifier);
         }
     }
- 
+
     async modifyStory(rundownStr, listItem) {
-        
+
         // Fetch detailed story from inews
-        const story = await this.getStory(rundownStr, listItem.fileName); 
+        const story = await this.getStory(rundownStr, listItem.fileName);
         // Parse attachments
         listItem.attachments = xmlParser.parseAttachments(story);
         // Assign pageNumber
         listItem.pageNumber = story.fields.pageNumber;
         // Set enabled if attachments exists
-        listItem.enabled = this.isEmpty(listItem.attachments) ? 0 : 1; 
+        listItem.enabled = this.isEmpty(listItem.attachments) ? 0 : 1;
         // Check for cached attachments (boolean)
-        const cachedAttachments = await inewsCache.hasAttachments(rundownStr,listItem.identifier);
-        
-        if(listItem.enabled || cachedAttachments){            
-            
+        const cachedAttachments = await inewsCache.hasAttachments(rundownStr, listItem.identifier);
+
+        if (listItem.enabled || cachedAttachments) {
+
             listItem.attachments = await itemsService.itemProcessor(rundownStr, this.getRundownUid(rundownStr), listItem); // Process attachments
         }
-        const storyId = await inewsCache.getStoryUid(rundownStr,listItem.identifier);
+        const storyId = await inewsCache.getStoryUid(rundownStr, listItem.identifier);
         await sqlService.modifyDbStory(listItem, storyId);
         await sqlService.storyLastUpdate(storyId);
         lastUpdateService.triggerRundownUpdate(rundownStr);
@@ -211,9 +230,9 @@ class RundownProcessor {
         for (const listItem of listItems) {
             inewsHashMap[listItem.identifier] = 1;
         }
-        
+
         const identifiersToDelete = cachedIdentifiers.filter(identifier => !inewsHashMap.hasOwnProperty(identifier));
-        
+
         for (const identifier of identifiersToDelete) {
             await this.deleteStoryItems(rundownStr, identifier);
             const rundownUid = await inewsCache.getRundownUid(rundownStr);
@@ -225,20 +244,26 @@ class RundownProcessor {
 
     }
 
-    async deleteStoryItems(rundownStr, identifier){
-        const items = await cache.getStoryAttachments(rundownStr,identifier);
-        
-        if(Object.keys(items).length > 0){
-            for(const itemId of Object.keys(items)){
+    setSyncStory(storiesMap) {// Except: {identifier:rundownStr} obj
+        for (const [identifier, rundownStr] of Object.entries(storiesMap)) {
+            this.syncStories.set(identifier, { rundownStr, counter: 3 });
+        }
+    }
+
+    async deleteStoryItems(rundownStr, identifier) {
+        const items = await cache.getStoryAttachments(rundownStr, identifier);
+
+        if (Object.keys(items).length > 0) {
+            for (const itemId of Object.keys(items)) {
                 const itemToDelete = {
                     itemId: itemId, // item id to delete
-                    rundownId: this.rundownsObj[rundownStr].uid, 
+                    rundownId: this.rundownsObj[rundownStr].uid,
                     storyId: cache.getStoryUid(rundownStr, identifier)
                 }
 
-                await deleteService.triggerDeleteItem(rundownStr,itemToDelete, identifier); 
+                await deleteService.triggerDeleteItem(rundownStr, itemToDelete, identifier);
             }
-            
+
         }
 
     }
@@ -257,14 +282,8 @@ class RundownProcessor {
         });
     }
 
-    getRundownUid(rundownStr){
+    getRundownUid(rundownStr) {
         return this.rundownsObj[rundownStr].uid;
-    }
-    
-    setSyncStory(storiesMap) {// Except: {identifier:rundownStr} obj
-        for (const [identifier, rundownStr] of Object.entries(storiesMap)) {
-            this.syncStories.set(identifier, {rundownStr, counter:3});
-        }
     }
 
     updateSyncStoriesMap() {
@@ -276,123 +295,43 @@ class RundownProcessor {
                 toDelete.push(identifier); // Collect items for deletion
             }
         }
-    
+
         // Remove after iteration (avoids modifying the map while iterating)
         for (const identifier of toDelete) {
             this.syncStories.delete(identifier);
         }
     }
 
-    async resetRundownByUid(uid, onCompleteCallback) {
-        const rundownStr = Object.keys(this.rundownsObj).find(key => Number(this.rundownsObj[key].uid) === Number(uid));
-        if (!rundownStr || this.subscribedRundowns[rundownStr] === undefined) {
-            logger(`[RESET] Error: Rundown "${rundownStr}" not monitored`, "red");
-            return { ok: false, error: "Unknown UID" };
-            
-        }
-    
-        logger(`[RESET] Rundown "${rundownStr}" requested reset`, "blue");
-    
-        // 1. Unsubscribe first (force delete)
-        if (this.subscribedRundowns[rundownStr]) {
-            delete this.subscribedRundowns[rundownStr];
-        }
-    
-        await itemsHash.clearHashForRundown(rundownStr);
-        await inewsCache.deleteRundown(rundownStr);
-        await sqlService.deleteRundown(rundownStr, Number(uid));
-    
-        // 2. Subscribe again
-        const result = this.subscribeRundown(uid, onCompleteCallback);
-    
-        return result;
-    }
+    _shouldSkipRundown(rundownStr, cachedLength, listItemsLength,) {
 
-    subscribeRundown(uid, onLoadedCallback) {
-        const rundownStr = Object.keys(this.rundownsObj).find(key => Number(this.rundownsObj[key].uid) === Number(uid));
-        if (!rundownStr) {
-            logger(`[SUBSCRIBE] Ignored: Unknown rundown UID ${uid}`,"red");
-            return { ok: false, error: `Unknown rundown UID` };
-        }
-        timeMeasure.start();
-        this.loading = true;
-        const existing = this.subscribedRundowns[rundownStr];
-        if (existing) {
-            existing.clientCount++;
-        } else {
-            this.subscribedRundowns[rundownStr] = {
-                uid: Number(uid),
-                clientCount: 1
-            };
-        }
-    
-        logger(`[SUBSCRIBE] Rundown "${rundownStr}" now has ${this.subscribedRundowns[rundownStr].clientCount} client(s)`,"yellow");
-    
-        if (onLoadedCallback) {
-            if (!this.rundownLoadCallbacks[rundownStr]) {
-                this.rundownLoadCallbacks[rundownStr] = [];
-            }
-            this.rundownLoadCallbacks[rundownStr].push(onLoadedCallback);
-        }
-    
-        return { ok: true };
-    }    
-
-    async unsubscribeRundown(uid) {
-        const rundownStr = Object.keys(this.rundownsObj).find(key => Number(this.rundownsObj[key].uid) === Number(uid));
-        if (!rundownStr || !this.subscribedRundowns[rundownStr]) {
-            logger(`[UNSUBSCRIBE] Rundown UID ${uid} not found or not subscribed`,"red");
-            return {ok: false, error: `Rundown not found, or already unsubscribed`};
-        }
-    
-        const current = this.subscribedRundowns[rundownStr];
-        current.clientCount--;
-    
-        if (current.clientCount <= 0) {
-            delete this.subscribedRundowns[rundownStr];
-            logger(`[UNSUBSCRIBE] Rundown "${rundownStr}" removed from active watch`,"yellow");
-            
-            // Completely delete cache and SQL
-            await itemsHash.clearHashForRundown(rundownStr);
-            await inewsCache.deleteRundown(rundownStr);
-            await sqlService.deleteRundown(rundownStr, Number(uid));
-        } else {
-            logger(`[UNSUBSCRIBE] Rundown "${rundownStr}" now has ${current.clientCount} client(s)`, "yellow");
-        }
-        
-        return {ok: true};
-    }
-
-    _shouldSkipRundown(rundownStr, cachedLength, listItemsLength,){
-        
         // If there is new stories in rundown
-        if(cachedLength < listItemsLength){
+        if (cachedLength < listItemsLength) {
             const skip = this._skipHandler(rundownStr, 2, `[SKIPPER] Noticed new stories in rundown ${rundownStr}. Skipping..`);
-            if(skip) return true;
+            if (skip) return true;
             logger(`[SKIPPER] Starting processing new stories in ${rundownStr}`, "blue");
-        } 
+        }
 
         // If there is more than 5 stories deleted - delay twice
-        if(cachedLength> 5+listItemsLength ){
+        if (cachedLength > 5 + listItemsLength) {
             const skip = this._skipHandler(rundownStr, 1, `[SKIPPER] Noticed batch delete in rundown ${rundownStr}. Skipping...`);
-            if(skip) return true;
+            if (skip) return true;
             logger(`[SKIPPER] Starting processing deleted stories in ${rundownStr}`, "blue");
         }
-         
+
         this.skippedRundowns[rundownStr] = false;
         return false;
 
     }
 
-    _skipHandler(rundownStr, skipCounter, logMessage){
-        
-        if(this.skippedRundowns[rundownStr] === false){
+    _skipHandler(rundownStr, skipCounter, logMessage) {
+
+        if (this.skippedRundowns[rundownStr] === false) {
             this.skippedRundowns[rundownStr] = skipCounter;
-            logger(logMessage,"green");
+            logger(logMessage, "green");
             return true;
         }
-        
-        if(this.skippedRundowns[rundownStr]>0){
+
+        if (this.skippedRundowns[rundownStr] > 0) {
             this.skippedRundowns[rundownStr]--;
             return true;
         }

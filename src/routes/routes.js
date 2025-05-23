@@ -50,29 +50,21 @@ router.post('/set-item', async (req, res) => {
   }
 });
 
-/* ---- This route is deprecated - since apply/ok from plugin not triggering it anymore ---- //
+
 
 // Post http://serverAddr:4001/api/update-item
 router.post('/update-item', async (req, res) => {
   try {
-      const item = req.body;
-      
-      // We check here if the item that should be modified registered in the system
-      //If not, we not proceed, and return save error
-      if(itemsHash.isUsed(item.gfxItem)){
-        await sqlService.updateItemFromFront(item);
-        await itemsService.updateDuplicates(item);
-        res.json("");
-      } else {
-        res.json({error:"Error!\nItem not registered."});
-      }
-      
+    const item = req.body;
+    await sqlService.updateItemFromFront(item);
+    await itemsService.updateDuplicates(item);
+    res.json("");
+
   } catch (error) {
-      console.error('Error processing JSON data:', error);
-      res.status(400).json("Error processing JSON data");
+    console.error('Error processing JSON data:', error);
+    res.status(400).json("Error processing JSON data");
   }
 });
-*/
 
 // **************** DEBUGGING *****************/ 
 

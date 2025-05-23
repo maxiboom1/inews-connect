@@ -173,16 +173,12 @@ async function mosMsgFromHost(event) {
         const values = iframe.contentWindow.getItemData();
         values.gfxItem = iframe.contentWindow.getGfxItem();
         
-        /*  ---- Allow apply/ok keys to update backend instantly (should also enable the route on backend) ---- //
         const response = await fetchData(`${originUrl}/api/update-item`, "POST", JSON.stringify(values));
-        
-        //This handles case when user open existing item, then click "save", and apply
-        //This causes bug. In this case servers returns error. We handle this error here
         if(response.error !== undefined){
            showError(response.error);
            return;
         }
-        */
+        
         
         const updatedMosMsg = iframe.contentWindow.createMosMessage(values.gfxItem);
         event.source.postMessage(updatedMosMsg, event.origin);
@@ -232,11 +228,6 @@ async function renderItem(templateId, gfxItem, localItem){
     
     const itemFromDb = await fetchData(`${originUrl}/api/get-item-data/${gfxItem}`, "GET");
 
-    if(JSON.stringify(localItem.data) !== JSON.stringify(itemFromDb.data)){
-        console.log('Not Equal!');
-    } else {
-        console.log('Equal!');
-    }
     // Here, we set item data depends of fetched from our sql - if no data in sql - we load data from NRCS story
     const itemData = itemFromDb.data === "N/A" ? localItem.data : itemFromDb.data//.replace(/\\'/g, '%27');
     const itemName = itemFromDb.data === "N/A" ? localItem.name :itemFromDb.name;

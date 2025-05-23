@@ -4,7 +4,7 @@ const appConfig =JSON.parse(readFileSync('./config.json', 'utf8'));
 
 
 // ************* Advanced application configuration *************
-appConfig.version = "3.2.5"; 
+appConfig.version = "3.3.0"; 
 appConfig.pullInterval = 1000;  
 appConfig.ftpSiteFormat = "2nsml";
 appConfig.conn.maxConnections = 1;

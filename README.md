@@ -23,6 +23,10 @@ Inews-Connect is a service that retrieves rundown data from Avid iNews, caches i
 
 ## Logs
 
+### Version 3.3.0
+- Rollback - unfortunately - I have to rollback to 3.1.0 - the version before I implemented the single monitoring followed by what loaded in NewsArts.
+So, there is still TCP implemented, only to handle the reset command. 
+
 ### Version 3.2.5
 - TCP handler for iNewsC-itemUpdate-{uid}. Now I need to implement the logic - i should 
 

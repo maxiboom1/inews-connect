@@ -102,25 +102,18 @@ class StoryItemManager {
     }
     
     async processStoryItem(itemId, itemProp) {
-        console.log("xxx")
         const dupId = this.isAlreadyRegistered(itemId, this.cacheAttachmentsIds);
         //case-1
         if (dupId) {
-            await this.updateExistingItem(itemId, itemProp);
-            await this.updateDuplicates(itemProp);
-            console.log("1");
             await this.handleDuplicateItem(itemId, dupId, itemProp);
         //case-2
         } else if (!this.cacheAttachmentsIds.includes(itemId) && itemsHash.isUsed(itemId)) {
-            console.log("2")
             await this.handleNewItem(itemId, itemProp);
         //case-3
         } else if (!this.cacheAttachmentsIds.includes(itemId)) {
             await this.registerNewItem(itemId, itemProp);
-            console.log("3")
         //case-4
         } else {
-            console.log("4")
             await this.updateExistingItem(itemId, itemProp);
         }
     }
@@ -146,7 +139,6 @@ class StoryItemManager {
     async updateExistingItem(itemId, item) {
         item.rundown = this.rundownId;
         item.story = this.storyId;
-        console.log(item)
         if (item.ord !== this.cachedAttachments[itemId].ord) {
             await sqlService.updateItemOrd(this.rundownStr,item);
             logger(`[ITEM] Item reordered in ${this.rundownStr}, story ${this.story.storyName}`);
