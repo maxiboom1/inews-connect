@@ -231,8 +231,7 @@ function renderTemplate(templateId) {
 async function renderItem(templateId, gfxItem, localItem){
     
     const itemFromDb = await fetchData(`${originUrl}/api/get-item-data/${gfxItem}`, "GET");
-    console.log('Local Item data: ', itemFromDb.data);
-    console.log('SQL Item data: ', localItem.data);
+
     if(JSON.stringify(localItem.data) !== JSON.stringify(itemFromDb.data)){
         console.log('Not Equal!');
     } else {

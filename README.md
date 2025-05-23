@@ -23,6 +23,9 @@ Inews-Connect is a service that retrieves rundown data from Avid iNews, caches i
 
 ## Logs
 
+### Version 3.2.5
+- TCP handler for iNewsC-itemUpdate-{uid}. Now I need to implement the logic - i should 
+
 ### Version 3.2.4
 - Aligned all the escaping og apostrophe and AMP in the system.
 - Removed background-color from pluginPanel css.

@@ -379,6 +379,21 @@ class SqlService {
         }
 
     } 
+
+    async getItemByUid(uid) {
+        const values = { uid };
+        const sqlQuery = `
+            SELECT * FROM ngn_inews_items WHERE uid = @uid;
+        `;
+        try {
+            const result = await db.execute(sqlQuery, values);
+            if (result.rowsAffected[0] === 0) return null;
+            return result.recordset[0];
+        } catch (error) {
+            console.error('Error fetching item by UID:', error);
+            return null;
+        }
+    }
     
 // ********************* FRONT-TRIGGERED ITEMS FUNCTIONS ********************** //
 

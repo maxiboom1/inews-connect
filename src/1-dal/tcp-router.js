@@ -1,4 +1,5 @@
 import processor from '../services/inews-service.js';
+import sqlService from '../services/sql-service.js';
 import logger from '../utilities/logger.js';
 
 export async function handleTcpMessage(socket, cmd) {
@@ -38,11 +39,27 @@ export async function handleTcpMessage(socket, cmd) {
             socket.write(`iNewsC-unload-${uid}-OK\0`);
         } else {
             socket.write(`iNewsC-unload-${uid}-${result.error}\0`);
-        }
-        
-        
-
-    } else {
+        } 
+    // Item update 
+    } else if(cmd.startsWith('iNewsC-itemUpdate-')){
+        const uid = cmd.split('-')[2];
+        itemUpdateFromNA(convertToArray(uid));
+        socket.write(`iNewsC-itemUpdate-OK\0`);
+    } 
+    
+    else {
         socket.write(`iNewsC-status-ERROR-Unknown command\0`);
     }
+}
+
+async function itemUpdateFromNA(itemsUidArr){
+    for(const uid of itemsUidArr){
+        const item = await sqlService.getItemByUid(uid);
+        console.log(item);
+        //Get this item from sql
+    }
+}
+
+function convertToArray(itemsStr){
+    return itemsStr.split(',').map(Number);
 }
