@@ -49,7 +49,7 @@ class RundownProcessor {
             if(this.reset.armed){
                 logger(`[TCP] Got reload command for ${this.reset.rundownStr}. Starting...`,"yellow");
                 await this.resetRundown();
-                logger("[TCP] Rundown reload done.");
+                logger("[TCP] Rundown reload done.","yellow");
             }
             await this.processRundown(rundownStr);
         }
