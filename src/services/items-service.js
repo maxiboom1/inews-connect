@@ -148,6 +148,7 @@ class StoryItemManager {
 
         if (item.name !== this.cachedAttachments[itemId].name) {
             await sqlService.updateItemSlugAndData(this.rundownStr, item);
+            //await this.updateDuplicates(item);
             logger(`[ITEM] Item ${item.name} modified in ${this.rundownStr}, story ${this.story.storyName}`);
         }
     }

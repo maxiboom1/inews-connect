@@ -1,6 +1,7 @@
 import processor from '../services/inews-service.js';
 import sqlService from '../services/sql-service.js';
 import logger from '../utilities/logger.js';
+import itemsHash from './items-hashmap.js';
 
 export async function handleTcpMessage(socket, cmd) {
     logger(`[TCP] Received: ${cmd}`, 'yellow');
@@ -55,8 +56,17 @@ export async function handleTcpMessage(socket, cmd) {
 async function itemUpdateFromNA(itemsUidArr){
     for(const uid of itemsUidArr){
         const item = await sqlService.getItemByUid(uid);
-        console.log(item);
-        //Get this item from sql
+        console.log(itemsHash.isDuplicate());
+        
+        /*
+        Now, once we got the edited item , we need to check:
+            
+            a. is he duplicate? ==> find its master item, update him, and sync duplicates.
+            b. is he HAS duplicates? ==> update him, and sync duplicates.
+            c. is he single uniq? ==> just update him
+            d. Also, in every case, add to tag of masters the NA tag
+        
+        */
     }
 }
 
