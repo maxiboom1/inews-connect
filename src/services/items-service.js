@@ -102,18 +102,25 @@ class StoryItemManager {
     }
     
     async processStoryItem(itemId, itemProp) {
+        console.log("xxx")
         const dupId = this.isAlreadyRegistered(itemId, this.cacheAttachmentsIds);
         //case-1
         if (dupId) {
+            await this.updateExistingItem(itemId, itemProp);
+            await this.updateDuplicates(itemProp);
+            console.log("1");
             await this.handleDuplicateItem(itemId, dupId, itemProp);
         //case-2
         } else if (!this.cacheAttachmentsIds.includes(itemId) && itemsHash.isUsed(itemId)) {
+            console.log("2")
             await this.handleNewItem(itemId, itemProp);
         //case-3
         } else if (!this.cacheAttachmentsIds.includes(itemId)) {
             await this.registerNewItem(itemId, itemProp);
+            console.log("3")
         //case-4
         } else {
+            console.log("4")
             await this.updateExistingItem(itemId, itemProp);
         }
     }
@@ -123,7 +130,6 @@ class StoryItemManager {
         // This insertion swaps the id from inews to its dupId, and returns in the end for duplicate caching 
         this.story.attachments[dupId] = this.story.attachments[itemId];
         delete this.story.attachments[itemId];
-    
         await sqlService.updateItemOrd(this.rundownStr, {
             itemId: dupId,
             rundownId: this.rundownId,
@@ -140,7 +146,7 @@ class StoryItemManager {
     async updateExistingItem(itemId, item) {
         item.rundown = this.rundownId;
         item.story = this.storyId;
-
+        console.log(item)
         if (item.ord !== this.cachedAttachments[itemId].ord) {
             await sqlService.updateItemOrd(this.rundownStr,item);
             logger(`[ITEM] Item reordered in ${this.rundownStr}, story ${this.story.storyName}`);
@@ -148,7 +154,6 @@ class StoryItemManager {
 
         if (item.name !== this.cachedAttachments[itemId].name) {
             await sqlService.updateItemSlugAndData(this.rundownStr, item);
-            //await this.updateDuplicates(item);
             logger(`[ITEM] Item ${item.name} modified in ${this.rundownStr}, story ${this.story.storyName}`);
         }
     }

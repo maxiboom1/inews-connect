@@ -489,6 +489,41 @@ class SqlService {
             console.error('Error on updating GFX item:', error);
         }
     }
+
+    // This func is triggered from a web page, when the user clicks "save" 
+    async updateItemFromFront(item) { // Expect: {name, data, scripts, templateId, productionId, gfxItem}
+        const values = {
+            name: item.name,
+            lastupdate: createTick(),
+            production: item.productionId,
+            template: item.templateId,
+            data: item.data,
+            scripts: item.scripts,
+            enabled: 1,
+            tag: "", 
+            uuid: item.gfxItem
+        };
+
+        const sqlQuery = `
+            UPDATE ngn_inews_items
+            SET name = @name,
+                lastupdate = @lastupdate,
+                production = @production,
+                template = @template,
+                data = @data,
+                scripts = @scripts,
+                enabled = @enabled,
+                tag = @tag
+            WHERE uuid = @uuid;`;
+
+        try {
+            // Execute the update query with the provided values
+            await db.execute(sqlQuery, values);
+            logger(`Item ${item.gfxItem} updated from the plugin`);
+        } catch (error) {
+            console.error('Error on updating GFX item:', error);
+        }
+    }
     
 // ********************* LAST UPDATE && ORD LAST UPDATE FUNCTIONS ********************** //
     
