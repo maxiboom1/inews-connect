@@ -163,7 +163,7 @@ async function mosMsgFromHost(event) {
         // LocalItem object constructor
         const localItem = {
             name: extractTagContent(message, "itemSlug"),
-            data: extractTagContent(message, "gfxData").replace(/__APOSTROPHE__/g, "'").replace(/__AMP__/g,"&")
+            data: extractTagContent(message, "gfxData").replace(/\\__APOSTROPHE__/g, "%27").replace(/__AMP__/g,"%26")
         }
         renderItem(templateId, gfxItem, localItem);
     }
@@ -229,7 +229,7 @@ async function renderItem(templateId, gfxItem, localItem){
     const itemFromDb = await fetchData(`${originUrl}/api/get-item-data/${gfxItem}`, "GET");
 
     // Here, we set item data depends of fetched from our sql - if no data in sql - we load data from NRCS story
-    const itemData = itemFromDb.data === "N/A" ? localItem.data : itemFromDb.data//.replace(/\\'/g, '%27');
+    const itemData = itemFromDb.data === "N/A" ? localItem.data : itemFromDb.data.replace(/\\'/g, '%27');
     const itemName = itemFromDb.data === "N/A" ? localItem.name :itemFromDb.name;
 
     let url = `${originUrl}/templates/${templateId}.html`;
